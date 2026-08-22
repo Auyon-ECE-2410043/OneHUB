@@ -39,7 +39,10 @@ router.post("/register", async (req, res) => {
     // Generate token
     const token = jwt.sign({ id: user._id, role: user.role }, JWT_SECRET, { expiresIn: "7d" });
     
-    res.status(201).json({ token, user: { id: user._id, name: user.name, email: user.email, role: user.role } });
+    const userObj = user.toObject();
+    delete userObj.passwordHash;
+
+    res.status(201).json({ token, user: userObj });
   } catch (err) {
     res.status(500).json({ error: err.message });
   }
@@ -58,7 +61,10 @@ router.post("/login", async (req, res) => {
 
     const token = jwt.sign({ id: user._id, role: user.role }, JWT_SECRET, { expiresIn: "7d" });
     
-    res.json({ token, user: { id: user._id, name: user.name, email: user.email, role: user.role, department: user.department } });
+    const userObj = user.toObject();
+    delete userObj.passwordHash;
+
+    res.json({ token, user: userObj });
   } catch (err) {
     res.status(500).json({ error: err.message });
   }
@@ -67,9 +73,12 @@ router.post("/login", async (req, res) => {
 // GET /api/auth/me
 router.get("/me", requireAuth, async (req, res) => {
   try {
-    const user = await User.findById(req.user.id).select("-passwordHash");
+    const user = await User.findById(req.user.id);
     if (!user) return res.status(404).json({ error: "User not found" });
-    res.json({ user });
+
+    const userObj = user.toObject();
+    delete userObj.passwordHash;
+    res.json({ user: userObj });
   } catch (err) {
     res.status(500).json({ error: err.message });
   }
@@ -100,15 +109,21 @@ router.put("/change-password", requireAuth, async (req, res) => {
 // PUT /api/auth/profile
 router.put("/profile", requireAuth, async (req, res) => {
   try {
-    const { phone, bloodGroup } = req.body;
+    const { name, phone, bloodGroup, rollNo, batch } = req.body;
     const user = await User.findById(req.user.id);
     if (!user) return res.status(404).json({ error: "User not found" });
     
+    if (name !== undefined) user.name = name;
     if (phone !== undefined) user.phone = phone;
     if (bloodGroup !== undefined) user.bloodGroup = bloodGroup;
+    if (rollNo !== undefined) user.rollNo = rollNo;
+    if (batch !== undefined) user.batch = batch;
     await user.save();
     
-    res.json({ message: "Profile updated successfully", user });
+    const userObj = user.toObject();
+    delete userObj.passwordHash;
+
+    res.json({ message: "Profile updated successfully", user: userObj });
   } catch (err) {
     res.status(500).json({ error: err.message });
   }

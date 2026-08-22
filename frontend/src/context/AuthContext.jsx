@@ -54,10 +54,16 @@ export function AuthProvider({ children }) {
     return await authService.verifyOtp(email, otp);
   };
 
+  const resetPassword = async (email, otp, newPassword) => {
+    const data = await authService.resetPassword(email, otp, newPassword);
+    setToken(data.token);
+    setUser(data.user);
+    return data;
+  };
+
   const updateUser = (updatedUser) => {
-    const merged = { ...user, ...updatedUser };
-    setUser(merged);
-    localStorage.setItem("user", JSON.stringify(merged));
+    setUser(updatedUser);
+    localStorage.setItem("user", JSON.stringify(updatedUser));
   };
 
   const value = {

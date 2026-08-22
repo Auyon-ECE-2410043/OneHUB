@@ -15,7 +15,7 @@ import {
 } from "lucide-react";
 
 export function Profile() {
-  const { user } = useAuth();
+  const { user, updateUser } = useAuth();
 
   const [passwordForm, setPasswordForm] = useState({
     currentPassword: "",
@@ -24,6 +24,9 @@ export function Profile() {
   });
   
   const [profileForm, setProfileForm] = useState({
+    name: user?.name || "",
+    rollNo: user?.rollNo || "",
+    batch: user?.batch || "",
     phone: user?.phone || "",
     bloodGroup: user?.bloodGroup || "",
   });
@@ -38,7 +41,8 @@ export function Profile() {
     setProfileSubmitting(true);
     setProfileMsg({ text: "", type: "" });
     try {
-      await authService.updateProfile(profileForm);
+      const response = await authService.updateProfile(profileForm);
+      if (response.user) updateUser(response.user);
       setProfileMsg({ text: "Profile updated successfully.", type: "success" });
     } catch (err) {
       setProfileMsg({ text: err.message || "Failed to update profile.", type: "error" });
@@ -161,6 +165,47 @@ export function Profile() {
           </div>
 
           <form onSubmit={handleProfileSubmit} className="space-y-4 max-w-lg">
+            <div>
+              <label className="block text-xs font-semibold uppercase text-slate-600 mb-1">
+                Full Name
+              </label>
+              <input
+                type="text"
+                placeholder="e.g., John Doe"
+                value={profileForm.name}
+                onChange={(e) => setProfileForm({ ...profileForm, name: e.target.value })}
+                className="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:ring-2 focus:ring-indigo-500 focus:outline-none"
+              />
+            </div>
+            
+            <div className="grid grid-cols-2 gap-4">
+              <div>
+                <label className="block text-xs font-semibold uppercase text-slate-600 mb-1">
+                  Roll Number
+                </label>
+                <input
+                  type="text"
+                  placeholder="e.g., 2410001"
+                  value={profileForm.rollNo}
+                  onChange={(e) => setProfileForm({ ...profileForm, rollNo: e.target.value })}
+                  className="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:ring-2 focus:ring-indigo-500 focus:outline-none"
+                />
+              </div>
+              
+              <div>
+                <label className="block text-xs font-semibold uppercase text-slate-600 mb-1">
+                  Batch / Series
+                </label>
+                <input
+                  type="text"
+                  placeholder="e.g., 24"
+                  value={profileForm.batch}
+                  onChange={(e) => setProfileForm({ ...profileForm, batch: e.target.value })}
+                  className="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:ring-2 focus:ring-indigo-500 focus:outline-none"
+                />
+              </div>
+            </div>
+
             <div>
               <label className="block text-xs font-semibold uppercase text-slate-600 mb-1">
                 Phone Number
