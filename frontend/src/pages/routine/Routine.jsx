@@ -7,7 +7,7 @@ import { Calendar, Clock, MapPin, User as UserIcon } from "lucide-react";
 const DAYS = ["Saturday", "Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday"];
 const START_HOUR = 8; // 08:00
 const END_HOUR = 17; // 17:00
-const HOUR_HEIGHT = 70; // px per hour
+const HOUR_HEIGHT = 110; // px per hour
 
 export function Routine() {
   const { user } = useAuth();
@@ -204,7 +204,7 @@ export function Routine() {
                     return (
                       <div
                         key={c._id}
-                        className={`absolute left-1 right-1 sm:left-2 sm:right-2 rounded-xl p-2 sm:p-3 overflow-hidden shadow-sm transition-all hover:-translate-y-0.5 hover:shadow-md cursor-pointer border-l-4 group ${
+                        className={`absolute left-1 right-1 sm:left-2 sm:right-2 rounded-xl p-1.5 sm:p-2 overflow-hidden shadow-sm transition-all hover:-translate-y-0.5 hover:shadow-md cursor-pointer border-l-4 group ${
                           isSessional
                             ? "bg-indigo-50 border-indigo-500 hover:bg-indigo-100"
                             : "bg-sky-50 border-sky-500 hover:bg-sky-100"
@@ -213,14 +213,14 @@ export function Routine() {
                         title={`${c.courseCode} - ${c.courseName}\nRoom: ${c.roomOrLab}\nTeacher: ${c.teacherInitials.join(", ")}`}
                       >
                         <div className="h-full flex flex-col relative z-10">
-                          <h4 className={`text-xs sm:text-sm font-bold truncate ${isSessional ? "text-indigo-800" : "text-sky-800"}`}>
+                          <h4 className={`text-xs sm:text-sm font-bold truncate shrink-0 ${isSessional ? "text-indigo-800" : "text-sky-800"}`}>
                             {c.courseCode}
                           </h4>
-                          <p className={`text-[10px] sm:text-xs truncate font-medium mt-0.5 ${isSessional ? "text-indigo-600" : "text-sky-600"}`}>
+                          <p className={`text-[10px] sm:text-xs truncate font-medium mt-0.5 shrink-0 ${isSessional ? "text-indigo-600" : "text-sky-600"}`}>
                             {c.startTime} - {c.endTime}
                           </p>
                           
-                          <div className="mt-auto space-y-1">
+                          <div className="mt-auto space-y-0.5 pt-1">
                             <div className={`flex items-center text-[10px] sm:text-xs font-semibold ${isSessional ? "text-indigo-700" : "text-sky-700"}`}>
                               <MapPin className="w-3 h-3 mr-1 shrink-0" />
                               <span className="truncate">{c.roomOrLab}</span>
