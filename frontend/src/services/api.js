@@ -1,3 +1,10 @@
+/**
+ * File: api.js
+ * Description: React component rendering the api.js UI interface.
+ * 
+ * This file is part of the RUET OneHub Project.
+ */
+
 import axios from "axios";
 
 const API_BASE_URL = import.meta.env.VITE_API_URL || "http://localhost:5000/api";

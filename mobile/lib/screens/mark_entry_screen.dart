@@ -1,3 +1,8 @@
+// ==========================================
+// File: mark_entry_screen.dart
+// Description: Flutter screen widget for the mark_entry view.
+// ==========================================
+
 import 'package:flutter/material.dart';
 import '../services/mark_service.dart';
 import '../services/course_service.dart';

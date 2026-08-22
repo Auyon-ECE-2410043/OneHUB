@@ -1,3 +1,10 @@
+/**
+ * File: constants.js
+ * Description: React component rendering the constants.js UI interface.
+ * 
+ * This file is part of the RUET OneHub Project.
+ */
+
 export const ROLES = {
   STUDENT: "student",
   FACULTY: "faculty",

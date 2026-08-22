@@ -1,3 +1,8 @@
+// ==========================================
+// File: weekly_routine_screen.dart
+// Description: Renders the weekly class routine in a native Flutter calendar view.
+// ==========================================
+
 import 'package:flutter/material.dart';
 import '../services/student_service.dart';
 import 'package:provider/provider.dart';

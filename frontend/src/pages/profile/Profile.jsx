@@ -1,3 +1,10 @@
+/**
+ * File: Profile.jsx
+ * Description: Allows users to view and update their personal details and password.
+ * 
+ * This file is part of the RUET OneHub Project.
+ */
+
 import { useState } from "react";
 import { useAuth } from "../../context/AuthContext";
 import authService from "../../services/authService";

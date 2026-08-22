@@ -1,3 +1,10 @@
+/**
+ * File: Dashboard.jsx
+ * Description: The main dashboard overview after a user logs in.
+ * 
+ * This file is part of the RUET OneHub Project.
+ */
+
 import { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
 import { motion } from "framer-motion";

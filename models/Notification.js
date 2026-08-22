@@ -1,3 +1,10 @@
+/**
+ * File: Notification.js
+ * Description: Mongoose database schema definition for Notification.
+ * 
+ * This file is part of the RUET OneHub Project.
+ */
+
 const mongoose = require("mongoose");
 
 const notificationSchema = new mongoose.Schema(

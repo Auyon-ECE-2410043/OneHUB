@@ -1,3 +1,8 @@
+// ==========================================
+// File: course_assignments_screen.dart
+// Description: Flutter screen widget for the course_assignments view.
+// ==========================================
+
 import 'package:flutter/material.dart';
 import '../services/course_service.dart';
 import '../services/api_service.dart';

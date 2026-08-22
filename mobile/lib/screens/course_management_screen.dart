@@ -1,3 +1,8 @@
+// ==========================================
+// File: course_management_screen.dart
+// Description: Flutter screen widget for the course_management view.
+// ==========================================
+
 import 'package:flutter/material.dart';
 import '../services/course_service.dart';
 

@@ -1,3 +1,10 @@
+/**
+ * File: authService.js
+ * Description: Service layer for making API calls related to auth.
+ * 
+ * This file is part of the RUET OneHub Project.
+ */
+
 import api from "./api";
 
 export const authService = {

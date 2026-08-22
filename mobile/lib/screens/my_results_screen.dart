@@ -1,3 +1,8 @@
+// ==========================================
+// File: my_results_screen.dart
+// Description: Flutter screen widget for the my_results view.
+// ==========================================
+
 import 'package:flutter/material.dart';
 import '../services/mark_service.dart';
 

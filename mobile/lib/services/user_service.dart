@@ -1,3 +1,8 @@
+// ==========================================
+// File: user_service.dart
+// Description: Flutter service class handling API requests for user.
+// ==========================================
+
 import 'api_service.dart';
 
 class UserService {

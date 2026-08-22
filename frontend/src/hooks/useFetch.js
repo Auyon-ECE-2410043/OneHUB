@@ -1,3 +1,10 @@
+/**
+ * File: useFetch.js
+ * Description: React component rendering the useFetch.js UI interface.
+ * 
+ * This file is part of the RUET OneHub Project.
+ */
+
 import { useState, useEffect, useCallback } from "react";
 
 export function useFetch(fetchFn, deps = []) {

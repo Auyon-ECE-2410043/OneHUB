@@ -1,3 +1,10 @@
+/**
+ * File: Modal.jsx
+ * Description: React component rendering the Modal UI interface.
+ * 
+ * This file is part of the RUET OneHub Project.
+ */
+
 import { useEffect } from "react";
 import { X } from "lucide-react";
 

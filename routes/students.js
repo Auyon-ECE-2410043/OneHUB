@@ -1,3 +1,10 @@
+/**
+ * File: students.js
+ * Description: Admin endpoints to manage student records and import student data.
+ * 
+ * This file is part of the RUET OneHub Project.
+ */
+
 const express = require("express");
 const User = require("../models/User");
 const { requireAuth, requireRole } = require("../middleware/auth");

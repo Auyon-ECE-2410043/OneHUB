@@ -1,3 +1,10 @@
+/**
+ * File: faculty.js
+ * Description: Handles faculty directory and fetching professor profiles.
+ * 
+ * This file is part of the RUET OneHub Project.
+ */
+
 const express = require("express");
 const bcrypt = require("bcryptjs");
 const cloudinary = require("../config/cloudinary");

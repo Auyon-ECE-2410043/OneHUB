@@ -1,3 +1,8 @@
+// ==========================================
+// File: course_service.dart
+// Description: Flutter service class handling API requests for course.
+// ==========================================
+
 import 'api_service.dart';
 
 class CourseService {

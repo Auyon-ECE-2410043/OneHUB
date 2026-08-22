@@ -1,3 +1,10 @@
+/**
+ * File: Maintenance.jsx
+ * Description: React component rendering the Maintenance UI interface.
+ * 
+ * This file is part of the RUET OneHub Project.
+ */
+
 
 import { HardHat } from "lucide-react";
 export default function Maintenance() {

@@ -1,3 +1,10 @@
+/**
+ * File: ProtectedRoute.jsx
+ * Description: React component rendering the ProtectedRoute UI interface.
+ * 
+ * This file is part of the RUET OneHub Project.
+ */
+
 import { Navigate, useLocation } from "react-router-dom";
 import { useAuth } from "../../context/AuthContext";
 import { PageLoader } from "./Loader";

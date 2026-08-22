@@ -1,3 +1,10 @@
+/**
+ * File: CourseList.jsx
+ * Description: React component rendering the CourseList UI interface.
+ * 
+ * This file is part of the RUET OneHub Project.
+ */
+
 import { useState, useEffect, useCallback } from "react";
 import { Link } from "react-router-dom";
 import { useAuth } from "../../context/AuthContext";

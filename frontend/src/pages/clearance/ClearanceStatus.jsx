@@ -1,3 +1,10 @@
+/**
+ * File: ClearanceStatus.jsx
+ * Description: React component rendering the ClearanceStatus UI interface.
+ * 
+ * This file is part of the RUET OneHub Project.
+ */
+
 import { useState, useEffect } from "react";
 import api from "../../services/api";
 import { ShieldCheck, CheckCircle2, Clock, AlertCircle, QrCode, Download } from "lucide-react";

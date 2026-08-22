@@ -1,3 +1,10 @@
+/**
+ * File: ManageRoutine.jsx
+ * Description: React component rendering the ManageRoutine UI interface.
+ * 
+ * This file is part of the RUET OneHub Project.
+ */
+
 import { useState, useEffect } from "react";
 import routineService from "../../services/routineService";
 import { PageLoader } from "../../components/common/Loader";

@@ -1,3 +1,10 @@
+/**
+ * File: AuthContext.jsx
+ * Description: React Context provider for managing global Auth state.
+ * 
+ * This file is part of the RUET OneHub Project.
+ */
+
 import { useState, useEffect } from "react";
 import authService from "../services/authService";
 import { AuthContext } from "./authContextInstance";

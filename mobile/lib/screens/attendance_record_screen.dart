@@ -1,3 +1,8 @@
+// ==========================================
+// File: attendance_record_screen.dart
+// Description: Flutter screen widget for the attendance_record view.
+// ==========================================
+
 import 'package:flutter/material.dart';
 import '../services/course_service.dart';
 import '../services/api_service.dart';

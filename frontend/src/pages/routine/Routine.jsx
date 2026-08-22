@@ -1,3 +1,10 @@
+/**
+ * File: Routine.jsx
+ * Description: Displays the weekly class routine in a graphical calendar grid.
+ * 
+ * This file is part of the RUET OneHub Project.
+ */
+
 import { useState, useEffect } from "react";
 import { useAuth } from "../../context/AuthContext";
 import routineService from "../../services/routineService";

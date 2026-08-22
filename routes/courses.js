@@ -1,3 +1,10 @@
+/**
+ * File: courses.js
+ * Description: Manages course creation, fetching course details, and syllabus information.
+ * 
+ * This file is part of the RUET OneHub Project.
+ */
+
 const express = require("express");
 const Course = require("../models/Course");
 const CourseAssignment = require("../models/CourseAssignment");

@@ -1,3 +1,8 @@
+// ==========================================
+// File: medical_center_screen.dart
+// Description: Flutter screen widget for the medical_center view.
+// ==========================================
+
 import 'package:flutter/material.dart';
 import '../services/student_service.dart';
 

@@ -1,3 +1,10 @@
+/**
+ * File: ErrorBoundary.jsx
+ * Description: React component rendering the ErrorBoundary UI interface.
+ * 
+ * This file is part of the RUET OneHub Project.
+ */
+
 import React from "react";
 import { AlertTriangle, RefreshCw } from "lucide-react";
 

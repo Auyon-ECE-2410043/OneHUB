@@ -1,3 +1,10 @@
+/**
+ * File: Sidebar.jsx
+ * Description: React component rendering the Sidebar UI interface.
+ * 
+ * This file is part of the RUET OneHub Project.
+ */
+
 import { NavLink } from "react-router-dom";
 import { useAuth } from "../../context/AuthContext";
 import {

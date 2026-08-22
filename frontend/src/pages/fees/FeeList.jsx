@@ -1,3 +1,10 @@
+/**
+ * File: FeeList.jsx
+ * Description: React component rendering the FeeList UI interface.
+ * 
+ * This file is part of the RUET OneHub Project.
+ */
+
 import { useState, useEffect } from "react";
 import feeService from "../../services/feeService";
 import { formatCurrency, formatDate, formatDateTime, getStatusBadge, getStatusLabel } from "../../utils/helpers";

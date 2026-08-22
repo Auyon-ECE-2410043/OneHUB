@@ -1,3 +1,10 @@
+/**
+ * File: calendar.js
+ * Description: Provides the academic calendar and holiday schedule.
+ * 
+ * This file is part of the RUET OneHub Project.
+ */
+
 const express = require("express");
 const Holiday = require("../models/Holiday");
 

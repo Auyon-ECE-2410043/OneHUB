@@ -1,3 +1,8 @@
+// ==========================================
+// File: local_notification_service.dart
+// Description: Flutter service class handling API requests for local_notification.
+// ==========================================
+
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:timezone/data/latest_all.dart' as tz;
 import 'package:timezone/timezone.dart' as tz;

@@ -1,3 +1,10 @@
+/**
+ * File: attendance.js
+ * Description: Allows faculty to take attendance and students to view their attendance records.
+ * 
+ * This file is part of the RUET OneHub Project.
+ */
+
 const express = require("express");
 const Attendance = require("../models/Attendance");
 const { requireAuth, requireRole } = require("../middleware/auth");

@@ -1,3 +1,10 @@
+/**
+ * File: MedicalAppointment.js
+ * Description: Mongoose database schema definition for MedicalAppointment.
+ * 
+ * This file is part of the RUET OneHub Project.
+ */
+
 const mongoose = require("mongoose");
 
 const medicalAppointmentSchema = new mongoose.Schema(

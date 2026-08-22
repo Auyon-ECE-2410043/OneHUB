@@ -1,3 +1,10 @@
+/**
+ * File: notifications.js
+ * Description: Handles pushing and fetching in-app notifications and reminders.
+ * 
+ * This file is part of the RUET OneHub Project.
+ */
+
 const express = require("express");
 const Notification = require("../models/Notification");
 const { requireAuth } = require("../middleware/auth");

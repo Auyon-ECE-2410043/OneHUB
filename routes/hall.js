@@ -1,3 +1,10 @@
+/**
+ * File: hall.js
+ * Description: Provides API endpoints for students to apply for residential halls and admins to manage them.
+ * 
+ * This file is part of the RUET OneHub Project.
+ */
+
 const express = require("express");
 const multer = require("multer");
 const cloudinary = require("../config/cloudinary");

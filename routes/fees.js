@@ -1,3 +1,10 @@
+/**
+ * File: fees.js
+ * Description: Processes student fee payments and tracks due balances.
+ * 
+ * This file is part of the RUET OneHub Project.
+ */
+
 const express = require("express");
 const Fee = require("../models/Fee");
 const { requireAuth, requireRole } = require("../middleware/auth");

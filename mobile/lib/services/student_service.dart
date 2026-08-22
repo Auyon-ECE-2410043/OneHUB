@@ -1,3 +1,8 @@
+// ==========================================
+// File: student_service.dart
+// Description: Flutter service class handling API requests for student.
+// ==========================================
+
 import 'api_service.dart';
 
 class StudentService {

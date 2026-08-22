@@ -1,3 +1,10 @@
+/**
+ * File: User.js
+ * Description: Mongoose schema for system users (Students, Faculty, Admins).
+ * 
+ * This file is part of the RUET OneHub Project.
+ */
+
 const mongoose = require("mongoose");
 
 const userSchema = new mongoose.Schema(

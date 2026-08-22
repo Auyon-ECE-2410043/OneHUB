@@ -1,3 +1,10 @@
+/**
+ * File: auth.js
+ * Description: Handles user authentication, login, registration, and profile updates.
+ * 
+ * This file is part of the RUET OneHub Project.
+ */
+
 const jwt = require("jsonwebtoken");
 const SystemSettings = require("../models/SystemSettings");
 

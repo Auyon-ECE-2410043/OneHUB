@@ -1,3 +1,10 @@
+/**
+ * File: ClassSchedule.js
+ * Description: Mongoose schema for weekly routine and class timings.
+ * 
+ * This file is part of the RUET OneHub Project.
+ */
+
 const mongoose = require("mongoose");
 
 const classScheduleSchema = new mongoose.Schema(

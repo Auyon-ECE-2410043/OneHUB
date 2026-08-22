@@ -1,3 +1,10 @@
+/**
+ * File: Register.jsx
+ * Description: React component rendering the Register UI interface.
+ * 
+ * This file is part of the RUET OneHub Project.
+ */
+
 import { useState, useEffect } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { toast } from "sonner";

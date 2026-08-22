@@ -1,3 +1,10 @@
+/**
+ * File: settings.js
+ * Description: Manages global system settings like maintenance mode.
+ * 
+ * This file is part of the RUET OneHub Project.
+ */
+
 
 const express = require("express");
 const router = express.Router();

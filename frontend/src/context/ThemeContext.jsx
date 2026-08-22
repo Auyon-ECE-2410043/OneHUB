@@ -1,3 +1,10 @@
+/**
+ * File: ThemeContext.jsx
+ * Description: React Context provider for managing global Theme state.
+ * 
+ * This file is part of the RUET OneHub Project.
+ */
+
 import { createContext, useContext, useEffect, useState } from "react";
 
 const ThemeContext = createContext();

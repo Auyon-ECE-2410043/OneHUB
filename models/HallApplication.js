@@ -1,3 +1,10 @@
+/**
+ * File: HallApplication.js
+ * Description: Mongoose schema representing a student's application to a residential hall.
+ * 
+ * This file is part of the RUET OneHub Project.
+ */
+
 const mongoose = require("mongoose");
 
 const HALL_NAMES = [

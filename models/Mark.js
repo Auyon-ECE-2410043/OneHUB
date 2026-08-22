@@ -1,3 +1,10 @@
+/**
+ * File: Mark.js
+ * Description: Mongoose database schema definition for Mark.
+ * 
+ * This file is part of the RUET OneHub Project.
+ */
+
 const mongoose = require("mongoose");
 
 const markSchema = new mongoose.Schema(

@@ -1,3 +1,8 @@
+// ==========================================
+// File: fee_payment_screen.dart
+// Description: Flutter screen widget for the fee_payment view.
+// ==========================================
+
 import 'package:flutter/material.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';

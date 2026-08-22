@@ -1,3 +1,10 @@
+/**
+ * File: clearance.js
+ * Description: Handles graduation clearance workflows for students.
+ * 
+ * This file is part of the RUET OneHub Project.
+ */
+
 const express = require("express");
 const crypto = require("crypto");
 const Clearance = require("../models/Clearance");

@@ -1,3 +1,10 @@
+/**
+ * File: MedicalCenter.jsx
+ * Description: React component rendering the MedicalCenter UI interface.
+ * 
+ * This file is part of the RUET OneHub Project.
+ */
+
 import { useState, useEffect } from "react";
 import api from "../../services/api";
 import { Search, Stethoscope, Droplet, Calendar, User as UserIcon, Phone, FileText } from "lucide-react";

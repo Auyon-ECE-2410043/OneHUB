@@ -1,3 +1,10 @@
+/**
+ * File: feeService.js
+ * Description: Service layer for making API calls related to fee.
+ * 
+ * This file is part of the RUET OneHub Project.
+ */
+
 import api from "./api";
 
 export const feeService = {

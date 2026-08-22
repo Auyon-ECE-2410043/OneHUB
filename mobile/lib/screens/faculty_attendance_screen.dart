@@ -1,3 +1,8 @@
+// ==========================================
+// File: faculty_attendance_screen.dart
+// Description: Flutter screen widget for the faculty_attendance view.
+// ==========================================
+
 import 'package:flutter/material.dart';
 import '../services/api_service.dart';
 import '../services/course_service.dart';

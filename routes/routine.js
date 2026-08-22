@@ -1,3 +1,10 @@
+/**
+ * File: routine.js
+ * Description: Manages the weekly class routine and schedules for students and faculty.
+ * 
+ * This file is part of the RUET OneHub Project.
+ */
+
 const express = require("express");
 const ClassSchedule = require("../models/ClassSchedule");
 const User = require("../models/User");

@@ -1,3 +1,10 @@
+/**
+ * File: marks.js
+ * Description: Manages student marks, grading, and CGPA calculation.
+ * 
+ * This file is part of the RUET OneHub Project.
+ */
+
 const express = require("express");
 const Mark = require("../models/Mark");
 const Course = require("../models/Course");

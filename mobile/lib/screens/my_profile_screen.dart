@@ -1,3 +1,8 @@
+// ==========================================
+// File: my_profile_screen.dart
+// Description: Mobile screen for viewing user profile and details.
+// ==========================================
+
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../providers/auth_provider.dart';

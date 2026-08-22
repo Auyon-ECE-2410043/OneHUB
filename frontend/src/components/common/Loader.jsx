@@ -1,3 +1,10 @@
+/**
+ * File: Loader.jsx
+ * Description: React component rendering the Loader UI interface.
+ * 
+ * This file is part of the RUET OneHub Project.
+ */
+
 import { Loader2 } from "lucide-react";
 
 export function Loader({ size = "md", text = "Loading..." }) {

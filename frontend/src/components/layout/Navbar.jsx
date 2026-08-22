@@ -1,3 +1,10 @@
+/**
+ * File: Navbar.jsx
+ * Description: React component rendering the Navbar UI interface.
+ * 
+ * This file is part of the RUET OneHub Project.
+ */
+
 import { useState } from "react";
 import { NotificationBell } from "./NotificationBell";
 import { Link, useNavigate } from "react-router-dom";

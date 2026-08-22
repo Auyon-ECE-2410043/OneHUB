@@ -1,3 +1,8 @@
+// ==========================================
+// File: academic_calendar_screen.dart
+// Description: Flutter screen widget for the academic_calendar view.
+// ==========================================
+
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import '../services/calendar_service.dart';

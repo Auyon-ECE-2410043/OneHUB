@@ -1,3 +1,10 @@
+/**
+ * File: DashboardLayout.jsx
+ * Description: React component rendering the DashboardLayout UI interface.
+ * 
+ * This file is part of the RUET OneHub Project.
+ */
+
 import { useState } from "react";
 import { Outlet } from "react-router-dom";
 import Navbar from "./Navbar";

@@ -1,3 +1,10 @@
+/**
+ * File: Registration.js
+ * Description: Mongoose database schema definition for Registration.
+ * 
+ * This file is part of the RUET OneHub Project.
+ */
+
 const mongoose = require("mongoose");
 
 const registrationSchema = new mongoose.Schema(

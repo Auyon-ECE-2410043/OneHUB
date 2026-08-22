@@ -1,3 +1,10 @@
+/**
+ * File: CourseDistributionChart.jsx
+ * Description: React component rendering the CourseDistributionChart UI interface.
+ * 
+ * This file is part of the RUET OneHub Project.
+ */
+
 import { useMemo } from 'react';
 import { PieChart, Pie, Cell, Tooltip, Legend, ResponsiveContainer } from 'recharts';
 import { useTheme } from '../../context/ThemeContext';

@@ -1,3 +1,10 @@
+/**
+ * File: helpers.js
+ * Description: React component rendering the helpers.js UI interface.
+ * 
+ * This file is part of the RUET OneHub Project.
+ */
+
 export function formatCurrency(amount) {
   if (amount === undefined || amount === null) return "৳ 0";
   return `৳ ${Number(amount).toLocaleString("en-BD")}`;

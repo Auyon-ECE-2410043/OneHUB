@@ -1,3 +1,10 @@
+/**
+ * File: reminderScheduler.js
+ * Description: Handles logic and execution for reminderScheduler.js.
+ * 
+ * This file is part of the RUET OneHub Project.
+ */
+
 const cron = require("node-cron");
 const ClassSchedule = require("../models/ClassSchedule");
 const User = require("../models/User");

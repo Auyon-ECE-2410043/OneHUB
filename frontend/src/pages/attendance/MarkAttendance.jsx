@@ -1,3 +1,10 @@
+/**
+ * File: MarkAttendance.jsx
+ * Description: React component rendering the MarkAttendance UI interface.
+ * 
+ * This file is part of the RUET OneHub Project.
+ */
+
 import { useState, useEffect } from "react";
 import { useSearchParams } from "react-router-dom";
 import courseService from "../../services/courseService";

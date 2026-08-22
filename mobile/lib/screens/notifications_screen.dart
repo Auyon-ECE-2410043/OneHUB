@@ -1,3 +1,8 @@
+// ==========================================
+// File: notifications_screen.dart
+// Description: Flutter screen widget for the notifications view.
+// ==========================================
+
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../providers/auth_provider.dart';

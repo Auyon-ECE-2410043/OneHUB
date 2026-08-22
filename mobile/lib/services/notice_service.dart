@@ -1,3 +1,8 @@
+// ==========================================
+// File: notice_service.dart
+// Description: Flutter service class handling API requests for notice.
+// ==========================================
+
 import 'api_service.dart';
 
 class NoticeService {

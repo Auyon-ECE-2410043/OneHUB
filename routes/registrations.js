@@ -1,3 +1,10 @@
+/**
+ * File: registrations.js
+ * Description: Handles student course registrations for each semester.
+ * 
+ * This file is part of the RUET OneHub Project.
+ */
+
 const express = require("express");
 const Registration = require("../models/Registration");
 const CourseAssignment = require("../models/CourseAssignment");

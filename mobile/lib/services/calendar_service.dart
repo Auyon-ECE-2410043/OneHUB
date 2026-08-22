@@ -1,3 +1,8 @@
+// ==========================================
+// File: calendar_service.dart
+// Description: Flutter service class handling API requests for calendar.
+// ==========================================
+
 import 'api_service.dart';
 
 class CalendarService {

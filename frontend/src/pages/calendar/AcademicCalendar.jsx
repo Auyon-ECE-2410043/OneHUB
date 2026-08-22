@@ -1,3 +1,10 @@
+/**
+ * File: AcademicCalendar.jsx
+ * Description: React component rendering the AcademicCalendar UI interface.
+ * 
+ * This file is part of the RUET OneHub Project.
+ */
+
 import React, { useState, useEffect } from "react";
 import { calendarService } from "../../services/calendarService";
 import { PageLoader } from "../../components/common/Loader";

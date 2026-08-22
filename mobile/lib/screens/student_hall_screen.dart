@@ -1,3 +1,8 @@
+// ==========================================
+// File: student_hall_screen.dart
+// Description: Flutter screen widget for the student_hall view.
+// ==========================================
+
 import 'package:flutter/material.dart';
 import '../services/student_service.dart';
 

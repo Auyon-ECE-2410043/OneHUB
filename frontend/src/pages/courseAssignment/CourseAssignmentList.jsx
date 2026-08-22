@@ -1,3 +1,10 @@
+/**
+ * File: CourseAssignmentList.jsx
+ * Description: React component rendering the CourseAssignmentList UI interface.
+ * 
+ * This file is part of the RUET OneHub Project.
+ */
+
 import { useState, useEffect } from "react";
 import courseService from "../../services/courseService";
 import { DEPARTMENTS, SEMESTERS, BATCHES } from "../../utils/constants";

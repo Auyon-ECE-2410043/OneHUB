@@ -1,3 +1,8 @@
+// ==========================================
+// File: api_service.dart
+// Description: Flutter service class handling API requests for api.
+// ==========================================
+
 import 'package:dio/dio.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';

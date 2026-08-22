@@ -1,3 +1,8 @@
+// ==========================================
+// File: config.dart
+// Description: Flutter utility or widget class for config.dart.
+// ==========================================
+
 import 'dart:io' show Platform;
 import 'package:flutter/foundation.dart' show kIsWeb;
 

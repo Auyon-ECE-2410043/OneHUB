@@ -1,3 +1,8 @@
+// ==========================================
+// File: clearance_status_screen.dart
+// Description: Flutter screen widget for the clearance_status view.
+// ==========================================
+
 import 'package:flutter/material.dart';
 import '../services/student_service.dart';
 

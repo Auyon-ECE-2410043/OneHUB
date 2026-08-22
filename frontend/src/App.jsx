@@ -1,3 +1,10 @@
+/**
+ * File: App.jsx
+ * Description: React component rendering the App UI interface.
+ * 
+ * This file is part of the RUET OneHub Project.
+ */
+
 import { BrowserRouter } from "react-router-dom";
 import { AuthProvider } from "./context/AuthContext";
 import AppRoutes from "./routes/AppRoutes";

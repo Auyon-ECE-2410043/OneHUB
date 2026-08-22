@@ -1,3 +1,10 @@
+/**
+ * File: NotificationBell.jsx
+ * Description: React component rendering the NotificationBell UI interface.
+ * 
+ * This file is part of the RUET OneHub Project.
+ */
+
 import { useState, useEffect } from "react";
 import { Bell, Check, Clock } from "lucide-react";
 import api from "../../services/api"; // Assuming axios instance is here

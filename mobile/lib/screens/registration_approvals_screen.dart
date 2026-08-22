@@ -1,3 +1,8 @@
+// ==========================================
+// File: registration_approvals_screen.dart
+// Description: Flutter screen widget for the registration_approvals view.
+// ==========================================
+
 import 'package:flutter/material.dart';
 import '../services/course_service.dart';
 

@@ -1,3 +1,8 @@
+// ==========================================
+// File: manage_users_screen.dart
+// Description: Flutter screen widget for the manage_users view.
+// ==========================================
+
 import 'package:flutter/material.dart';
 import '../services/user_service.dart';
 import '../services/api_service.dart';

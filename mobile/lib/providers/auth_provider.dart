@@ -1,3 +1,8 @@
+// ==========================================
+// File: auth_provider.dart
+// Description: Flutter utility or widget class for auth_provider.dart.
+// ==========================================
+
 import 'package:flutter/foundation.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import '../services/api_service.dart';

@@ -1,3 +1,10 @@
+/**
+ * File: attendanceService.js
+ * Description: Service layer for making API calls related to attendance.
+ * 
+ * This file is part of the RUET OneHub Project.
+ */
+
 import api from "./api";
 
 export const attendanceService = {

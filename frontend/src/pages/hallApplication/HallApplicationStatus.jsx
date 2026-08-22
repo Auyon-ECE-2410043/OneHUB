@@ -1,3 +1,10 @@
+/**
+ * File: HallApplicationStatus.jsx
+ * Description: React component displaying the current status of a submitted hall application.
+ * 
+ * This file is part of the RUET OneHub Project.
+ */
+
 import { useState, useEffect, useCallback } from "react";
 import hallApplicationService from "../../services/hallApplicationService";
 import { getStatusBadge, getStatusLabel } from "../../utils/helpers";

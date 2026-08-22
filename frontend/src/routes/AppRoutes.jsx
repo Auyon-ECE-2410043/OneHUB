@@ -1,3 +1,10 @@
+/**
+ * File: AppRoutes.jsx
+ * Description: React component rendering the AppRoutes UI interface.
+ * 
+ * This file is part of the RUET OneHub Project.
+ */
+
 import { lazy, Suspense, useState, useEffect } from "react";
 import { Routes, Route, Navigate } from "react-router-dom";
 import ProtectedRoute from "../components/common/ProtectedRoute";

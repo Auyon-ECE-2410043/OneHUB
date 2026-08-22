@@ -1,3 +1,8 @@
+// ==========================================
+// File: app_theme.dart
+// Description: Flutter utility or widget class for app_theme.dart.
+// ==========================================
+
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 

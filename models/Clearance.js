@@ -1,3 +1,10 @@
+/**
+ * File: Clearance.js
+ * Description: Mongoose database schema definition for Clearance.
+ * 
+ * This file is part of the RUET OneHub Project.
+ */
+
 const mongoose = require("mongoose");
 
 const clearanceSchema = new mongoose.Schema(

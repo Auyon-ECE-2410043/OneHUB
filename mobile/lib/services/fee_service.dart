@@ -1,3 +1,8 @@
+// ==========================================
+// File: fee_service.dart
+// Description: Flutter service class handling API requests for fee.
+// ==========================================
+
 import 'api_service.dart';
 
 class FeeService {

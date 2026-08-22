@@ -1,3 +1,10 @@
+/**
+ * File: CGPAAnalytics.jsx
+ * Description: React component rendering the CGPAAnalytics UI interface.
+ * 
+ * This file is part of the RUET OneHub Project.
+ */
+
 import { useState, useEffect } from "react";
 import { markService } from "../../services/markService";
 import { PageLoader } from "../../components/common/Loader";

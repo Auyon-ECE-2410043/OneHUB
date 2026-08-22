@@ -1,3 +1,10 @@
+/**
+ * File: Login.jsx
+ * Description: React component handling user login.
+ * 
+ * This file is part of the RUET OneHub Project.
+ */
+
 import { useState } from "react";
 import { Link, useNavigate, useLocation } from "react-router-dom";
 import { toast } from "sonner";

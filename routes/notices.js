@@ -1,3 +1,10 @@
+/**
+ * File: notices.js
+ * Description: Manages the notice board, allowing admins to post announcements.
+ * 
+ * This file is part of the RUET OneHub Project.
+ */
+
 const express = require("express");
 const multer = require("multer");
 const cloudinary = require("../config/cloudinary");

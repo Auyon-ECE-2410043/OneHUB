@@ -1,3 +1,10 @@
+/**
+ * File: Course.js
+ * Description: Mongoose schema for academic courses and syllabus.
+ * 
+ * This file is part of the RUET OneHub Project.
+ */
+
 const mongoose = require("mongoose");
 
 const courseSchema = new mongoose.Schema(

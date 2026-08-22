@@ -1,3 +1,10 @@
+/**
+ * File: RegistrationForm.jsx
+ * Description: React component rendering the RegistrationForm UI interface.
+ * 
+ * This file is part of the RUET OneHub Project.
+ */
+
 import { useState, useEffect, useCallback } from "react";
 import { useAuth } from "../../context/AuthContext";
 import registrationService from "../../services/registrationService";

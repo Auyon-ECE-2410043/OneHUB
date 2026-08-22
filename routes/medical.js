@@ -1,3 +1,10 @@
+/**
+ * File: medical.js
+ * Description: Manages medical center appointments and health records.
+ * 
+ * This file is part of the RUET OneHub Project.
+ */
+
 const express = require("express");
 const MedicalAppointment = require("../models/MedicalAppointment");
 const User = require("../models/User");

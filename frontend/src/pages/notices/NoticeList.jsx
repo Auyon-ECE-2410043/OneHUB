@@ -1,3 +1,10 @@
+/**
+ * File: NoticeList.jsx
+ * Description: React component rendering the NoticeList UI interface.
+ * 
+ * This file is part of the RUET OneHub Project.
+ */
+
 import { useState, useEffect } from "react";
 import { useAuth } from "../../context/AuthContext";
 import noticeService from "../../services/noticeService";

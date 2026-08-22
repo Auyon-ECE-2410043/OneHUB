@@ -1,3 +1,10 @@
+/**
+ * File: CourseDetails.jsx
+ * Description: React component rendering the CourseDetails UI interface.
+ * 
+ * This file is part of the RUET OneHub Project.
+ */
+
 import { useState, useEffect } from "react";
 import { useParams, Link } from "react-router-dom";
 import courseService from "../../services/courseService";

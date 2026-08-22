@@ -1,3 +1,10 @@
+/**
+ * File: HallApplicationForm.jsx
+ * Description: React component for students to fill out and submit their hall application.
+ * 
+ * This file is part of the RUET OneHub Project.
+ */
+
 import { useState, useEffect } from "react";
 import hallApplicationService from "../../services/hallApplicationService";
 import { HALL_NAMES, SEMESTERS } from "../../utils/constants";
