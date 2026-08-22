@@ -186,7 +186,7 @@ export function Routine() {
             </div>
 
             {/* Empty space for time labels column */}
-            <div className="w-16 sm:w-20 shrink-0 border-r border-slate-200 bg-white z-10"></div>
+            <div className="w-16 sm:w-20 shrink-0 border-r border-slate-200 z-10"></div>
 
             {/* Day Columns */}
             {DAYS.map((day) => (
