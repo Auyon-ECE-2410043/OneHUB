@@ -26,6 +26,8 @@ import {
 export function Dashboard() {
   const { user } = useAuth();
   const [loading, setLoading] = useState(true);
+  const [maintenance, setMaintenance] = useState(false);
+  const [maintenanceLoading, setMaintenanceLoading] = useState(false);
 
   // Data states
   const [coursesData, setCoursesData] = useState(null);
@@ -94,6 +96,16 @@ export function Dashboard() {
           } catch (e) {
             console.warn("Admin data fetch error", e);
           }
+
+          if (user?.role === "admin") {
+            try {
+              const { default: api } = await import("../../services/api");
+              const res = await api.get("/settings");
+              setMaintenance(res.data.maintenanceMode);
+            } catch (e) {
+              console.warn("Could not load settings", e);
+            }
+          }
         }
       } finally {
         setLoading(false);
@@ -136,20 +148,17 @@ export function Dashboard() {
       <motion.div variants={itemVariants} className="relative overflow-hidden rounded-3xl bg-gradient-to-r from-sky-700 via-sky-600 to-indigo-700 dark:from-sky-900 dark:via-sky-800 dark:to-indigo-950 p-6 sm:p-8 text-white shadow-lg shadow-sky-900/10">
         <div className="absolute top-0 right-0 -mt-10 -mr-10 w-64 h-64 bg-white/10 rounded-full blur-2xl"></div>
         <div className="relative z-10 flex flex-col md:flex-row md:items-center justify-between gap-4">
-          <div>
-            <span className="inline-block px-3 py-1 bg-white/15 backdrop-blur-md rounded-full text-xs font-semibold uppercase tracking-wider mb-2">
-              RUET Academic Portal • {user?.department || "Central"}
-            </span>
-            <h1 className="text-2xl sm:text-3xl font-bold tracking-tight">
-              Welcome back, {user?.name || "Student"}
+          
+          <div className="space-y-2 max-w-xl">
+            <h1 className="text-3xl sm:text-4xl font-extrabold tracking-tight text-white">
+              Welcome back, {user?.name.split(" ")[0]}!
             </h1>
-            <p className="text-sky-100 text-sm mt-1 max-w-xl">
-              {user?.role === "student" &&
-                `Enrolled in Batch '${user?.batch || "N/A"} — Department of ${user?.department || "ECE"}.`}
-              {user?.role === "faculty" &&
-                `Faculty Member • Department of ${user?.department || "ECE"}.`}
-              {(user?.role === "admin" || user?.role === "hall_admin") &&
-                "System Administrator • Academic & Hall Management Control Center."}
+            <p className="text-sky-100 text-sm sm:text-base leading-relaxed">
+              {user?.role === "student"
+                ? "Here's what's happening with your courses, routine, and fees today."
+                : user?.role === "faculty"
+                ? "Manage your assigned courses, view your teaching routine, and track student registrations."
+                : "Overview of system activity, pending registrations, and administrative tasks."}
             </p>
           </div>
 
@@ -173,13 +182,37 @@ export function Dashboard() {
               </Link>
             )}
             {user?.role === "admin" && (
-              <Link
-                to="/course-assignments"
-                className="px-4 py-2.5 bg-white text-sky-700 hover:bg-sky-50 font-semibold rounded-xl text-sm transition-smooth shadow-sm inline-flex items-center space-x-2"
-              >
-                <span>Assign Batch Courses</span>
-                <ArrowRight className="w-4 h-4" />
-              </Link>
+              <>
+                <Link
+                  to="/course-assignments"
+                  className="px-4 py-2.5 bg-white text-sky-700 hover:bg-sky-50 font-semibold rounded-xl text-sm transition-smooth shadow-sm inline-flex items-center space-x-2"
+                >
+                  <span>Assign Batch Courses</span>
+                  <ArrowRight className="w-4 h-4" />
+                </Link>
+                <button
+                  onClick={async () => {
+                    setMaintenanceLoading(true);
+                    try {
+                      const { default: api } = await import("../../services/api");
+                      const res = await api.post("/settings/maintenance");
+                      setMaintenance(res.data.maintenanceMode);
+                    } catch (e) {
+                      console.error(e);
+                    } finally {
+                      setMaintenanceLoading(false);
+                    }
+                  }}
+                  disabled={maintenanceLoading}
+                  className={`px-4 py-2.5 font-semibold rounded-xl text-sm transition-smooth shadow-sm inline-flex items-center space-x-2 ${
+                    maintenance
+                      ? "bg-rose-500 hover:bg-rose-600 text-white"
+                      : "bg-white/20 hover:bg-white/30 text-white backdrop-blur-md"
+                  }`}
+                >
+                  <span>{maintenanceLoading ? "Switching..." : maintenance ? "Maintenance: ON" : "Turn Off Website"}</span>
+                </button>
+              </>
             )}
           </div>
         </div>

@@ -1,0 +1,32 @@
+
+const express = require("express");
+const router = express.Router();
+const SystemSettings = require("../models/SystemSettings");
+const { requireAuth, requireAdmin } = require("../middleware/auth");
+
+router.get("/", async (req, res) => {
+  try {
+    let settings = await SystemSettings.findOne();
+    if (!settings) settings = await SystemSettings.create({ maintenanceMode: false });
+    res.json(settings);
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+router.post("/maintenance", requireAuth, requireAdmin, async (req, res) => {
+  try {
+    let settings = await SystemSettings.findOne();
+    if (!settings) settings = await SystemSettings.create({ maintenanceMode: false });
+    
+    settings.maintenanceMode = !settings.maintenanceMode;
+    await settings.save();
+    
+    res.json({ message: "Maintenance mode toggled", maintenanceMode: settings.maintenanceMode });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+module.exports = router;
+

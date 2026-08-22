@@ -1,6 +1,7 @@
 const jwt = require("jsonwebtoken");
+const SystemSettings = require("../models/SystemSettings");
 
-function requireAuth(req, res, next) {
+async function requireAuth(req, res, next) {
   let token = null;
   const header = req.headers.authorization;
   
@@ -16,6 +17,16 @@ function requireAuth(req, res, next) {
 
   try {
     req.user = jwt.verify(token, process.env.JWT_SECRET);
+    
+    // Check maintenance mode
+    const settings = await SystemSettings.findOne();
+    if (settings && settings.maintenanceMode && req.user.role !== "admin") {
+      return res.status(503).json({ 
+        error: "System is under maintenance.", 
+        maintenance: true 
+      });
+    }
+
     next();
   } catch (err) {
     return res.status(401).json({ error: "Invalid or expired token" });

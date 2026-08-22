@@ -1,0 +1,90 @@
+{
+  "count": 21,
+  "first": {
+    "_id": "6a789b08b135f5b4ef089997",
+    "name": "Adviser Sir",
+    "email": "adviser@ruet.ac.bd",
+    "passwordHash": "$2b$10$M3i7Jd6heNlSvbzuc7ez2eREWKz1o0f7COiM.yWy6SdfLA3rQpsgS",
+    "role": "faculty",
+    "adviserId": null,
+    "createdAt": "2026-08-09T15:21:44.709Z",
+    "updatedAt": "2026-08-09T15:21:44.709Z",
+    "__v": 0
+  },
+  "mkg": {
+    "_id": "6a798117978398818e46d098",
+    "name": "Moloy Kumar Ghosh",
+    "nameBengali": "মলয় কুমার ঘোষ",
+    "email": "moloy.kumar@ece.ruet.ac.bd",
+    "passwordHash": "$2b$10$aCUXiHi9.1j5/0ln4cemveauP5WgDV/A.JVNf5r.YNZRg1/AUCuHi",
+    "role": "faculty",
+    "department": "ECE",
+    "adviserId": null,
+    "designation": "Assistant Professor",
+    "isPhdHolder": false,
+    "isHeadOfDept": false,
+    "isOnLeave": false,
+    "phone": "880-1798185101",
+    "officeLocation": "420, 3rd floor, Academic Building-1 (CSE building), RUET",
+    "photoUrl": "https://www.ece.ruet.ac.bd/public/storage/profile/photo1281.jpg",
+    "createdAt": "2026-08-10T07:43:19.506Z",
+    "updatedAt": "2026-08-19T08:03:35.488Z",
+    "__v": 1,
+    "bloodGroup": "",
+    "previouslyEarnedCredit": 0,
+    "education": [
+      {
+        "degree": "M.Sc. in Electrical and Electronic Engineering (EEE)",
+        "institution": "Khulna University of Engineering and Technology (KUET)",
+        "year": "2025",
+        "_id": "6a856357808513fb474938ea"
+      },
+      {
+        "degree": "B.Sc. in Electrical & Computer Engineering (ECE)",
+        "institution": "Rajshahi University of Engineering and Technology (RUET)",
+        "year": "2022",
+        "_id": "6a856357808513fb474938eb"
+      },
+      {
+        "degree": "HSC",
+        "institution": "Naogaon Government College",
+        "year": "2016",
+        "_id": "6a856357808513fb474938ec"
+      },
+      {
+        "degree": "SSC",
+        "institution": "Naogaon K.D. Government High School",
+        "year": "2014",
+        "_id": "6a856357808513fb474938ed"
+      }
+    ],
+    "fieldOfResearch": [
+      "Reconfigurable Intelligent Surface (RIS)",
+      "Physical Layer Security (PLS) analysis in wireless communication",
+      "Underwater communication",
+      "Energy Harvesting in wireless communication"
+    ],
+    "firstJoined": "23rd Jan, 2024",
+    "positionHistory": [
+      {
+        "role": "Assistant Professor",
+        "duration": "09 May, 26 to                       Present",
+        "institution": "Rajshahi University of Engineering & Technology",
+        "_id": "6a856357808513fb474938e7"
+      },
+      {
+        "role": "Lecturer",
+        "duration": "23 Jan, 24 to                       09 May, 26",
+        "institution": "Rajshahi University of Engineering & Technology",
+        "_id": "6a856357808513fb474938e8"
+      },
+      {
+        "role": "Lecturer",
+        "duration": "05 Mar, 23 to                       18 Jan, 24",
+        "institution": "Varendra University",
+        "_id": "6a856357808513fb474938e9"
+      }
+    ],
+    "website": "https://ece.ruet.ac.bd/moloyghosh126"
+  }
+}

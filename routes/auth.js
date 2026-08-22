@@ -58,6 +58,15 @@ router.post("/login", async (req, res) => {
 
     const isMatch = await bcrypt.compare(password, user.passwordHash);
     if (!isMatch) return res.status(401).json({ error: "Invalid credentials" });
+    
+    const SystemSettings = require("../models/SystemSettings");
+    const settings = await SystemSettings.findOne();
+    if (settings && settings.maintenanceMode && user.role !== "admin") {
+      return res.status(503).json({ 
+        error: "System is under maintenance.", 
+        maintenance: true 
+      });
+    }
 
     const token = jwt.sign({ id: user._id, role: user.role }, JWT_SECRET, { expiresIn: "7d" });
     
