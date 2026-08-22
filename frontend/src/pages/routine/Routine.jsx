@@ -39,7 +39,9 @@ export function Routine() {
 
   // Helper to parse HH:mm to minutes from START_HOUR
   const timeToMinutesFromStart = (timeStr) => {
-    const [h, m] = timeStr.split(":").map(Number);
+    let [h, m] = timeStr.split(":").map(Number);
+    // Auto-convert 1 PM - 7 PM to 24-hour format
+    if (h >= 1 && h <= 7) h += 12;
     const totalMinutes = (h * 60 + m) - (START_HOUR * 60);
     return totalMinutes;
   };
@@ -112,7 +114,7 @@ export function Routine() {
     const isNoon = i === 12;
     const hourLabel = i > 12 ? `${i - 12}:00 PM` : `${i}:00 AM`;
     hourLines.push(
-      <div key={i} className="flex h-[70px] group">
+      <div key={i} className="flex group" style={{ height: `${HOUR_HEIGHT}px` }}>
         <div className="w-16 sm:w-20 pr-2 sm:pr-4 text-right text-[10px] sm:text-xs font-medium text-slate-400 group-hover:text-slate-600 transition-colors -mt-2.5">
           {i === 12 ? "12:00 PM" : hourLabel}
         </div>
@@ -190,7 +192,7 @@ export function Routine() {
 
             {/* Day Columns */}
             {DAYS.map((day) => (
-              <div key={day} className="flex-1 border-r last:border-r-0 border-slate-200 relative min-h-[630px] pt-[35px]">
+              <div key={day} className="flex-1 border-r last:border-r-0 border-slate-200 relative pt-[35px]" style={{ minHeight: `${(END_HOUR - START_HOUR + 1) * HOUR_HEIGHT}px` }}>
                 {/* Current Time Indicator Line */}
                 {getCurrentTimeLine(day)}
 
