@@ -109,19 +109,35 @@ export function Routine() {
   const nextUpcoming = getNextClass();
 
   // Generate background hour lines
-  const hourLines = [];
-  for (let i = START_HOUR; i <= END_HOUR; i++) {
-    const isNoon = i === 12;
-    const hourLabel = i > 12 ? `${i - 12}:00 PM` : `${i}:00 AM`;
-    hourLines.push(
-      <div key={i} className="flex group" style={{ height: `${HOUR_HEIGHT}px` }}>
-        <div className="w-16 sm:w-20 pr-2 sm:pr-4 text-right text-[10px] sm:text-xs font-medium text-slate-400 group-hover:text-slate-600 transition-colors -mt-2.5">
-          {i === 12 ? "12:00 PM" : hourLabel}
+  const TIME_SLOTS = [
+    { label: "08:00 - 08:50", start: "08:00", end: "08:50" },
+    { label: "08:50 - 09:40", start: "08:50", end: "09:40" },
+    { label: "09:40 - 10:30", start: "09:40", end: "10:30" },
+    { label: "10:30 - 10:50", start: "10:30", end: "10:50", isBreak: true },
+    { label: "10:50 - 11:40", start: "10:50", end: "11:40" },
+    { label: "11:40 - 12:30", start: "11:40", end: "12:30" },
+    { label: "12:30 - 01:20", start: "12:30", end: "01:20" },
+    { label: "01:20 - 02:30", start: "01:20", end: "02:30", isBreak: true },
+    { label: "02:30 - 03:20", start: "02:30", end: "03:20" },
+    { label: "03:20 - 04:10", start: "03:20", end: "04:10" },
+    { label: "04:10 - 05:00", start: "04:10", end: "05:00" },
+  ];
+
+  const hourLines = TIME_SLOTS.map((slot, index) => {
+    const style = getStyleForSlot(slot.start, slot.end);
+    return (
+      <div key={index} className="absolute left-0 right-0 flex group border-t border-slate-200/60" style={style}>
+        <div className="w-16 sm:w-20 pr-1 sm:pr-2 flex flex-col justify-center items-end text-right text-[10px] font-medium text-slate-500">
+          <span className="leading-tight">{slot.label.split(" - ")[0]}</span>
+          <span className="leading-tight text-slate-300 text-[8px] my-0.5">to</span>
+          <span className="leading-tight">{slot.label.split(" - ")[1]}</span>
         </div>
-        <div className="flex-1 border-t border-slate-200/60 group-hover:border-slate-300 transition-colors border-dashed"></div>
+        <div className={`flex-1 border-l border-slate-200/60 ${slot.isBreak ? 'bg-slate-100/50 flex items-center justify-center' : ''}`}>
+           {slot.isBreak && <span className="text-xs font-bold text-slate-300 tracking-widest uppercase">{slot.label.includes("01:20") ? "LUNCH BREAK" : "BREAK"}</span>}
+        </div>
       </div>
     );
-  }
+  });
 
   return (
     <div className="space-y-6 animate-in fade-in duration-300">
