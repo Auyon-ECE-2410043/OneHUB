@@ -126,14 +126,14 @@ export function Routine() {
   const hourLines = TIME_SLOTS.map((slot, index) => {
     const style = getStyleForSlot(slot.start, slot.end);
     return (
-      <div key={index} className="absolute left-0 right-0 flex group border-t border-slate-200/60" style={style}>
-        <div className="w-16 sm:w-20 pr-1 sm:pr-2 flex flex-col justify-center items-end text-right text-[10px] font-medium text-slate-500">
-          <span className="leading-tight">{slot.label.split(" - ")[0]}</span>
-          <span className="leading-tight text-slate-300 text-[8px] my-0.5">to</span>
-          <span className="leading-tight">{slot.label.split(" - ")[1]}</span>
+      <div key={index} className="absolute left-0 right-0 flex group border-t border-slate-200/80" style={style}>
+        <div className="w-16 sm:w-20 pr-1.5 sm:pr-3 flex flex-col justify-center items-end text-right text-[10px] sm:text-xs font-bold text-slate-600 tracking-tight">
+          <span className="leading-none text-slate-700">{slot.label.split(" - ")[0]}</span>
+          <span className="text-[8px] text-slate-400 my-0.5 font-medium uppercase">to</span>
+          <span className="leading-none text-slate-700">{slot.label.split(" - ")[1]}</span>
         </div>
-        <div className={`flex-1 border-l border-slate-200/60 ${slot.isBreak ? 'bg-slate-100/50 flex items-center justify-center' : ''}`}>
-           {slot.isBreak && <span className="text-xs font-bold text-slate-300 tracking-widest uppercase">{slot.label.includes("01:20") ? "LUNCH BREAK" : "BREAK"}</span>}
+        <div className={`flex-1 border-l border-slate-200/80 ${slot.isBreak ? 'bg-slate-100/70 flex items-center justify-center border-y border-dashed border-slate-300' : ''}`}>
+           {slot.isBreak && <span className="text-xs sm:text-sm font-black text-slate-400/80 tracking-[0.2em] uppercase">{slot.label.includes("01:20") ? "Lunch Break" : "Tea Break"}</span>}
         </div>
       </div>
     );
@@ -174,28 +174,28 @@ export function Routine() {
       </div>
 
       {/* Calendar Grid */}
-      <div className="bg-white rounded-2xl border border-slate-200/80 shadow-sm overflow-hidden flex flex-col h-[800px]">
-        {/* Days Header */}
-        <div className="flex border-b border-slate-200 bg-slate-50/50 sticky top-0 z-10">
-          <div className="w-16 sm:w-20 shrink-0 border-r border-slate-200"></div>
-          {DAYS.map((day) => {
-            const isToday = day === new Date().toLocaleString("en-US", { weekday: "long", timeZone: "Asia/Dhaka" });
-            return (
-              <div 
-                key={day} 
-                className={`flex-1 text-center py-3 sm:py-4 border-r last:border-r-0 border-slate-200 transition-colors ${isToday ? 'bg-sky-50/80' : ''}`}
-              >
-                <span className={`text-xs sm:text-sm font-semibold uppercase tracking-wider ${isToday ? 'text-sky-700' : 'text-slate-600'}`}>
-                  {window.innerWidth < 640 ? day.substring(0, 3) : day}
-                </span>
-                {isToday && <div className="mt-1 text-[10px] font-bold text-sky-600 bg-sky-100 rounded-full px-2 py-0.5 inline-block">TODAY</div>}
-              </div>
-            );
-          })}
-        </div>
-
-        {/* Time Grid Scrollable Area */}
+      <div className="bg-white rounded-2xl border border-slate-200/80 shadow-sm overflow-hidden flex h-[800px]">
+        {/* Scrollable Area */}
         <div className="flex-1 overflow-y-auto overflow-x-hidden relative scroll-smooth bg-slate-50/30">
+          {/* Days Header */}
+          <div className="flex border-b border-slate-200 bg-slate-50/95 backdrop-blur-sm sticky top-0 z-30 shadow-sm">
+            <div className="w-16 sm:w-20 shrink-0 border-r border-slate-200 bg-slate-50/95"></div>
+            {DAYS.map((day) => {
+              const isToday = day === new Date().toLocaleString("en-US", { weekday: "long", timeZone: "Asia/Dhaka" });
+              return (
+                <div 
+                  key={day} 
+                  className={`flex-1 text-center py-3 sm:py-4 border-r last:border-r-0 border-slate-200 transition-colors ${isToday ? 'bg-sky-50/90' : ''}`}
+                >
+                  <span className={`text-xs sm:text-sm font-semibold uppercase tracking-wider ${isToday ? 'text-sky-700' : 'text-slate-600'}`}>
+                    {window.innerWidth < 640 ? day.substring(0, 3) : day}
+                  </span>
+                  {isToday && <div className="mt-1 text-[10px] font-bold text-sky-600 bg-sky-100 rounded-full px-2 py-0.5 inline-block">TODAY</div>}
+                </div>
+              );
+            })}
+          </div>
+
           <div className="flex relative">
             
             {/* Hour Markers Background */}
