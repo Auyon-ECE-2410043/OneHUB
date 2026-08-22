@@ -1,0 +1,27 @@
+# Node modules
+node_modules/
+npm-debug.log
+yarn-error.log
+
+# Environment variables
+.env
+.env.local
+.env.development.local
+.env.test.local
+.env.production.local
+
+# Mac/Windows system files
+.DS_Store
+Thumbs.db
+
+# Build outputs
+frontend/dist/
+mobile/build/
+mobile/.dart_tool/
+
+# Logs
+logs/
+*.log
+
+# Sensitive CSVs (optional, but good for privacy)
+*.csv

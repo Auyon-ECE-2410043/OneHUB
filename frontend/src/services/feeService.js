@@ -1,0 +1,23 @@
+import api from "./api";
+
+export const feeService = {
+  // Get all fees for current student
+  getMyFees: async () => {
+    const res = await api.get("/fees");
+    return res.data.fees || [];
+  },
+
+  // Pay fee via simulated gateway
+  payFee: async (feeId, paymentMethod) => {
+    const res = await api.post(`/fees/${feeId}/pay`, { paymentMethod });
+    return res.data.fee;
+  },
+
+  // Get payment history (paid only)
+  getPaymentHistory: async () => {
+    const res = await api.get("/fees/history");
+    return res.data.fees || [];
+  },
+};
+
+export default feeService;

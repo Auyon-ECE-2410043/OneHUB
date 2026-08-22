@@ -1,0 +1,208 @@
+@import "tailwindcss";
+
+/* ─── Custom utilities (Tailwind v4 @utility syntax) ─────────────────────── */
+
+@utility transition-smooth {
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+@utility transition-fast {
+  transition: all 0.1s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+@utility transition-slow {
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+@utility glass-panel {
+  background: rgba(255, 255, 255, 0.85);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border: 1px solid rgba(226, 232, 240, 0.8);
+}
+
+@utility glass-panel-dark {
+  background: rgba(30, 41, 59, 0.85);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border: 1px solid rgba(71, 85, 105, 0.3);
+  color: #f1f5f9;
+}
+
+@utility gradient-primary {
+  background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%);
+}
+
+@utility gradient-success {
+  background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+}
+
+@utility gradient-danger {
+  background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
+}
+
+@utility gradient-warning {
+  background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%);
+}
+
+@utility flex-center {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+@utility flex-between {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+@utility absolute-center {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+}
+
+@utility text-truncate {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* ─── Base layer ─────────────────────────────────────────────────────────── */
+
+@layer base {
+  :root {
+    --primary: #3b82f6;
+    --primary-hover: #2563eb;
+    --primary-light: #dbeafe;
+    --secondary: #475569;
+    --accent: #f59e0b;
+    --success: #10b981;
+    --danger: #ef4444;
+    --warning: #f59e0b;
+    --info: #3b82f6;
+    --background: #f8fafc;
+    --surface: #ffffff;
+    --text-primary: #0f172a;
+    --text-secondary: #64748b;
+    --border: #e2e8f0;
+  }
+
+  * {
+    box-sizing: border-box;
+  }
+
+  html {
+    scroll-behavior: smooth;
+  }
+
+  body {
+    margin: 0;
+    font-family: 'Plus Jakarta Sans', system-ui, -apple-system, BlinkMacSystemFont,
+      'Segoe UI', Roboto, 'Helvetica Neue', sans-serif;
+    background-color: #f8fafc;
+    color: #0f172a;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
+
+  .dark body {
+    background-color: #020617; /* slate-950 */
+    color: #f8fafc; /* slate-50 */
+  }
+
+  a {
+    color: inherit;
+    text-decoration: none;
+  }
+
+  h1, h2, h3, h4, h5, h6 {
+    margin: 0;
+    font-weight: 600;
+  }
+
+  p {
+    margin: 0;
+    line-height: 1.5;
+  }
+
+  code {
+    background-color: #f1f5f9;
+    padding: 0.125rem 0.375rem;
+    border-radius: 0.25rem;
+    font-family: 'Monaco', 'Menlo', 'Ubuntu Mono', monospace;
+    font-size: 0.875em;
+  }
+
+  .dark code {
+    background-color: #1e293b; /* slate-800 */
+  }
+}
+
+/* ─── Mesh Gradient Background ───────────────────────────────────────────── */
+
+.mesh-bg {
+  background-color: #f8fafc;
+  background-image: 
+    radial-gradient(at 40% 20%, hsla(210,100%,93%,0.6) 0px, transparent 50%),
+    radial-gradient(at 80% 0%, hsla(220,100%,90%,0.6) 0px, transparent 50%),
+    radial-gradient(at 0% 50%, hsla(200,100%,92%,0.6) 0px, transparent 50%),
+    radial-gradient(at 80% 50%, hsla(240,100%,94%,0.6) 0px, transparent 50%),
+    radial-gradient(at 0% 100%, hsla(210,100%,93%,0.6) 0px, transparent 50%),
+    radial-gradient(at 80% 100%, hsla(230,100%,91%,0.6) 0px, transparent 50%),
+    radial-gradient(at 0% 0%, hsla(220,100%,92%,0.6) 0px, transparent 50%);
+  background-attachment: fixed;
+}
+
+.dark .mesh-bg {
+  background-color: #020617;
+  background-image: 
+    radial-gradient(at 40% 20%, hsla(210,100%,20%,0.3) 0px, transparent 50%),
+    radial-gradient(at 80% 0%, hsla(220,100%,15%,0.3) 0px, transparent 50%),
+    radial-gradient(at 0% 50%, hsla(200,100%,25%,0.3) 0px, transparent 50%),
+    radial-gradient(at 80% 50%, hsla(240,100%,15%,0.3) 0px, transparent 50%),
+    radial-gradient(at 0% 100%, hsla(210,100%,20%,0.3) 0px, transparent 50%),
+    radial-gradient(at 80% 100%, hsla(230,100%,25%,0.3) 0px, transparent 50%),
+    radial-gradient(at 0% 0%, hsla(220,100%,20%,0.3) 0px, transparent 50%);
+  background-attachment: fixed;
+}
+
+/* ─── Custom scrollbar ────────────────────────────────────────────────────── */
+
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+
+::-webkit-scrollbar-track {
+  background: #f1f5f9;
+  border-radius: 4px;
+}
+.dark ::-webkit-scrollbar-track {
+  background: #0f172a;
+}
+
+::-webkit-scrollbar-thumb {
+  background: #cbd5e1;
+  border-radius: 4px;
+}
+.dark ::-webkit-scrollbar-thumb {
+  background: #334155;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: #94a3b8;
+}
+.dark ::-webkit-scrollbar-thumb:hover {
+  background: #475569;
+}
+
+* {
+  scrollbar-color: #cbd5e1 #f1f5f9;
+  scrollbar-width: thin;
+}
+.dark * {
+  scrollbar-color: #334155 #0f172a;
+}
