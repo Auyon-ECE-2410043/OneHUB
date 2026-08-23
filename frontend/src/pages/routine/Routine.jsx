@@ -183,7 +183,8 @@ export function Routine() {
       {/* Calendar Grid */}
       <div className="bg-white rounded-2xl border border-slate-200/80 shadow-sm overflow-hidden flex h-[800px]">
         {/* Scrollable Area */}
-        <div className="flex-1 overflow-y-auto overflow-x-hidden relative scroll-smooth bg-slate-50/30">
+        <div className="flex-1 overflow-auto relative scroll-smooth bg-slate-50/30">
+          <div className="min-w-[700px] h-full relative">
           {/* Days Header */}
           <div className="flex border-b border-slate-200 bg-slate-50/95 backdrop-blur-sm sticky top-0 z-30 shadow-sm">
             <div className="w-16 sm:w-20 shrink-0 border-r border-slate-200 bg-slate-50/95"></div>
@@ -263,6 +264,7 @@ export function Routine() {
                   })}
               </div>
             ))}
+          </div>
           </div>
         </div>
       </div>

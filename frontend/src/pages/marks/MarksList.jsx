@@ -107,12 +107,12 @@ export function MarksList() {
 
         {/* Course Selector Dropdown */}
         {assignedCourses.length > 0 && (
-          <div className="flex items-center space-x-2">
-            <span className="text-xs font-semibold uppercase text-slate-500">Course:</span>
+          <div className="flex items-center space-x-2 w-full sm:w-auto mt-4 sm:mt-0">
+            <span className="text-xs font-semibold uppercase text-slate-500 shrink-0">Course:</span>
             <select
               value={selectedCourseId}
               onChange={(e) => setSelectedCourseId(e.target.value)}
-              className="px-4 py-2 bg-white border border-slate-300 rounded-xl text-sm font-semibold text-slate-800 focus:ring-2 focus:ring-sky-500 focus:outline-none shadow-xs"
+              className="flex-1 w-full sm:w-auto min-w-0 truncate px-4 py-2 bg-white border border-slate-300 rounded-xl text-sm font-semibold text-slate-800 focus:ring-2 focus:ring-sky-500 focus:outline-none shadow-xs"
             >
               {assignedCourses.map((c) => (
                 <option key={c._id} value={c._id}>

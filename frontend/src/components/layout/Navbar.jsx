@@ -76,14 +76,6 @@ export function Navbar({ onMenuToggle, isSidebarOpen }) {
 
         {/* Right Section: Notices & User Profile */}
         <div className="flex items-center space-x-3">
-          <button
-            onClick={toggleTheme}
-            className="p-2 text-slate-500 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-xl transition-smooth"
-            aria-label="Toggle theme"
-          >
-            {theme === "dark" ? <Sun className="w-5 h-5" /> : <Moon className="w-5 h-5" />}
-          </button>
-
           <NotificationBell />
 
           {/* User Menu */}
