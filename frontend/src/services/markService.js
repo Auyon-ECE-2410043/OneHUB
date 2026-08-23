@@ -25,6 +25,11 @@ export const markService = {
     return res.data;
   },
 
+  getOfficialResults: async () => {
+    const res = await api.get("/marks/official-results");
+    return res.data.results || [];
+  },
+
   // Student gets all assignment marks
   getAssignmentMarks: async () => {
     const res = await api.get("/marks/assignment");

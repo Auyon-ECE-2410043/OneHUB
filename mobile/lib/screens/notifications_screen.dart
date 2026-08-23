@@ -4,8 +4,6 @@
 // ==========================================
 
 import 'package:flutter/material.dart';
-import 'package:provider/provider.dart';
-import '../providers/auth_provider.dart';
 import '../services/api_service.dart';
 
 class NotificationsScreen extends StatefulWidget {
@@ -83,7 +81,7 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
                     final notif = _notifications[index];
                     final isRead = notif['isRead'] ?? true;
                     return ListTile(
-                      tileColor: isRead ? null : Colors.blue.withOpacity(0.1),
+                      tileColor: isRead ? null : Colors.blue.withValues(alpha: 0.1),
                       leading: Icon(
                         isRead ? Icons.notifications_none : Icons.notifications_active,
                         color: isRead ? Colors.grey : Colors.blue,

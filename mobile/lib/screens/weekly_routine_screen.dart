@@ -4,11 +4,8 @@
 // ==========================================
 
 import 'package:flutter/material.dart';
-import 'package:provider/provider.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import '../services/student_service.dart';
-import '../providers/auth_provider.dart';
-import 'dart:math';
 
 class WeeklyRoutineScreen extends StatefulWidget {
   const WeeklyRoutineScreen({super.key});
@@ -236,7 +233,7 @@ class _WeeklyRoutineScreenState extends State<WeeklyRoutineScreen> {
                                 ),
                               ),
                             );
-                          }).toList(),
+                          }),
                         ],
                       ),
                     ),

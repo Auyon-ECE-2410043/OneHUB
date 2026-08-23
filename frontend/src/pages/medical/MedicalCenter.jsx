@@ -7,21 +7,30 @@
 
 import { useState, useEffect } from "react";
 import api from "../../services/api";
-import { Search, Stethoscope, Droplet, Calendar, User as UserIcon, Phone, FileText } from "lucide-react";
+import { Search, Stethoscope, Droplet, Calendar, User as UserIcon, Phone, FileText, Info, Building2, Clock, CheckCircle2, UserRound, PhoneCall, QrCode, ExternalLink } from "lucide-react";
 import { useAuth } from "../../context/AuthContext";
 
 export function MedicalCenter() {
   const { user } = useAuth();
-  const [activeTab, setActiveTab] = useState("appointments");
+  const [activeTab, setActiveTab] = useState("directory");
 
   return (
     <div className="space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-500">
-      <header className="flex flex-col sm:flex-row justify-between items-start sm:items-center bg-white p-6 rounded-2xl shadow-xs border border-slate-100">
+      <header className="flex flex-col lg:flex-row justify-between items-start lg:items-center bg-white p-6 rounded-2xl shadow-xs border border-slate-100">
         <div>
           <h1 className="text-2xl font-bold text-slate-800">Medical Center</h1>
-          <p className="text-slate-500 mt-1">Book doctor appointments and access the emergency blood directory.</p>
+          <p className="text-slate-500 mt-1">Access RUET Health Complex directory, book appointments, and find blood donors.</p>
         </div>
-        <div className="mt-4 sm:mt-0 flex space-x-2 bg-slate-100 p-1 rounded-xl">
+        <div className="mt-4 lg:mt-0 flex flex-wrap space-x-2 bg-slate-100 p-1 rounded-xl">
+          <button
+            onClick={() => setActiveTab("directory")}
+            className={`px-4 py-2 rounded-lg text-sm font-medium transition-smooth flex items-center ${
+              activeTab === "directory" ? "bg-white text-emerald-600 shadow-sm" : "text-slate-600 hover:text-slate-900"
+            }`}
+          >
+            <Building2 className="w-4 h-4 mr-2" />
+            Health Complex
+          </button>
           <button
             onClick={() => setActiveTab("appointments")}
             className={`px-4 py-2 rounded-lg text-sm font-medium transition-smooth flex items-center ${
@@ -43,7 +52,150 @@ export function MedicalCenter() {
         </div>
       </header>
 
-      {activeTab === "appointments" ? <AppointmentsTab user={user} /> : <BloodDirectoryTab />}
+      {activeTab === "directory" && <DirectoryTab />}
+      {activeTab === "appointments" && <AppointmentsTab user={user} />}
+      {activeTab === "blood-directory" && <BloodDirectoryTab />}
+    </div>
+  );
+}
+
+function DirectoryTab() {
+  const units = [
+    {
+      name: "Eye Unit (চক্ষু ইউনিট)",
+      doctor: "Dr. Md. Firoz Uddin",
+      qualifications: "Associate Professor & Head (Eye Dept), Barind Medical College & Hospital",
+      role: "Consultant (Eye), RUET Health Complex",
+      schedule: "Every Wednesday, 9:00 AM - 2:00 PM",
+      contact: "01717-725675, 01733-068146, 01716-472060",
+      services: ["Conjunctivitis", "Refraction", "Dry Eye", "Foreign Body Removal", "General Eye Treatments"],
+      color: "bg-blue-50 text-blue-700 border-blue-200"
+    },
+    {
+      name: "Dental Unit (দন্ত ইউনিট)",
+      doctor: "Dr. Md. Mohadderul Haque",
+      qualifications: "BDS (Rajshahi Medical College)",
+      role: "Oral & Dental Specialist & Surgeon. Consultant (Dental), RUET Health Complex",
+      schedule: "Every Monday, 9:00 AM - 2:00 PM",
+      contact: "01790-443735",
+      services: ["Routine Dental Checkup", "Painful Tooth Extraction", "Mouth/Gum Infection", "Dental Filling", "Polishing", "Wisdom Tooth Treatment"],
+      color: "bg-teal-50 text-teal-700 border-teal-200"
+    },
+    {
+      name: "Physiotherapy Unit (ফিজিওথেরাপি ইউনিট)",
+      doctor: "Md. Golam Muktadir",
+      qualifications: "BPT (RIHD), MPH (DU), FSMT (SBSIT, India), Diploma in Med Acupuncture",
+      role: "Physiotherapist, RUET Health Complex",
+      schedule: "Every Saturday, 9:30 AM - 2:30 PM",
+      contact: "01750-262873",
+      services: ["Neck/Shoulder Pain (Frozen Shoulder)", "Knee/Heel Pain", "Joint & Muscle Pain", "Sports Injury", "Osteoarthritis", "Facial Paralysis (Bell's Palsy)", "Hand Tremor", "PLID (Waist Pain)"],
+      color: "bg-purple-50 text-purple-700 border-purple-200"
+    },
+    {
+      name: "Pathology Unit (প্যাথলজি)",
+      doctor: "Md. Altab Hossain",
+      qualifications: "B.Sc (Lab Medicine), MGU (India), CME (Andhra), MPH (RU)",
+      role: "Assistant Principal Medical Technologist (Pathology)",
+      schedule: "Regular Health Complex Hours",
+      contact: "Inquire at front desk",
+      services: ["Routine Blood Tests", "Pathology Diagnostics", "Sample Collection", "Lab Reports"],
+      color: "bg-rose-50 text-rose-700 border-rose-200"
+    }
+  ];
+
+  return (
+    <div className="space-y-6">
+      <div className="bg-white p-6 rounded-2xl shadow-xs border border-slate-100 text-center">
+        <h2 className="text-xl font-bold text-slate-800">RUET Health Complex</h2>
+        <div className="mt-4 flex flex-col sm:flex-row justify-center items-center gap-2 sm:gap-6 text-sm">
+          <p className="text-slate-600 bg-slate-50 px-4 py-2 rounded-lg border border-slate-100">
+            Chief Medical Officer In-charge: <strong className="text-slate-800">Dr. Md. Azizul Islam</strong>
+          </p>
+          <p className="text-slate-600 bg-slate-50 px-4 py-2 rounded-lg border border-slate-100">
+            Medical Officer: <strong className="text-slate-800">Dr. Farhana Rahman</strong>
+          </p>
+        </div>
+      </div>
+
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-2 xl:grid-cols-4 gap-6">
+        {units.map((unit, idx) => (
+          <div key={idx} className="bg-white rounded-2xl shadow-xs border border-slate-100 flex flex-col overflow-hidden transition-all hover:shadow-md hover:border-slate-300">
+            <div className={`p-4 border-b ${unit.color}`}>
+              <h3 className="font-bold text-lg">{unit.name}</h3>
+            </div>
+            <div className="p-5 flex-1 flex flex-col space-y-4">
+              <div>
+                <p className="font-bold text-slate-800 text-lg flex items-start gap-2">
+                  <UserRound className="w-5 h-5 mt-0.5 text-slate-400" /> {unit.doctor}
+                </p>
+                <p className="text-xs text-slate-500 mt-1 pl-7">{unit.qualifications}</p>
+                <p className="text-xs text-slate-700 font-medium mt-1 pl-7">{unit.role}</p>
+              </div>
+              
+              <div className="bg-slate-50 rounded-lg p-3 space-y-2">
+                <p className="text-sm font-semibold flex items-center gap-2 text-slate-700">
+                  <Clock className="w-4 h-4 text-emerald-600" /> {unit.schedule}
+                </p>
+                <p className="text-sm font-semibold flex items-center gap-2 text-slate-700">
+                  <PhoneCall className="w-4 h-4 text-sky-600" /> {unit.contact}
+                </p>
+              </div>
+
+              <div className="flex-1">
+                <h4 className="text-sm font-bold text-slate-800 mb-2">Services Provided:</h4>
+                <ul className="grid grid-cols-1 gap-1.5">
+                  {unit.services.map((svc, sIdx) => (
+                    <li key={sIdx} className="text-sm text-slate-600 flex items-start gap-2">
+                      <CheckCircle2 className="w-4 h-4 text-emerald-500 mt-0.5 flex-shrink-0" />
+                      <span>{svc}</span>
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            </div>
+          </div>
+        ))}
+      </div>
+
+      {/* Counseling Services Card */}
+      <div className="bg-white rounded-2xl shadow-xs border border-slate-100 flex flex-col sm:flex-row overflow-hidden">
+        <div className="bg-amber-50 p-6 sm:w-1/3 flex flex-col items-center justify-center border-b sm:border-b-0 sm:border-r border-amber-100 relative">
+          <QrCode className="w-12 h-12 text-amber-600 mb-3" />
+          <h3 className="font-bold text-amber-900 text-center text-lg leading-tight">Mental Health Counseling</h3>
+          <div className="mt-3 pt-3 border-t border-amber-200/60 w-full text-center">
+            <p className="font-bold text-amber-800 text-base">Tanjir Ahmmed Tushar</p>
+            <p className="text-xs text-amber-700 mt-1 font-medium">Specialist Clinical Psychologist</p>
+            <p className="text-[10px] text-amber-600/80 mt-0.5">Assoc. Professor, Psychology, RU</p>
+          </div>
+        </div>
+        <div className="p-6 flex-1 flex flex-col justify-center">
+          <h4 className="text-lg font-bold text-slate-800 mb-3">Service Hours</h4>
+          <ul className="space-y-2 mb-5">
+            <li className="flex items-center gap-3">
+              <span className="w-24 font-medium text-slate-600">Sunday</span>
+              <span className="text-slate-800">2:00 PM - 6:00 PM</span>
+            </li>
+            <li className="flex items-center gap-3">
+              <span className="w-24 font-medium text-slate-600">Tuesday</span>
+              <span className="text-slate-800">2:00 PM - 6:00 PM</span>
+            </li>
+            <li className="flex items-center gap-3">
+              <span className="w-24 font-medium text-slate-600">Thursday</span>
+              <span className="text-slate-800">2:00 PM - 6:00 PM</span>
+            </li>
+          </ul>
+          <div>
+            <a 
+              href="https://forms.gle/xvn5rgrJrSrgdnKDA" 
+              target="_blank" 
+              rel="noopener noreferrer"
+              className="inline-flex items-center gap-2 bg-amber-500 hover:bg-amber-600 text-white px-5 py-2.5 rounded-lg font-medium transition-smooth"
+            >
+              Book Counseling Appointment <ExternalLink className="w-4 h-4" />
+            </a>
+          </div>
+        </div>
+      </div>
     </div>
   );
 }
@@ -52,7 +204,7 @@ function AppointmentsTab({ user }) {
   const [appointments, setAppointments] = useState([]);
   const [loading, setLoading] = useState(true);
   const [formData, setFormData] = useState({
-    doctorName: "Dr. A. Rahman",
+    doctorName: "Dr. Md. Firoz Uddin (Eye)",
     appointmentDate: "",
     timeSlot: "10:00 AM - 10:30 AM",
     symptoms: ""
@@ -108,8 +260,11 @@ function AppointmentsTab({ user }) {
                 value={formData.doctorName}
                 onChange={(e) => setFormData({ ...formData, doctorName: e.target.value })}
               >
-                <option value="Dr. A. Rahman">Dr. A. Rahman (General Physician)</option>
-                <option value="Dr. S. Islam">Dr. S. Islam (Specialist)</option>
+                <option value="Dr. Md. Firoz Uddin (Eye)">Dr. Md. Firoz Uddin (Eye Unit)</option>
+                <option value="Dr. Md. Mohadderul Haque (Dental)">Dr. Md. Mohadderul Haque (Dental Unit)</option>
+                <option value="Md. Golam Muktadir (Physiotherapy)">Md. Golam Muktadir (Physiotherapy Unit)</option>
+                <option value="Dr. Md. Azizul Islam (CMO)">Dr. Md. Azizul Islam (Chief Medical Officer)</option>
+                <option value="Dr. Farhana Rahman (MO)">Dr. Farhana Rahman (Medical Officer)</option>
               </select>
             </div>
             <div>

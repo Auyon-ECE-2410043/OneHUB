@@ -245,4 +245,15 @@ router.get("/course-tabulation/:courseId", requireAuth, requireRole("faculty", "
   }
 });
 
+// GET /api/marks/official-results -> Fetch official result summaries
+router.get("/official-results", requireAuth, async (req, res) => {
+  try {
+    const OfficialResult = require("../models/OfficialResult");
+    const results = await OfficialResult.find({ studentId: req.user.id }).sort({ semester: 1 });
+    res.json({ results });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
 module.exports = router;
