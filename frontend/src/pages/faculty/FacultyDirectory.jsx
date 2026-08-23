@@ -171,6 +171,123 @@ export function FacultyDirectory() {
     phdHolder: filtered.filter(f => f.isPhdHolder).length,
   };
 
+  const renderFacultyCard = (member) => (
+                <div
+                  key={member._id}
+                  className="p-5 bg-white rounded-2xl border border-slate-200 hover:border-sky-300 shadow-xs hover:shadow-md transition-smooth flex flex-col justify-between"
+                >
+                  <div className="space-y-3">
+                    <div className="flex items-start justify-between gap-3">
+                      <div className="flex items-center space-x-3">
+                        {member.photoUrl ? (
+                          <img
+                            src={member.photoUrl}
+                            alt={member.name}
+                            className="w-12 h-12 rounded-xl object-cover border border-slate-200"
+                          />
+                        ) : (
+                          <div className="w-12 h-12 rounded-xl bg-gradient-to-tr from-sky-600 to-indigo-600 text-white font-bold flex items-center justify-center text-sm shadow-xs">
+                            {getInitials(member.name)}
+                          </div>
+                        )}
+
+                        <div>
+                          <h4 className="text-sm font-bold text-slate-900 leading-snug">
+                            {member.name}
+                          </h4>
+                          {member.nameBengali && (
+                            <p className="text-xs text-slate-500 font-medium">
+                              {member.nameBengali}
+                            </p>
+                          )}
+                        </div>
+                      </div>
+
+                      {user?.role === "admin" && (
+                        <div className="flex items-center space-x-1">
+                          <button
+                            onClick={() => {
+                              setSelectedFaculty(member);
+                              setIsPhotoModalOpen(true);
+                            }}
+                            className="p-1.5 text-slate-400 hover:text-sky-600 rounded-lg hover:bg-slate-100"
+                            title="Update Photo"
+                          >
+                            <Camera className="w-3.5 h-3.5" />
+                          </button>
+                          <button
+                            onClick={() => openEdit(member)}
+                            className="p-1.5 text-slate-400 hover:text-sky-600 rounded-lg hover:bg-slate-100"
+                            title="Edit Details"
+                          >
+                            <Edit2 className="w-3.5 h-3.5" />
+                          </button>
+                        </div>
+                      )}
+                    </div>
+
+                    {/* Badges */}
+                    <div className="flex flex-wrap gap-1.5">
+                      <span className="px-2 py-0.5 bg-slate-100 text-slate-700 font-semibold text-[10px] rounded-md">
+                        {member.department}
+                      </span>
+                      {member.isHeadOfDept && (
+                        <span className="px-2 py-0.5 bg-purple-100 text-purple-800 font-bold text-[10px] rounded-md">
+                          Head of Dept
+                        </span>
+                      )}
+                      {member.isPhdHolder && (
+                        <span className="px-2 py-0.5 bg-sky-100 text-sky-800 font-bold text-[10px] rounded-md">
+                          PhD Holder
+                        </span>
+                      )}
+                      {member.isOnLeave && (
+                        <span className="px-2 py-0.5 bg-amber-100 text-amber-800 font-bold text-[10px] rounded-md">
+                          On Study/Official Leave
+                        </span>
+                      )}
+                    </div>
+
+                    {/* Contact details */}
+                    <div className="pt-2 border-t border-slate-100 space-y-1.5 text-xs text-slate-600">
+                      {member.officeLocation && (
+                        <div className="flex items-center space-x-2">
+                          <MapPin className="w-3.5 h-3.5 text-slate-400 shrink-0" />
+                          <span>Room: {member.officeLocation}</span>
+                        </div>
+                      )}
+                      {member.email && (
+                        <div className="flex items-center space-x-2 truncate">
+                          <Mail className="w-3.5 h-3.5 text-slate-400 shrink-0" />
+                          <a href={`mailto:${member.email}`} className="text-sky-600 hover:underline truncate">
+                            {member.email}
+                          </a>
+                        </div>
+                      )}
+                      {member.phone && (
+                        <div className="flex items-center space-x-2">
+                          <Phone className="w-3.5 h-3.5 text-slate-400 shrink-0" />
+                          <span>{member.phone}</span>
+                        </div>
+                      )}
+                    </div>
+                    
+                    {/* View Profile Button */}
+                    <div className="pt-3 mt-auto">
+                      <button 
+                        onClick={() => {
+                          setSelectedFaculty(member);
+                          setIsProfileModalOpen(true);
+                        }}
+                        className="w-full py-2 bg-slate-50 hover:bg-sky-50 text-sky-700 font-semibold rounded-xl text-xs transition-smooth border border-slate-200 hover:border-sky-200 flex justify-center items-center space-x-1.5"
+                      >
+                        <span>View Full Profile</span>
+                      </button>
+                    </div>
+                  </div>
+                </div>
+  );
+
   return (
     <div className="space-y-6">
       {/* Header */}
@@ -282,6 +399,42 @@ export function FacultyDirectory() {
         </div>
       </div>
 
+      {/* Grouped Faculty Directory List */}
+      
+      {/* Head of Department Section */}
+      {filtered.filter(f => f.isHeadOfDept).length > 0 && (
+        <div className="space-y-4">
+          <div className="flex items-center space-x-2 border-b border-slate-200 pb-2">
+            <h3 className="text-base font-bold text-slate-800">Head of Department</h3>
+            <span className="text-xs text-slate-400 font-semibold">
+              ({filtered.filter(f => f.isHeadOfDept).length})
+            </span>
+          </div>
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
+            {filtered.filter(f => f.isHeadOfDept).map(member => renderFacultyCard(member))}
+          </div>
+        </div>
+      )}
+
+      {DESIGNATIONS.map((designation) => {
+        const groupMembers = filtered.filter((f) => f.designation === designation && !f.isHeadOfDept);
+        if (groupMembers.length === 0) return null;
+
+        return (
+          <div key={designation} className="space-y-4">
+            <div className="flex items-center space-x-2 border-b border-slate-200 pb-2">
+              <h3 className="text-base font-bold text-slate-800">{designation}s</h3>
+              <span className="text-xs text-slate-400 font-semibold">
+                ({groupMembers.length})
+              </span>
+            </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
+              {groupMembers.map((member) => renderFacultyCard(member))}
+            </div>
+          </div>
+        );
+      })}
       {/* Grouped Faculty Directory List */}
       {DESIGNATIONS.map((designation) => {
         const groupMembers = filtered.filter((f) => f.designation === designation);
