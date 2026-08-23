@@ -163,6 +163,14 @@ export function FacultyDirectory() {
     return matchesSearch && matchesDept;
   });
 
+  const dynamicStats = {
+    professor: filtered.filter(f => f.designation === "Professor").length,
+    associateProfessor: filtered.filter(f => f.designation === "Associate Professor").length,
+    assistantProfessor: filtered.filter(f => f.designation === "Assistant Professor").length,
+    lecturer: filtered.filter(f => f.designation === "Lecturer").length,
+    phdHolder: filtered.filter(f => f.isPhdHolder).length,
+  };
+
   return (
     <div className="space-y-6">
       {/* Header */}
@@ -221,30 +229,28 @@ export function FacultyDirectory() {
       )}
 
       {/* Summary Stats Row */}
-      {stats && (
-        <div className="grid grid-cols-2 sm:grid-cols-5 gap-3">
-          <div className="p-4 bg-white rounded-2xl border border-slate-200/80 shadow-xs text-center">
-            <span className="text-[11px] font-bold uppercase text-slate-400">Professors</span>
-            <div className="text-xl font-bold text-slate-800 mt-1">{stats.professor}</div>
-          </div>
-          <div className="p-4 bg-white rounded-2xl border border-slate-200/80 shadow-xs text-center">
-            <span className="text-[11px] font-bold uppercase text-slate-400">Assoc Prof</span>
-            <div className="text-xl font-bold text-slate-800 mt-1">{stats.associateProfessor}</div>
-          </div>
-          <div className="p-4 bg-white rounded-2xl border border-slate-200/80 shadow-xs text-center">
-            <span className="text-[11px] font-bold uppercase text-slate-400">Asst Prof</span>
-            <div className="text-xl font-bold text-slate-800 mt-1">{stats.assistantProfessor}</div>
-          </div>
-          <div className="p-4 bg-white rounded-2xl border border-slate-200/80 shadow-xs text-center">
-            <span className="text-[11px] font-bold uppercase text-slate-400">Lecturers</span>
-            <div className="text-xl font-bold text-slate-800 mt-1">{stats.lecturer}</div>
-          </div>
-          <div className="p-4 bg-purple-50/70 border border-purple-200 rounded-2xl shadow-xs text-center col-span-2 sm:col-span-1">
-            <span className="text-[11px] font-bold uppercase text-purple-700">PhD Scholars</span>
-            <div className="text-xl font-black text-purple-900 mt-1">{stats.phdHolder}</div>
-          </div>
+      <div className="grid grid-cols-2 sm:grid-cols-5 gap-3">
+        <div className="p-4 bg-white rounded-2xl border border-slate-200/80 shadow-xs text-center">
+          <span className="text-[11px] font-bold uppercase text-slate-400">Professors</span>
+          <div className="text-xl font-bold text-slate-800 mt-1">{dynamicStats.professor}</div>
         </div>
-      )}
+        <div className="p-4 bg-white rounded-2xl border border-slate-200/80 shadow-xs text-center">
+          <span className="text-[11px] font-bold uppercase text-slate-400">Assoc Prof</span>
+          <div className="text-xl font-bold text-slate-800 mt-1">{dynamicStats.associateProfessor}</div>
+        </div>
+        <div className="p-4 bg-white rounded-2xl border border-slate-200/80 shadow-xs text-center">
+          <span className="text-[11px] font-bold uppercase text-slate-400">Asst Prof</span>
+          <div className="text-xl font-bold text-slate-800 mt-1">{dynamicStats.assistantProfessor}</div>
+        </div>
+        <div className="p-4 bg-white rounded-2xl border border-slate-200/80 shadow-xs text-center">
+          <span className="text-[11px] font-bold uppercase text-slate-400">Lecturers</span>
+          <div className="text-xl font-bold text-slate-800 mt-1">{dynamicStats.lecturer}</div>
+        </div>
+        <div className="p-4 bg-purple-50/70 border border-purple-200 rounded-2xl shadow-xs text-center col-span-2 sm:col-span-1">
+          <span className="text-[11px] font-bold uppercase text-purple-700">PhD Scholars</span>
+          <div className="text-xl font-black text-purple-900 mt-1">{dynamicStats.phdHolder}</div>
+        </div>
+      </div>
 
       {/* Search and Filters */}
       <div className="p-4 bg-white rounded-2xl border border-slate-200 shadow-xs flex flex-col sm:flex-row gap-3 items-center justify-between">
