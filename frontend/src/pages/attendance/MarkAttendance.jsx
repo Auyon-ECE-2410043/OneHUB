@@ -176,7 +176,7 @@ export function MarkAttendance() {
               onChange={(e) => setSelectedCourseId(e.target.value)}
               className="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-xs font-semibold text-slate-800 focus:ring-2 focus:ring-sky-500"
             >
-              {courses.map((c) => (
+              {courses.filter(c => c.semester === selectedSemester).map((c) => (
                 <option key={c._id} value={c._id}>
                   {c.courseCode} - {c.courseName}
                 </option>
@@ -190,7 +190,12 @@ export function MarkAttendance() {
             </label>
             <select
               value={selectedSemester}
-              onChange={(e) => setSelectedSemester(e.target.value)}
+              onChange={(e) => {
+                const newSem = e.target.value;
+                setSelectedSemester(newSem);
+                const filtered = courses.filter(c => c.semester === newSem);
+                setSelectedCourseId(filtered.length > 0 ? filtered[0]._id : "");
+              }}
               className="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-xs font-semibold text-slate-800 focus:ring-2 focus:ring-sky-500"
             >
               {SEMESTERS.map((s) => (
