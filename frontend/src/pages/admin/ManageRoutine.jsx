@@ -10,6 +10,20 @@ import routineService from "../../services/routineService";
 import { PageLoader } from "../../components/common/Loader";
 import { Plus, Edit2, Trash2 } from "lucide-react";
 
+const eceCourseMapping = {
+  "1-1": ["HUM 1117", "PHY 1117", "ECE 1103", "MATH 1117", "ECE 1101", "HUM 1118", "ECE 1104", "PHY 1118"],
+  "1-2": ["CSE 1221", "ECE 1201", "ECE 1203", "CHEM 1217", "MATH 1217", "CSE 1222", "ECE 1202", "ECE 1204", "CHEM 1218"],
+  "2-1": ["ECE 2103", "ECE 2105", "ECE 2111", "MATH 2117", "CHEM 2117", "ECE 2104", "ECE 2106/2112", "ECE 2100"],
+  "2-2": ["ECE 2201", "ECE 2203", "ECE 2205", "ECE 2207", "MATH 2217", "ECE 2202", "ECE 2204", "ECE 2206", "ECE 2208"],
+  "3-1": ["ECE 3101", "ECE 3103", "ECE 3105", "ECE 3107", "HUM 3117", "ECE 3102", "ECE 3104", "ECE 3106", "ECE 3108"],
+  "3-2": ["ECE 3205", "ECE 3207", "ECE 3221", "ME 3219", "ECE 3206", "ECE 3208", "ECE 3222", "ME 3220"],
+  "4-1": ["ECE 4101", "ECE 4103", "ECE 4105", "ECE 4121", "ECE 4102", "ECE 4104", "ECE 4106", "ECE 4100"],
+  "4-2": ["ECE 4201", "ECE 4203", "ECE 4205", "ECE 4221", "ECE 4202", "ECE 4204", "ECE 4206", "ECE 4200"],
+};
+const seriesOptions = ["2021 Series", "2022 Series", "2023 Series", "2024 Series", "2025 Series", "2026 Series"];
+const semesterOptions = ["1-1", "1-2", "2-1", "2-2", "3-1", "3-2", "4-1", "4-2"];
+const timeOptions = ["08:00", "08:50", "09:40", "10:30", "10:50", "11:40", "12:30", "13:20", "14:30", "15:20", "16:10", "17:00"];
+
 export default function ManageRoutine() {
   const [loading, setLoading] = useState(true);
   const [slots, setSlots] = useState([]);
@@ -204,38 +218,48 @@ export default function ManageRoutine() {
             <h2 className="text-xl font-bold mb-4">{currentSlot ? "Edit Slot" : "Add New Slot"}</h2>
             <form onSubmit={handleSubmit} className="space-y-4">
               <div className="grid grid-cols-2 gap-4">
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">Course Code</label>
-                  <input
-                    type="text"
-                    required
-                    value={formData.courseCode}
-                    onChange={e => setFormData({ ...formData, courseCode: e.target.value })}
-                    className="w-full border rounded-lg p-2 outline-none focus:ring-2 focus:ring-blue-500"
-                    placeholder="e.g. MATH-2117"
-                  />
-                </div>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">Course Code</label>
+                    <input
+                      list="course-options"
+                      type="text"
+                      required
+                      value={formData.courseCode}
+                      onChange={e => setFormData({ ...formData, courseCode: e.target.value })}
+                      className="w-full border rounded-lg p-2 outline-none focus:ring-2 focus:ring-blue-500"
+                      placeholder="Select or type course..."
+                    />
+                    <datalist id="course-options">
+                      {(eceCourseMapping[formData.semester] || []).map(course => (
+                        <option key={course} value={course} />
+                      ))}
+                    </datalist>
+                  </div>
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-1">Series</label>
-                  <input
-                    type="text"
+                  <select
                     required
                     value={formData.series}
                     onChange={e => setFormData({ ...formData, series: e.target.value })}
-                    className="w-full border rounded-lg p-2 outline-none focus:ring-2 focus:ring-blue-500"
-                    placeholder="e.g. 2024 Series"
-                  />
+                    className="w-full border rounded-lg p-2 outline-none focus:ring-2 focus:ring-blue-500 bg-white"
+                  >
+                    {seriesOptions.map(series => (
+                      <option key={series} value={series}>{series}</option>
+                    ))}
+                  </select>
                 </div>
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-1">Semester</label>
-                  <input
-                    type="text"
+                  <select
                     required
                     value={formData.semester}
                     onChange={e => setFormData({ ...formData, semester: e.target.value })}
-                    className="w-full border rounded-lg p-2 outline-none focus:ring-2 focus:ring-blue-500"
-                    placeholder="e.g. 1-1"
-                  />
+                    className="w-full border rounded-lg p-2 outline-none focus:ring-2 focus:ring-blue-500 bg-white"
+                  >
+                    {semesterOptions.map(sem => (
+                      <option key={sem} value={sem}>{sem}</option>
+                    ))}
+                  </select>
                 </div>
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-1">Class Type</label>
@@ -273,26 +297,32 @@ export default function ManageRoutine() {
                     ))}
                   </select>
                 </div>
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">Start Time (HH:MM)</label>
-                  <input
-                    type="time"
-                    required
-                    value={formData.startTime}
-                    onChange={e => setFormData({ ...formData, startTime: e.target.value })}
-                    className="w-full border rounded-lg p-2 outline-none focus:ring-2 focus:ring-blue-500"
-                  />
-                </div>
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">End Time (HH:MM)</label>
-                  <input
-                    type="time"
-                    required
-                    value={formData.endTime}
-                    onChange={e => setFormData({ ...formData, endTime: e.target.value })}
-                    className="w-full border rounded-lg p-2 outline-none focus:ring-2 focus:ring-blue-500"
-                  />
-                </div>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">Start Time</label>
+                    <select
+                      required
+                      value={formData.startTime}
+                      onChange={e => setFormData({ ...formData, startTime: e.target.value })}
+                      className="w-full border rounded-lg p-2 outline-none focus:ring-2 focus:ring-blue-500 bg-white"
+                    >
+                      {timeOptions.map(t => (
+                        <option key={t} value={t}>{t}</option>
+                      ))}
+                    </select>
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">End Time</label>
+                    <select
+                      required
+                      value={formData.endTime}
+                      onChange={e => setFormData({ ...formData, endTime: e.target.value })}
+                      className="w-full border rounded-lg p-2 outline-none focus:ring-2 focus:ring-blue-500 bg-white"
+                    >
+                      {timeOptions.map(t => (
+                        <option key={t} value={t}>{t}</option>
+                      ))}
+                    </select>
+                  </div>
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-1">Room / Lab</label>
                   <input
