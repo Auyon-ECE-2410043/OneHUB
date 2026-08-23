@@ -52,6 +52,7 @@ router.post("/:feeId/pay", requireAuth, requireRole("student"), async (req, res)
     const Notification = require("../models/Notification");
     await Notification.create([{
       recipientId: fee.studentId,
+        recipientRole: 'student',
       title: "Payment Successful",
       message: `Your payment of ৳${fee.amount} for ${fee.label} was successful. (Txn ID: ${transactionId})`,
       type: "payment"

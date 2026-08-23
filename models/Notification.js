@@ -15,8 +15,8 @@ const notificationSchema = new mongoose.Schema(
     message: { type: String, required: true },
     type: {
       type: String,
-      enum: ["class_reminder", "exam_notice", "fee_due", "general"],
-      default: "class_reminder",
+      enum: ["class_reminder", "exam_notice", "fee_due", "general", "payment"],
+      default: "general",
     },
     meta: {
       courseCode: String,
