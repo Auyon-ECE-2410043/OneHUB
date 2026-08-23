@@ -5,6 +5,7 @@
 
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import 'package:flutter_animate/flutter_animate.dart';
 import '../providers/auth_provider.dart';
 
 import 'notice_board_screen.dart';
@@ -463,9 +464,9 @@ class HomeScreen extends StatelessWidget {
                       MaterialPageRoute(builder: (_) => const MyProfileScreen()),
                     ),
                   ),
-                ],
+                ].animate(interval: 50.ms).fade(duration: 400.ms).slideY(begin: 0.1, end: 0),
               ),
-            ],
+            ].animate(interval: 50.ms).fade(duration: 500.ms).slideY(begin: 0.05, end: 0),
           ),
     );
   }

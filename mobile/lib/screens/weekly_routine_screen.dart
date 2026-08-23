@@ -4,8 +4,9 @@
 // ==========================================
 
 import 'package:flutter/material.dart';
-import '../services/student_service.dart';
 import 'package:provider/provider.dart';
+import 'package:flutter_animate/flutter_animate.dart';
+import '../services/student_service.dart';
 import '../providers/auth_provider.dart';
 import 'dart:math';
 
@@ -242,7 +243,7 @@ class _WeeklyRoutineScreenState extends State<WeeklyRoutineScreen> {
                   ],
                 ),
               ),
-            ),
+            ).animate().fade(duration: 500.ms).slideY(begin: 0.05, end: 0),
     );
   }
 }

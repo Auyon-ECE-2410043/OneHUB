@@ -5,6 +5,7 @@
 
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import 'package:flutter_animate/flutter_animate.dart';
 import '../providers/auth_provider.dart';
 import '../services/notice_service.dart';
 import 'package:intl/intl.dart';
@@ -276,18 +277,18 @@ class _NoticeBoardScreenState extends State<NoticeBoardScreen> {
                               const Icon(Icons.person_outline, size: 14, color: Colors.grey),
                               const SizedBox(width: 4),
                               Text(
-                                'Posted by $author',
-                                style: const TextStyle(fontSize: 12, color: Colors.grey, fontStyle: FontStyle.italic),
-                              ),
-                            ],
-                          )
-                        ],
+                                  'Posted by $author',
+                                  style: const TextStyle(fontSize: 12, color: Colors.grey, fontStyle: FontStyle.italic),
+                                ),
+                              ],
+                            )
+                          ],
+                        ),
                       ),
-                    ),
-                  );
-                },
+                    ).animate().fade(duration: 400.ms, delay: (index * 50).ms).slideY(begin: 0.1, end: 0);
+                  },
+                ),
               ),
-            ),
-    );
+      );
+    }
   }
-}

@@ -5,7 +5,9 @@
 
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import 'package:flutter_animate/flutter_animate.dart';
 import '../providers/auth_provider.dart';
+import '../services/api_service.dart';
 
 class MyProfileScreen extends StatelessWidget {
   const MyProfileScreen({super.key});
@@ -60,7 +62,7 @@ class MyProfileScreen extends StatelessWidget {
                 ),
               ),
             ),
-          ],
+          ].animate(interval: 50.ms).fade(duration: 400.ms).slideY(begin: 0.1, end: 0),
         ),
       ),
     );
