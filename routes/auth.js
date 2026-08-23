@@ -34,9 +34,15 @@ router.post("/register", async (req, res) => {
       }
     }
 
-    // Check if user already exists
+    // Check if email already exists
     const existingUser = await User.findOne({ email: emailLower });
-    if (existingUser) return res.status(400).json({ error: "Email already exists" });
+    if (existingUser) return res.status(400).json({ error: "Email already exists. Please login instead." });
+
+    // Check if roll number already exists
+    if (rollNo) {
+      const existingRoll = await User.findOne({ rollNo });
+      if (existingRoll) return res.status(400).json({ error: "An account with this Roll Number already exists. If this is you, please go to Login." });
+    }
 
     const salt = await bcrypt.genSalt(10);
     const passwordHash = await bcrypt.hash(password, salt);
