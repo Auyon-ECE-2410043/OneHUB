@@ -9,6 +9,8 @@ const express = require("express");
 const bcrypt = require("bcryptjs");
 const jwt = require("jsonwebtoken");
 const User = require("../models/User");
+const Otp = require("../models/Otp");
+const sendEmail = require("../utils/sendEmail");
 const { requireAuth } = require("../middleware/auth");
 
 const router = express.Router();
@@ -75,12 +77,72 @@ router.post("/login", async (req, res) => {
       });
     }
 
+    // Security Level: First Login for Students
+    if (user.role === "student" && user.isFirstLogin !== false) {
+      // Generate 6-digit OTP
+      const otpCode = Math.floor(100000 + Math.random() * 900000).toString();
+      
+      // Save or update OTP in DB
+      await Otp.findOneAndDelete({ email: user.email });
+      await Otp.create({ email: user.email, otp: otpCode });
+      
+      // Send email
+      await sendEmail({
+        to: user.email,
+        subject: "OneHUB - Verify Your Account",
+        text: `Welcome to OneHUB! Your verification code for first-time login is: ${otpCode}\n\nPlease enter this code to proceed and set up your new secure password.`
+      });
+
+      return res.json({ 
+        requiresOtp: true, 
+        userId: user._id, 
+        message: "A verification code has been sent to your email. Please verify to continue." 
+      });
+    }
+
     const token = jwt.sign({ id: user._id, role: user.role }, JWT_SECRET, { expiresIn: "7d" });
     
     const userObj = user.toObject();
     delete userObj.passwordHash;
 
     res.json({ token, user: userObj });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// POST /api/auth/verify-first-login
+router.post("/verify-first-login", async (req, res) => {
+  try {
+    const { userId, otp, newPassword } = req.body;
+
+    const user = await User.findById(userId);
+    if (!user) return res.status(404).json({ error: "User not found" });
+
+    // Find OTP
+    const otpRecord = await Otp.findOne({ email: user.email, otp });
+    if (!otpRecord) {
+      return res.status(400).json({ error: "Invalid or expired verification code." });
+    }
+
+    // Hash new password
+    const salt = await bcrypt.genSalt(10);
+    const passwordHash = await bcrypt.hash(newPassword, salt);
+
+    // Update user
+    user.passwordHash = passwordHash;
+    user.isFirstLogin = false;
+    await user.save();
+
+    // Delete OTP record
+    await Otp.deleteOne({ _id: otpRecord._id });
+
+    // Login user
+    const token = jwt.sign({ id: user._id, role: user.role }, JWT_SECRET, { expiresIn: "7d" });
+    const userObj = user.toObject();
+    delete userObj.passwordHash;
+
+    res.json({ token, user: userObj, message: "Password updated successfully." });
   } catch (err) {
     res.status(500).json({ error: err.message });
   }

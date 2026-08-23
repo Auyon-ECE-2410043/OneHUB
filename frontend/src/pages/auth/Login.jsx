@@ -23,21 +23,34 @@ import {
 } from "lucide-react";
 
 export function Login() {
-  const { login } = useAuth();
+  const { login, verifyFirstLogin } = useAuth();
   const navigate = useNavigate();
   const location = useLocation();
 
   const from = location.state?.from?.pathname || "/dashboard";
 
+  const [step, setStep] = useState("login");
+  const [userId, setUserId] = useState(null);
+
   const [formData, setFormData] = useState({
     email: "",
     password: "",
   });
+  
+  const [verifyData, setVerifyData] = useState({
+    otp: "",
+    newPassword: "",
+  });
+
   const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
 
   const handleChange = (e) => {
     setFormData({ ...formData, [e.target.name]: e.target.value });
+  };
+
+  const handleVerifyChange = (e) => {
+    setVerifyData({ ...verifyData, [e.target.name]: e.target.value });
   };
 
   const handleSubmit = async (e) => {
@@ -50,11 +63,41 @@ export function Login() {
     setLoading(true);
 
     try {
-      await login(formData);
-      toast.success("Welcome back to OneHUB!");
-      navigate(from, { replace: true });
+      const res = await login(formData);
+      if (res.requiresOtp) {
+        setStep("verify");
+        setUserId(res.userId);
+        toast.info(res.message);
+      } else {
+        toast.success("Welcome back to OneHUB!");
+        navigate(from, { replace: true });
+      }
     } catch (err) {
       toast.error(err.message || "Invalid credentials. Please check your email and password.");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleVerifySubmit = async (e) => {
+    e.preventDefault();
+    if (!verifyData.otp || !verifyData.newPassword) {
+      toast.error("Please fill in OTP and a new password.");
+      return;
+    }
+    if (verifyData.newPassword.length < 6) {
+      toast.error("New password must be at least 6 characters.");
+      return;
+    }
+
+    setLoading(true);
+
+    try {
+      await verifyFirstLogin(userId, verifyData.otp, verifyData.newPassword);
+      toast.success("Password updated! Welcome to OneHUB.");
+      navigate(from, { replace: true });
+    } catch (err) {
+      toast.error(err.message || "Invalid verification code.");
     } finally {
       setLoading(false);
     }
@@ -87,107 +130,183 @@ export function Login() {
       
       <div className="mt-8 sm:mx-auto sm:w-full sm:max-w-md relative z-10">
         <div className="bg-slate-900/90 backdrop-blur-xl border border-slate-800 py-8 px-6 shadow-2xl rounded-2xl sm:px-10">
-          <form className="space-y-5" onSubmit={handleSubmit}>
-            <div>
-              <label className="block text-xs font-semibold uppercase tracking-wider text-slate-300 mb-1.5">
-                University Email
-              </label>
-              <div className="relative rounded-xl shadow-xs">
-                <div className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-slate-500">
-                  <Mail className="h-5 w-5" />
+          {step === "login" ? (
+            <>
+              <form className="space-y-5" onSubmit={handleSubmit}>
+                <div>
+                  <label className="block text-xs font-semibold uppercase tracking-wider text-slate-300 mb-1.5">
+                    University Email
+                  </label>
+                  <div className="relative rounded-xl shadow-xs">
+                    <div className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-slate-500">
+                      <Mail className="h-5 w-5" />
+                    </div>
+                    <input
+                      type="email"
+                      name="email"
+                      value={formData.email}
+                      onChange={handleChange}
+                      placeholder="e.g. 2108001@student.ruet.ac.bd"
+                      className="block w-full pl-10 pr-4 py-2.5 bg-slate-800/80 border border-slate-700 rounded-xl text-white placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-sky-500 focus:border-transparent text-sm transition-smooth"
+                      required
+                    />
+                  </div>
                 </div>
+
+                <div>
+                  <label className="block text-xs font-semibold uppercase tracking-wider text-slate-300 mb-1.5">
+                    Password
+                  </label>
+                  <div className="relative rounded-xl shadow-xs">
+                    <div className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-slate-500">
+                      <Lock className="h-5 w-5" />
+                    </div>
+                    <input
+                      type={showPassword ? "text" : "password"}
+                      name="password"
+                      value={formData.password}
+                      onChange={handleChange}
+                      placeholder="•••••••••"
+                      className="block w-full pl-10 pr-10 py-2.5 bg-slate-800/80 border border-slate-700 rounded-xl text-white placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-sky-500 focus:border-transparent text-sm transition-smooth"
+                      required
+                    />
+                    <button
+                      type="button"
+                      onClick={() => setShowPassword(!showPassword)}
+                      className="absolute inset-y-0 right-0 pr-3.5 flex items-center text-slate-400 hover:text-slate-200 transition-smooth"
+                    >
+                      {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                    </button>
+                  </div>
+                </div>
+
+                <div>
+                  <button
+                    type="submit"
+                    disabled={loading}
+                    className="w-full flex items-center justify-center py-3 px-4 rounded-xl shadow-lg shadow-sky-600/30 text-sm font-semibold text-white bg-gradient-to-r from-sky-600 to-indigo-600 hover:from-sky-500 hover:to-indigo-500 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-sky-500 disabled:opacity-50 transition-smooth cursor-pointer"
+                  >
+                    {loading ? (
+                      <span className="flex items-center space-x-2">
+                        <span className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin"></span>
+                        <span>Signing in...</span>
+                      </span>
+                    ) : (
+                      <span className="flex items-center space-x-2">
+                        <span>Sign in to OneHUB</span>
+                        <ArrowRight className="w-4 h-4" />
+                      </span>
+                    )}
+                  </button>
+                </div>
+              </form>
+
+              {/* Quick Demo Logins Helper */}
+              <div className="mt-6 pt-6 border-t border-slate-800">
+                <p className="text-xs font-semibold text-slate-400 uppercase tracking-wider text-center mb-3">
+                  Fast Demo Autofill
+                </p>
+                <div className="grid grid-cols-3 gap-2">
+                  <button
+                    type="button"
+                    onClick={() => fillCredentials("student@ruet.ac.bd", "password123")}
+                    className="p-2 bg-slate-800/60 hover:bg-slate-800 border border-slate-700/60 rounded-xl text-center transition-smooth text-xs text-slate-300 hover:text-white"
+                  >
+                    <UserCheck className="w-3.5 h-3.5 mx-auto mb-1 text-sky-400" />
+                    <span>Student</span>
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => fillCredentials("faculty@ruet.ac.bd", "password123")}
+                    className="p-2 bg-slate-800/60 hover:bg-slate-800 border border-slate-700/60 rounded-xl text-center transition-smooth text-xs text-slate-300 hover:text-white"
+                  >
+                    <BookOpen className="w-3.5 h-3.5 mx-auto mb-1 text-emerald-400" />
+                    <span>Faculty</span>
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => fillCredentials("admin@ruet.ac.bd", "password123")}
+                    className="p-2 bg-slate-800/60 hover:bg-slate-800 border border-slate-700/60 rounded-xl text-center transition-smooth text-xs text-slate-300 hover:text-white"
+                  >
+                    <ShieldCheck className="w-3.5 h-3.5 mx-auto mb-1 text-purple-400" />
+                    <span>Admin</span>
+                  </button>
+                </div>
+              </div>
+            </>
+          ) : (
+            <form className="space-y-5 animate-fade-in" onSubmit={handleVerifySubmit}>
+              <div className="text-center mb-6">
+                <ShieldCheck className="w-12 h-12 text-sky-400 mx-auto mb-2" />
+                <h3 className="text-xl font-bold text-white">Security Check</h3>
+                <p className="text-sm text-slate-400 mt-2">
+                  For your first login, a verification code was sent to your email. Please enter it below and set a new password.
+                </p>
+              </div>
+
+              <div>
+                <label className="block text-xs font-semibold uppercase tracking-wider text-slate-300 mb-1.5">
+                  Verification Code (OTP)
+                </label>
                 <input
-                  type="email"
-                  name="email"
-                  value={formData.email}
-                  onChange={handleChange}
-                  placeholder="e.g. 2108001@student.ruet.ac.bd"
-                  className="block w-full pl-10 pr-4 py-2.5 bg-slate-800/80 border border-slate-700 rounded-xl text-white placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-sky-500 focus:border-transparent text-sm transition-smooth"
+                  type="text"
+                  name="otp"
+                  value={verifyData.otp}
+                  onChange={handleVerifyChange}
+                  placeholder="6-digit code"
+                  className="block w-full px-4 py-2.5 bg-slate-800/80 border border-slate-700 rounded-xl text-white placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-sky-500 focus:border-transparent text-sm transition-smooth text-center tracking-widest text-lg"
                   required
                 />
               </div>
-            </div>
 
-            <div>
-              <label className="block text-xs font-semibold uppercase tracking-wider text-slate-300 mb-1.5">
-                Password
-              </label>
-              <div className="relative rounded-xl shadow-xs">
-                <div className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-slate-500">
-                  <Lock className="h-5 w-5" />
+              <div>
+                <label className="block text-xs font-semibold uppercase tracking-wider text-slate-300 mb-1.5">
+                  New Password
+                </label>
+                <div className="relative rounded-xl shadow-xs">
+                  <div className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-slate-500">
+                    <Lock className="h-5 w-5" />
+                  </div>
+                  <input
+                    type={showPassword ? "text" : "password"}
+                    name="newPassword"
+                    value={verifyData.newPassword}
+                    onChange={handleVerifyChange}
+                    placeholder="At least 6 characters"
+                    className="block w-full pl-10 pr-10 py-2.5 bg-slate-800/80 border border-slate-700 rounded-xl text-white placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-sky-500 focus:border-transparent text-sm transition-smooth"
+                    required
+                  />
+                  <button
+                    type="button"
+                    onClick={() => setShowPassword(!showPassword)}
+                    className="absolute inset-y-0 right-0 pr-3.5 flex items-center text-slate-400 hover:text-slate-200 transition-smooth"
+                  >
+                    {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                  </button>
                 </div>
-                <input
-                  type={showPassword ? "text" : "password"}
-                  name="password"
-                  value={formData.password}
-                  onChange={handleChange}
-                  placeholder="••••••••"
-                  className="block w-full pl-10 pr-10 py-2.5 bg-slate-800/80 border border-slate-700 rounded-xl text-white placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-sky-500 focus:border-transparent text-sm transition-smooth"
-                  required
-                />
+              </div>
+
+              <div>
                 <button
-                  type="button"
-                  onClick={() => setShowPassword(!showPassword)}
-                  className="absolute inset-y-0 right-0 pr-3.5 flex items-center text-slate-400 hover:text-slate-200 transition-smooth"
+                  type="submit"
+                  disabled={loading}
+                  className="w-full flex items-center justify-center py-3 px-4 rounded-xl shadow-lg shadow-emerald-600/30 text-sm font-semibold text-white bg-gradient-to-r from-emerald-500 to-teal-600 hover:from-emerald-400 hover:to-teal-500 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-emerald-500 disabled:opacity-50 transition-smooth cursor-pointer"
                 >
-                  {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                  {loading ? (
+                    <span className="flex items-center space-x-2">
+                      <span className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin"></span>
+                      <span>Verifying...</span>
+                    </span>
+                  ) : (
+                    <span className="flex items-center space-x-2">
+                      <span>Verify & Change Password</span>
+                      <ArrowRight className="w-4 h-4" />
+                    </span>
+                  )}
                 </button>
               </div>
-            </div>
-
-            <div>
-              <button
-                type="submit"
-                disabled={loading}
-                className="w-full flex items-center justify-center py-3 px-4 rounded-xl shadow-lg shadow-sky-600/30 text-sm font-semibold text-white bg-gradient-to-r from-sky-600 to-indigo-600 hover:from-sky-500 hover:to-indigo-500 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-sky-500 disabled:opacity-50 transition-smooth cursor-pointer"
-              >
-                {loading ? (
-                  <span className="flex items-center space-x-2">
-                    <span className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin"></span>
-                    <span>Signing in...</span>
-                  </span>
-                ) : (
-                  <span className="flex items-center space-x-2">
-                    <span>Sign in to OneHUB</span>
-                    <ArrowRight className="w-4 h-4" />
-                  </span>
-                )}
-              </button>
-            </div>
-          </form>
-
-          {/* Quick Demo Logins Helper */}
-          <div className="mt-6 pt-6 border-t border-slate-800">
-            <p className="text-xs font-semibold text-slate-400 uppercase tracking-wider text-center mb-3">
-              Fast Demo Autofill
-            </p>
-            <div className="grid grid-cols-3 gap-2">
-              <button
-                type="button"
-                onClick={() => fillCredentials("student@ruet.ac.bd", "password123")}
-                className="p-2 bg-slate-800/60 hover:bg-slate-800 border border-slate-700/60 rounded-xl text-center transition-smooth text-xs text-slate-300 hover:text-white"
-              >
-                <UserCheck className="w-3.5 h-3.5 mx-auto mb-1 text-sky-400" />
-                <span>Student</span>
-              </button>
-              <button
-                type="button"
-                onClick={() => fillCredentials("faculty@ruet.ac.bd", "password123")}
-                className="p-2 bg-slate-800/60 hover:bg-slate-800 border border-slate-700/60 rounded-xl text-center transition-smooth text-xs text-slate-300 hover:text-white"
-              >
-                <BookOpen className="w-3.5 h-3.5 mx-auto mb-1 text-emerald-400" />
-                <span>Faculty</span>
-              </button>
-              <button
-                type="button"
-                onClick={() => fillCredentials("admin@ruet.ac.bd", "password123")}
-                className="p-2 bg-slate-800/60 hover:bg-slate-800 border border-slate-700/60 rounded-xl text-center transition-smooth text-xs text-slate-300 hover:text-white"
-              >
-                <ShieldCheck className="w-3.5 h-3.5 mx-auto mb-1 text-purple-400" />
-                <span>Admin</span>
-              </button>
-            </div>
-          </div>
+            </form>
+          )}
 
           <div className="mt-6 text-center text-xs text-slate-400">
             Don't have an account?{" "}

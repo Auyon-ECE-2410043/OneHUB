@@ -35,6 +35,15 @@ export function AuthProvider({ children }) {
 
   const login = async (credentials) => {
     const data = await authService.login(credentials);
+    if (!data.requiresOtp) {
+      setToken(data.token);
+      setUser(data.user);
+    }
+    return data;
+  };
+
+  const verifyFirstLogin = async (userId, otp, newPassword) => {
+    const data = await authService.verifyFirstLogin(userId, otp, newPassword);
     setToken(data.token);
     setUser(data.user);
     return data;
@@ -83,6 +92,7 @@ export function AuthProvider({ children }) {
     register,
     sendOtp,
     verifyOtp,
+    verifyFirstLogin,
     logout,
     updateUser,
   };

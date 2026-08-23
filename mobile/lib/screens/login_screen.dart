@@ -18,8 +18,15 @@ class LoginScreen extends StatefulWidget {
 class _LoginScreenState extends State<LoginScreen> {
   final _emailController = TextEditingController();
   final _passwordController = TextEditingController();
+  
+  final _otpController = TextEditingController();
+  final _newPasswordController = TextEditingController();
+  
   bool _isLoading = false;
   String _error = '';
+  
+  bool _isVerifyStep = false;
+  String _userId = '';
 
   Future<void> _handleLogin() async {
     setState(() {
@@ -28,9 +35,44 @@ class _LoginScreenState extends State<LoginScreen> {
     });
 
     try {
-      await context.read<AuthProvider>().login(
+      final res = await context.read<AuthProvider>().login(
         _emailController.text.trim(),
         _passwordController.text,
+      );
+      
+      if (res['requiresOtp'] == true) {
+        setState(() {
+          _isVerifyStep = true;
+          _userId = res['userId'];
+          _error = res['message'] ?? 'Check your email for the OTP.';
+        });
+      }
+    } catch (e) {
+      setState(() {
+        _error = e.toString().replaceAll('Exception: ', '');
+      });
+    } finally {
+      setState(() {
+        _isLoading = false;
+      });
+    }
+  }
+
+  Future<void> _handleVerify() async {
+    setState(() {
+      _isLoading = true;
+      _error = '';
+    });
+
+    try {
+      if (_newPasswordController.text.length < 6) {
+        throw Exception('New password must be at least 6 characters');
+      }
+      
+      await context.read<AuthProvider>().verifyFirstLogin(
+        _userId,
+        _otpController.text.trim(),
+        _newPasswordController.text,
       );
     } catch (e) {
       setState(() {
@@ -54,25 +96,25 @@ class _LoginScreenState extends State<LoginScreen> {
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
               Icon(
-                Icons.school,
+                _isVerifyStep ? Icons.security : Icons.school,
                 size: 80,
                 color: Theme.of(context).primaryColor,
               ),
               const SizedBox(height: 16),
-              const Text(
-                'RUET OneHUB',
+              Text(
+                _isVerifyStep ? 'Security Check' : 'RUET OneHUB',
                 textAlign: TextAlign.center,
-                style: TextStyle(
+                style: const TextStyle(
                   fontSize: 28,
                   fontWeight: FontWeight.bold,
                   color: Color(0xFF0F172A),
                 ),
               ),
               const SizedBox(height: 8),
-              const Text(
-                'Student Portal Login',
+              Text(
+                _isVerifyStep ? 'Set up your new password' : 'Student Portal Login',
                 textAlign: TextAlign.center,
-                style: TextStyle(
+                style: const TextStyle(
                   fontSize: 16,
                   color: Color(0xFF64748B),
                 ),
@@ -83,43 +125,78 @@ class _LoginScreenState extends State<LoginScreen> {
                   padding: const EdgeInsets.all(12),
                   margin: const EdgeInsets.only(bottom: 16),
                   decoration: BoxDecoration(
-                    color: Colors.red.shade50,
+                    color: _isVerifyStep && !_error.toLowerCase().contains('failed') && !_error.toLowerCase().contains('must') ? Colors.blue.shade50 : Colors.red.shade50,
                     borderRadius: BorderRadius.circular(12),
-                    border: Border.all(color: Colors.red.shade200),
+                    border: Border.all(color: _isVerifyStep && !_error.toLowerCase().contains('failed') && !_error.toLowerCase().contains('must') ? Colors.blue.shade200 : Colors.red.shade200),
                   ),
                   child: Text(
                     _error,
-                    style: TextStyle(color: Colors.red.shade700, fontSize: 14),
+                    style: TextStyle(color: _isVerifyStep && !_error.toLowerCase().contains('failed') && !_error.toLowerCase().contains('must') ? Colors.blue.shade700 : Colors.red.shade700, fontSize: 14),
                   ),
                 ),
-              TextField(
-                controller: _emailController,
-                decoration: const InputDecoration(
-                  labelText: 'Email Address',
-                  prefixIcon: Icon(Icons.email_outlined),
+                
+              if (!_isVerifyStep) ...[
+                TextField(
+                  controller: _emailController,
+                  decoration: const InputDecoration(
+                    labelText: 'Email Address',
+                    prefixIcon: Icon(Icons.email_outlined),
+                  ),
+                  keyboardType: TextInputType.emailAddress,
                 ),
-                keyboardType: TextInputType.emailAddress,
-              ),
-              const SizedBox(height: 16),
-              TextField(
-                controller: _passwordController,
-                decoration: const InputDecoration(
-                  labelText: 'Password',
-                  prefixIcon: Icon(Icons.lock_outline),
+                const SizedBox(height: 16),
+                TextField(
+                  controller: _passwordController,
+                  decoration: const InputDecoration(
+                    labelText: 'Password',
+                    prefixIcon: Icon(Icons.lock_outline),
+                  ),
+                  obscureText: true,
                 ),
-                obscureText: true,
-              ),
-              const SizedBox(height: 24),
-              ElevatedButton(
-                onPressed: _isLoading ? null : _handleLogin,
-                child: _isLoading 
-                    ? const SizedBox(
-                        height: 20, 
-                        width: 20, 
-                        child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2)
-                      )
-                    : const Text('Sign In', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
-              ),
+                const SizedBox(height: 24),
+                ElevatedButton(
+                  onPressed: _isLoading ? null : _handleLogin,
+                  child: _isLoading 
+                      ? const SizedBox(
+                          height: 20, 
+                          width: 20, 
+                          child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2)
+                        )
+                      : const Text('Sign In', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
+                ),
+              ] else ...[
+                TextField(
+                  controller: _otpController,
+                  decoration: const InputDecoration(
+                    labelText: 'Verification Code (OTP)',
+                    prefixIcon: Icon(Icons.password),
+                  ),
+                  keyboardType: TextInputType.number,
+                ),
+                const SizedBox(height: 16),
+                TextField(
+                  controller: _newPasswordController,
+                  decoration: const InputDecoration(
+                    labelText: 'New Password',
+                    prefixIcon: Icon(Icons.lock_outline),
+                  ),
+                  obscureText: true,
+                ),
+                const SizedBox(height: 24),
+                ElevatedButton(
+                  onPressed: _isLoading ? null : _handleVerify,
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: Colors.teal,
+                  ),
+                  child: _isLoading 
+                      ? const SizedBox(
+                          height: 20, 
+                          width: 20, 
+                          child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2)
+                        )
+                      : const Text('Verify & Change Password', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
+                ),
+              ],
             ].animate(interval: 50.ms).fade(duration: 500.ms).slideY(begin: 0.05, end: 0),
           ),
         ),

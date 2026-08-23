@@ -42,10 +42,31 @@ class AuthProvider with ChangeNotifier {
     notifyListeners();
   }
 
-  Future<void> login(String email, String password) async {
+  Future<Map<String, dynamic>> login(String email, String password) async {
     final data = await _api.post('/auth/login', body: {
       'email': email,
       'password': password,
+    });
+    
+    if (data['requiresOtp'] == true) {
+      return data; // Return the response early so UI can show verify screen
+    }
+
+    _token = data['token'];
+    _user = data['user'];
+    
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setString('token', _token!);
+    
+    notifyListeners();
+    return data;
+  }
+
+  Future<void> verifyFirstLogin(String userId, String otp, String newPassword) async {
+    final data = await _api.post('/auth/verify-first-login', body: {
+      'userId': userId,
+      'otp': otp,
+      'newPassword': newPassword,
     });
     
     _token = data['token'];

@@ -17,6 +17,15 @@ export const authService = {
     return res.data;
   },
 
+  verifyFirstLogin: async (userId, otp, newPassword) => {
+    const res = await api.post("/auth/verify-first-login", { userId, otp, newPassword });
+    if (res.data.token) {
+      localStorage.setItem("token", res.data.token);
+      localStorage.setItem("user", JSON.stringify(res.data.user));
+    }
+    return res.data;
+  },
+
   register: async (userData) => {
     const res = await api.post("/auth/register", userData);
     if (res.data.token) {

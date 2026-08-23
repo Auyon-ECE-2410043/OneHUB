@@ -15,6 +15,7 @@ const userSchema = new mongoose.Schema(
     registrationNo: { type: String, unique: true, sparse: true },
     email: { type: String, required: true, unique: true, lowercase: true, trim: true },
     passwordHash: { type: String, required: true },
+    isFirstLogin: { type: Boolean, default: true },
     role: {
       type: String,
       enum: ["student", "faculty", "admin", "hall_admin", "health_staff"],
