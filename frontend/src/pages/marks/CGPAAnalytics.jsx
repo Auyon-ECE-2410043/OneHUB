@@ -120,10 +120,14 @@ export default function CGPAAnalytics() {
                 <p className="text-2xl font-black text-gray-800">{selectedOfficial.cgpa.toFixed(2)}</p>
               </div>
               <div className="p-4 bg-gray-50 rounded-lg">
-                <p className="text-[11px] text-gray-500 font-semibold uppercase tracking-wide">Credits (Sem / Total)</p>
+                <p className="text-[11px] text-gray-500 font-semibold uppercase tracking-wide">Total Earned Credits</p>
                 <div className="flex items-baseline gap-1 mt-0.5">
-                  <span className="text-2xl font-black text-gray-800">{selectedOfficial.semesterEarnedCredit}</span>
-                  <span className="text-sm font-bold text-gray-400">/ {selectedOfficial.totalEarnedCredit}</span>
+                  <span className="text-2xl font-black text-gray-800">{selectedOfficial.totalEarnedCredit}</span>
+                  {selectedOfficial.semesterEarnedCredit && (
+                    <span className="text-[10px] font-bold text-gray-400 ml-1">
+                      (+{selectedOfficial.semesterEarnedCredit} this sem)
+                    </span>
+                  )}
                 </div>
               </div>
               <div className="p-4 bg-gray-50 rounded-lg">
