@@ -20,7 +20,11 @@ const JWT_SECRET = process.env.JWT_SECRET || "ruet_onehub_super_secret_key_2026"
 // POST /api/auth/register
 router.post("/register", async (req, res) => {
   try {
-    const { name, email, role, rollNo, registrationNo, department, batch, phone, bloodGroup } = req.body;
+    const { name, email, password, role, rollNo, registrationNo, department, batch, phone, bloodGroup } = req.body;
+
+    if (!password || password.length < 6) {
+      return res.status(400).json({ error: "Password must be at least 6 characters." });
+    }
 
     // Validate Edu Mail for students
     const emailLower = email.toLowerCase();
@@ -34,10 +38,8 @@ router.post("/register", async (req, res) => {
     const existingUser = await User.findOne({ email: emailLower });
     if (existingUser) return res.status(400).json({ error: "Email already exists" });
 
-    // Generate a random dummy password (will be changed during OTP verification)
-    const dummyPassword = Math.random().toString(36).slice(-8);
     const salt = await bcrypt.genSalt(10);
-    const passwordHash = await bcrypt.hash(dummyPassword, salt);
+    const passwordHash = await bcrypt.hash(password, salt);
 
     // Create user
     const user = new User({
@@ -62,8 +64,8 @@ router.post("/register", async (req, res) => {
     
     await sendEmail({
       to: user.email,
-      subject: "OneHUB - Verify Your Account",
-      text: `Welcome to OneHUB! Your verification code is: ${otpCode}\n\nPlease enter this code to verify your email and set up your secure password.`
+      subject: "OneHUB - Verify Your Email",
+      text: `Welcome to OneHUB! Your verification code is: ${otpCode}\n\nPlease enter this code to verify your email address.`
     });
 
     res.status(201).json({ 
@@ -148,12 +150,14 @@ router.post("/verify-first-login", async (req, res) => {
       return res.status(400).json({ error: "Invalid or expired verification code." });
     }
 
-    // Hash new password
-    const salt = await bcrypt.genSalt(10);
-    const passwordHash = await bcrypt.hash(newPassword, salt);
+    // Hash new password if provided
+    if (newPassword) {
+      const salt = await bcrypt.genSalt(10);
+      const passwordHash = await bcrypt.hash(newPassword, salt);
+      user.passwordHash = passwordHash;
+    }
 
     // Update user
-    user.passwordHash = passwordHash;
     user.isFirstLogin = false;
     await user.save();
 
@@ -165,7 +169,7 @@ router.post("/verify-first-login", async (req, res) => {
     const userObj = user.toObject();
     delete userObj.passwordHash;
 
-    res.json({ token, user: userObj, message: "Password updated successfully." });
+    res.json({ token, user: userObj, message: newPassword ? "Password updated successfully." : "Email verified successfully." });
   } catch (err) {
     res.status(500).json({ error: err.message });
   }
