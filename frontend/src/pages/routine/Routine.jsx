@@ -145,6 +145,15 @@ export function Routine() {
       </div>
     );
   });
+  
+  // Add a final closing line for 05:00 PM so the last slot doesn't look like it bleeds down
+  hourLines.push(
+    <div key="end-line" className="absolute left-0 right-0 flex group border-t border-slate-200/80" style={{ top: `${(END_HOUR - START_HOUR) * HOUR_HEIGHT}px` }}>
+      <div className="w-16 sm:w-20 pr-1.5 sm:pr-3 flex flex-col justify-center items-end text-right text-[10px] sm:text-xs font-bold text-slate-600 tracking-tight">
+      </div>
+      <div className="flex-1 border-l border-slate-200/80"></div>
+    </div>
+  );
 
   return (
     <div className="space-y-6 animate-in fade-in duration-300">
@@ -216,7 +225,7 @@ export function Routine() {
 
             {/* Day Columns */}
             {DAYS.map((day) => (
-              <div key={day} className="flex-1 border-r last:border-r-0 border-slate-200 relative pt-[35px]" style={{ minHeight: `${(END_HOUR - START_HOUR + 1) * HOUR_HEIGHT}px` }}>
+              <div key={day} className="flex-1 border-r last:border-r-0 border-slate-200 relative pt-[35px]" style={{ minHeight: `${(END_HOUR - START_HOUR) * HOUR_HEIGHT}px` }}>
                 {/* Current Time Indicator Line */}
                 {getCurrentTimeLine(day)}
 
