@@ -9,7 +9,7 @@
 const express = require("express");
 const router = express.Router();
 const SystemSettings = require("../models/SystemSettings");
-const { requireAuth, requireAdmin } = require("../middleware/auth");
+const { requireAuth, requireRole } = require("../middleware/auth");
 
 router.get("/", async (req, res) => {
   try {
@@ -21,7 +21,7 @@ router.get("/", async (req, res) => {
   }
 });
 
-router.post("/maintenance", requireAuth, requireAdmin, async (req, res) => {
+router.post("/maintenance", requireAuth, requireRole("admin"), async (req, res) => {
   try {
     let settings = await SystemSettings.findOne();
     if (!settings) settings = await SystemSettings.create({ maintenanceMode: false });
