@@ -48,6 +48,7 @@ export const DESIGNATIONS = [
   "Associate Professor",
   "Assistant Professor",
   "Lecturer",
+  "Retired Faculty"
 ];
 
 export const GRADE_POINTS = {
