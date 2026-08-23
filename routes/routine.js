@@ -66,6 +66,40 @@ const notifyGroup = async (slot) => {
   }
 };
 
+const notifyAssessment = async (slot) => {
+  try {
+    if (!slot.assessmentType || slot.assessmentType === 'None') return;
+    
+    const batchYear = slot.series ? slot.series.substring(2, 4) : "";
+    const query = { role: "student", department: slot.department };
+    if (batchYear) query.batch = { $regex: new RegExp(batchYear, "i") };
+    
+    const students = await User.find(query);
+    const targetStudents = students.filter(u => {
+      if (slot.targetGroup === "All") return true;
+      if (!u.rollNo || u.rollNo.length < 3) return false;
+      const rollEnd = parseInt(u.rollNo.slice(-3), 10);
+      if (slot.targetGroup === "1st 30") return rollEnd <= 30;
+      if (slot.targetGroup === "2nd 30") return rollEnd > 30;
+      return false;
+    });
+
+    if (targetStudents.length > 0) {
+      const notifs = targetStudents.map(student => ({
+        recipientId: student._id,
+        recipientRole: "student",
+        title: `Upcoming ${slot.assessmentType}: ${slot.courseCode}`,
+        message: `An assessment (${slot.assessmentType}) has been scheduled for ${slot.courseCode} on ${slot.dayOfWeek}. ${slot.assessmentInfo ? 'Details: ' + slot.assessmentInfo : ''}`,
+        type: "exam_notice",
+        meta: { courseCode: slot.courseCode, dayOfWeek: slot.dayOfWeek }
+      }));
+      await Notification.insertMany(notifs);
+    }
+  } catch (err) {
+    console.error("Error notifying assessment:", err);
+  }
+};
+
 // GET /api/routine -> Full semester routine filterable by department, semester, day
 router.get("/", requireAuth, async (req, res) => {
   try {
@@ -218,11 +252,21 @@ router.post("/", requireAuth, requireRole(["admin"]), async (req, res) => {
 // PUT /api/routine/:id -> Update routine slot (Admin only)
 router.put("/:id", requireAuth, requireRole(["admin"]), async (req, res) => {
   try {
+    const oldSlot = await ClassSchedule.findById(req.params.id);
     const updatedSlot = await ClassSchedule.findByIdAndUpdate(req.params.id, req.body, { new: true });
     if (!updatedSlot) return res.status(404).json({ error: "Slot not found" });
     
     // Notify targeted group
     await notifyGroup(updatedSlot);
+
+    // Notify assessment if it was newly added or changed
+    if (oldSlot) {
+      const assessmentChanged = oldSlot.assessmentType !== updatedSlot.assessmentType && updatedSlot.assessmentType !== 'None';
+      const infoChanged = oldSlot.assessmentInfo !== updatedSlot.assessmentInfo && updatedSlot.assessmentType !== 'None';
+      if (assessmentChanged || infoChanged) {
+        await notifyAssessment(updatedSlot);
+      }
+    }
     
     res.json({ message: "Routine slot updated", slot: updatedSlot });
   } catch (err) {

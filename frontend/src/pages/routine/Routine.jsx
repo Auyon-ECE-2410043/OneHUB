@@ -262,6 +262,13 @@ export function Routine() {
                             {c.startTime} - {c.endTime}
                           </p>
                           
+                          {c.assessmentType && c.assessmentType !== 'None' && (
+                            <div className="mt-1 flex items-start gap-1 bg-red-100/90 text-red-700 px-1.5 py-0.5 rounded text-[9px] font-bold border border-red-200/50">
+                              <span className="shrink-0">🚨 {c.assessmentType}</span>
+                              {c.assessmentInfo && <span className="truncate font-medium opacity-90">- {c.assessmentInfo}</span>}
+                            </div>
+                          )}
+
                           <div className="mt-auto space-y-0.5 pt-1">
                             <div className={`flex items-center text-[10px] sm:text-xs font-semibold ${isSessional ? "text-indigo-700" : "text-sky-700"}`}>
                               <MapPin className="w-3 h-3 mr-1 shrink-0" />

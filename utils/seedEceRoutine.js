@@ -15,10 +15,10 @@ const ECE_ROUTINE_DATA = [
   // SUNDAY
   // ==========================================
   // 2nd Year Odd (2024 Series / 2-1)
+  { department: "ECE", semester: "2-1", series: "2024 Series", dayOfWeek: "Sunday", startTime: "08:00", endTime: "10:30", courseCode: "ECE 2106/2112", roomOrLab: "LAB-14/LAB-2", teacherInitials: ["MKG", "MI", "NRP", "MNT"], type: "sessional" },
   { department: "ECE", semester: "2-1", series: "2024 Series", dayOfWeek: "Sunday", startTime: "10:50", endTime: "11:40", courseCode: "ECE 2103", roomOrLab: "R-403", teacherInitials: ["MFA", "NIS"], type: "theory" },
   { department: "ECE", semester: "2-1", series: "2024 Series", dayOfWeek: "Sunday", startTime: "11:40", endTime: "12:30", courseCode: "Chem 2117", roomOrLab: "R-403", teacherInitials: ["SR"], type: "theory" },
   { department: "ECE", semester: "2-1", series: "2024 Series", dayOfWeek: "Sunday", startTime: "12:30", endTime: "13:20", courseCode: "Math 2117", roomOrLab: "R-403", teacherInitials: ["MZH"], type: "theory" },
-  { department: "ECE", semester: "2-1", series: "2024 Series", dayOfWeek: "Sunday", startTime: "14:30", endTime: "17:00", courseCode: "ECE 2106/2112", roomOrLab: "LAB-14/LAB-2", teacherInitials: ["MKG", "MI", "NRP", "MNT"], type: "sessional" },
 
   // ==========================================
   // MONDAY

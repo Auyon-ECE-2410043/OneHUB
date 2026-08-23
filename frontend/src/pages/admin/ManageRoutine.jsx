@@ -29,6 +29,8 @@ export default function ManageRoutine() {
     teacherInitials: "",
     type: "theory",
     targetGroup: "All",
+    assessmentType: "None",
+    assessmentInfo: "",
   });
 
   const fetchRoutine = async () => {
@@ -62,6 +64,8 @@ export default function ManageRoutine() {
         teacherInitials: slot.teacherInitials ? slot.teacherInitials.join(", ") : "",
         type: slot.type || "theory",
         targetGroup: slot.targetGroup || "All",
+        assessmentType: slot.assessmentType || "None",
+        assessmentInfo: slot.assessmentInfo || "",
       });
     } else {
       setCurrentSlot(null);
@@ -77,6 +81,8 @@ export default function ManageRoutine() {
         teacherInitials: "",
         type: "theory",
         targetGroup: "All",
+        assessmentType: "None",
+        assessmentInfo: "",
       });
     }
     setIsModalOpen(true);
@@ -145,11 +151,21 @@ export default function ManageRoutine() {
               {slots.map(slot => (
                 <tr key={slot._id} className="border-b hover:bg-gray-50">
                   <td className="p-4 font-medium text-gray-800">
-                    {slot.courseCode}
-                    {slot.targetGroup && slot.targetGroup !== "All" && (
-                      <span className="ml-2 inline-flex items-center px-2 py-0.5 rounded text-[10px] font-medium bg-purple-100 text-purple-800">
-                        {slot.targetGroup}
-                      </span>
+                    <div className="flex items-center gap-2">
+                      <span>{slot.courseCode}</span>
+                      {slot.targetGroup && slot.targetGroup !== "All" && (
+                        <span className="inline-flex items-center px-2 py-0.5 rounded text-[10px] font-medium bg-purple-100 text-purple-800">
+                          {slot.targetGroup}
+                        </span>
+                      )}
+                    </div>
+                    {slot.assessmentType && slot.assessmentType !== 'None' && (
+                      <div className="mt-1">
+                        <span className="inline-flex items-center px-2 py-0.5 rounded text-[10px] font-medium bg-red-100 text-red-700">
+                          🚨 {slot.assessmentType}
+                          {slot.assessmentInfo && ` - ${slot.assessmentInfo}`}
+                        </span>
+                      </div>
                     )}
                   </td>
                   <td className="p-4 text-gray-600">{slot.series} ({slot.semester})</td>
@@ -298,6 +314,36 @@ export default function ManageRoutine() {
                   />
                 </div>
               </div>
+              
+              <div className="mt-4 p-4 bg-orange-50 border border-orange-100 rounded-lg space-y-4">
+                <div>
+                  <label className="block text-sm font-medium text-orange-900 mb-1">Upcoming Assessment</label>
+                  <select
+                    value={formData.assessmentType}
+                    onChange={e => setFormData({ ...formData, assessmentType: e.target.value })}
+                    className="w-full border-orange-200 rounded-lg p-2 outline-none focus:ring-2 focus:ring-orange-500 bg-white"
+                  >
+                    <option value="None">None</option>
+                    <option value="CT">Class Test (CT)</option>
+                    <option value="Quiz">Quiz</option>
+                    <option value="Assignment">Assignment</option>
+                    <option value="Presentation">Presentation</option>
+                  </select>
+                </div>
+                {formData.assessmentType !== 'None' && (
+                  <div>
+                    <label className="block text-sm font-medium text-orange-900 mb-1">Assessment Info (Optional)</label>
+                    <input
+                      type="text"
+                      value={formData.assessmentInfo}
+                      onChange={e => setFormData({ ...formData, assessmentInfo: e.target.value })}
+                      className="w-full border-orange-200 rounded-lg p-2 outline-none focus:ring-2 focus:ring-orange-500 bg-white"
+                      placeholder="e.g. Syllabus: Chapter 1-3"
+                    />
+                  </div>
+                )}
+              </div>
+
               <div className="flex justify-end gap-2 mt-6">
                 <button
                   type="button"
