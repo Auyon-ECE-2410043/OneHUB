@@ -148,7 +148,7 @@ class _LoginScreenState extends State<LoginScreen> {
                 TextField(
                   controller: _passwordController,
                   decoration: const InputDecoration(
-                    labelText: 'Password',
+                    labelText: 'Password (leave blank if first login)',
                     prefixIcon: Icon(Icons.lock_outline),
                   ),
                   obscureText: true,

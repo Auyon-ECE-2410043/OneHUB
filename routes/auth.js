@@ -20,20 +20,29 @@ const JWT_SECRET = process.env.JWT_SECRET || "ruet_onehub_super_secret_key_2026"
 // POST /api/auth/register
 router.post("/register", async (req, res) => {
   try {
-    const { name, email, password, role, rollNo, registrationNo, department, batch, phone, bloodGroup } = req.body;
+    const { name, email, role, rollNo, registrationNo, department, batch, phone, bloodGroup } = req.body;
+
+    // Validate Edu Mail for students
+    const emailLower = email.toLowerCase();
+    if (role === "student" || !role) {
+      if (!emailLower.endsWith(".edu") && !emailLower.endsWith(".edu.bd") && !emailLower.endsWith("ruet.ac.bd")) {
+        return res.status(400).json({ error: "Please use a valid university educational email (.edu or ruet.ac.bd)." });
+      }
+    }
 
     // Check if user already exists
-    const existingUser = await User.findOne({ email });
+    const existingUser = await User.findOne({ email: emailLower });
     if (existingUser) return res.status(400).json({ error: "Email already exists" });
 
-    // Hash password
+    // Generate a random dummy password (will be changed during OTP verification)
+    const dummyPassword = Math.random().toString(36).slice(-8);
     const salt = await bcrypt.genSalt(10);
-    const passwordHash = await bcrypt.hash(password, salt);
+    const passwordHash = await bcrypt.hash(dummyPassword, salt);
 
     // Create user
     const user = new User({
       name,
-      email,
+      email: emailLower,
       passwordHash,
       role: role || "student",
       rollNo,
@@ -41,17 +50,27 @@ router.post("/register", async (req, res) => {
       department,
       batch,
       phone,
-      bloodGroup
+      bloodGroup,
+      isFirstLogin: true
     });
     await user.save();
 
-    // Generate token
-    const token = jwt.sign({ id: user._id, role: user.role }, JWT_SECRET, { expiresIn: "7d" });
+    // Security Level: First Login OTP
+    const otpCode = Math.floor(100000 + Math.random() * 900000).toString();
+    await Otp.findOneAndDelete({ email: user.email });
+    await Otp.create({ email: user.email, otp: otpCode });
     
-    const userObj = user.toObject();
-    delete userObj.passwordHash;
+    await sendEmail({
+      to: user.email,
+      subject: "OneHUB - Verify Your Account",
+      text: `Welcome to OneHUB! Your verification code is: ${otpCode}\n\nPlease enter this code to verify your email and set up your secure password.`
+    });
 
-    res.status(201).json({ token, user: userObj });
+    res.status(201).json({ 
+      requiresOtp: true, 
+      userId: user._id, 
+      message: "Account created! A verification code has been sent to your email." 
+    });
   } catch (err) {
     res.status(500).json({ error: err.message });
   }
@@ -62,11 +81,8 @@ router.post("/login", async (req, res) => {
   try {
     const { email, password } = req.body;
     
-    const user = await User.findOne({ email });
+    const user = await User.findOne({ email: email.toLowerCase() });
     if (!user) return res.status(401).json({ error: "Invalid credentials" });
-
-    const isMatch = await bcrypt.compare(password, user.passwordHash);
-    if (!isMatch) return res.status(401).json({ error: "Invalid credentials" });
     
     const SystemSettings = require("../models/SystemSettings");
     const settings = await SystemSettings.findOne();
@@ -99,6 +115,13 @@ router.post("/login", async (req, res) => {
         message: "A verification code has been sent to your email. Please verify to continue." 
       });
     }
+
+    // If not first login, verify password
+    if (!password) {
+      return res.status(400).json({ error: "Password is required" });
+    }
+    const isMatch = await bcrypt.compare(password, user.passwordHash);
+    if (!isMatch) return res.status(401).json({ error: "Invalid credentials" });
 
     const token = jwt.sign({ id: user._id, role: user.role }, JWT_SECRET, { expiresIn: "7d" });
     

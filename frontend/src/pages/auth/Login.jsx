@@ -55,8 +55,8 @@ export function Login() {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    if (!formData.email || !formData.password) {
-      toast.error("Please fill in both email and password.");
+    if (!formData.email) {
+      toast.error("Please fill in your email.");
       return;
     }
 
@@ -166,9 +166,8 @@ export function Login() {
                       name="password"
                       value={formData.password}
                       onChange={handleChange}
-                      placeholder="•••••••••"
+                      placeholder="Leave blank if first login"
                       className="block w-full pl-10 pr-10 py-2.5 bg-slate-800/80 border border-slate-700 rounded-xl text-white placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-sky-500 focus:border-transparent text-sm transition-smooth"
-                      required
                     />
                     <button
                       type="button"
