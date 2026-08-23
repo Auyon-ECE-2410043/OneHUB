@@ -25,6 +25,7 @@ const classScheduleSchema = new mongoose.Schema(
     roomOrLab: { type: String, required: true }, // e.g. "R-403", "LAB-1", "LAB-14"
     teacherInitials: [{ type: String, uppercase: true, trim: true }], // e.g. ["MFA", "NIS"]
     teacherUserIds: [{ type: mongoose.Schema.Types.ObjectId, ref: "User" }], // Linked teacher accounts
+    targetGroup: { type: String, enum: ['All', '1st 30', '2nd 30'], default: 'All' }, // Group targeting for split labs
   },
   { timestamps: true }
 );

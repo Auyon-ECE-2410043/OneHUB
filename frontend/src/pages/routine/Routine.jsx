@@ -248,9 +248,16 @@ export function Routine() {
                         title={`${c.courseCode} - ${c.courseName}\nRoom: ${c.roomOrLab}\nTeacher: ${c.teacherInitials.join(", ")}`}
                       >
                         <div className="h-full flex flex-col relative z-10">
-                          <h4 className={`text-xs sm:text-sm font-bold truncate shrink-0 ${isSessional ? "text-indigo-800" : "text-sky-800"}`}>
-                            {c.courseCode}
-                          </h4>
+                          <div className="flex justify-between items-start">
+                            <h4 className={`text-xs sm:text-sm font-bold truncate shrink-0 ${isSessional ? "text-indigo-800" : "text-sky-800"}`}>
+                              {c.courseCode}
+                            </h4>
+                            {c.targetGroup && c.targetGroup !== "All" && (
+                              <span className="text-[8px] sm:text-[9px] font-bold px-1.5 py-0.5 rounded-full bg-white/70 text-indigo-700 ml-1 shrink-0">
+                                {c.targetGroup}
+                              </span>
+                            )}
+                          </div>
                           <p className={`text-[10px] sm:text-xs truncate font-medium mt-0.5 shrink-0 ${isSessional ? "text-indigo-600" : "text-sky-600"}`}>
                             {c.startTime} - {c.endTime}
                           </p>

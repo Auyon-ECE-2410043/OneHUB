@@ -8,10 +8,63 @@
 const express = require("express");
 const ClassSchedule = require("../models/ClassSchedule");
 const User = require("../models/User");
+const Notification = require("../models/Notification");
 const { requireAuth, requireRole } = require("../middleware/auth");
 
 const router = express.Router();
 const DAYS = ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"];
+
+// Helper to determine student's target group (1st 30 / 2nd 30) based on roll number
+const getStudentGroup = (rollNo) => {
+  if (!rollNo || rollNo.length < 3) return "All";
+  const rollEnd = parseInt(rollNo.slice(-3), 10);
+  return rollEnd <= 30 ? "1st 30" : "2nd 30";
+};
+
+// Helper to send notifications when a group-specific slot is created/updated
+const notifyGroup = async (slot) => {
+  try {
+    // Only notify if targetGroup is specific
+    if (!["1st 30", "2nd 30"].includes(slot.targetGroup)) return;
+
+    // Extract batch year for query (e.g. "2024 Series" -> "24")
+    const batchYear = slot.series ? slot.series.substring(2, 4) : "";
+    
+    // Find students in this department & batch
+    const query = { role: "student", department: slot.department };
+    if (batchYear) {
+      query.batch = { $regex: new RegExp(batchYear, "i") };
+    }
+    
+    const students = await User.find(query);
+    
+    const targetStudents = students.filter(u => {
+      if (!u.rollNo || u.rollNo.length < 3) return false;
+      const rollEnd = parseInt(u.rollNo.slice(-3), 10);
+      if (slot.targetGroup === "1st 30") return rollEnd <= 30;
+      if (slot.targetGroup === "2nd 30") return rollEnd > 30;
+      return false;
+    });
+
+    if (targetStudents.length > 0) {
+      const notifs = targetStudents.map(student => ({
+        recipientId: student._id,
+        recipientRole: "student",
+        title: "Routine Split Lab Updated",
+        message: `Your sessional routine for ${slot.courseCode} on ${slot.dayOfWeek} has been updated by the admin.`,
+        type: "general",
+        meta: {
+          courseCode: slot.courseCode,
+          dayOfWeek: slot.dayOfWeek,
+          startTime: slot.startTime
+        }
+      }));
+      await Notification.insertMany(notifs);
+    }
+  } catch (err) {
+    console.error("Error notifying group:", err);
+  }
+};
 
 // GET /api/routine -> Full semester routine filterable by department, semester, day
 router.get("/", requireAuth, async (req, res) => {
@@ -40,10 +93,15 @@ router.get("/my-week", requireAuth, async (req, res) => {
     if (user.role === "student") {
       filter.department = user.department;
       if (user.batch) {
-        // Find if batch matches series (e.g. '24' matches '2024 Series' or '24 Series')
-        // Actually, we can fetch all and filter in JS if complex, but simple regex is fine:
-        filter.series = { $regex: new RegExp(user.batch.slice(-2), "i") }; // grabs '24' from '2024' or '2024-2025'
+        filter.series = { $regex: new RegExp(user.batch.slice(-2), "i") };
       }
+      
+      const userGroup = getStudentGroup(user.rollNo);
+      filter.$or = [
+        { targetGroup: "All" },
+        { targetGroup: userGroup },
+        { targetGroup: { $exists: false } }
+      ];
     } else if (user.role === "faculty") {
       filter.department = user.department;
       if (user.teacherAcronym) {
@@ -75,6 +133,12 @@ router.get("/today", requireAuth, async (req, res) => {
       if (user.batch) {
         filter.series = { $regex: new RegExp(user.batch, "i") };
       }
+      const userGroup = getStudentGroup(user.rollNo);
+      filter.$or = [
+        { targetGroup: "All" },
+        { targetGroup: userGroup },
+        { targetGroup: { $exists: false } }
+      ];
     } else if (user.role === "faculty") {
       filter.department = user.department;
       if (user.teacherAcronym) {
@@ -116,6 +180,12 @@ router.get("/weekly", requireAuth, async (req, res) => {
       if (user.batch) {
         filter.series = { $regex: new RegExp(user.batch, "i") };
       }
+      const userGroup = getStudentGroup(user.rollNo);
+      filter.$or = [
+        { targetGroup: "All" },
+        { targetGroup: userGroup },
+        { targetGroup: { $exists: false } }
+      ];
     } else if (user.role === "faculty") {
       filter.department = user.department;
       if (user.teacherAcronym) {
@@ -130,59 +200,42 @@ router.get("/weekly", requireAuth, async (req, res) => {
   }
 });
 
-// POST /api/routine/slot -> Admin adds or updates a routine slot
-router.post("/slot", requireAuth, requireRole("admin"), async (req, res) => {
-  try {
-    const { department, semester, series, dayOfWeek, startTime, endTime, courseCode, courseName, roomOrLab, teacherInitials, type } = req.body;
-
-    const slot = await ClassSchedule.create({
-      department,
-      semester,
-      series,
-      dayOfWeek,
-      startTime,
-      endTime,
-      courseCode,
-      courseName: courseName || "",
-      roomOrLab,
-      teacherInitials: teacherInitials || [],
-      type: type || "theory",
-    });
-
-    res.status(201).json({ slot });
-  } catch (err) {
-    res.status(500).json({ error: err.message });
-  }
-});
-
 // POST /api/routine -> Add new routine slot (Admin only)
-router.post('/', requireAuth, requireRole(['admin']), async (req, res) => {
+router.post("/", requireAuth, requireRole(["admin"]), async (req, res) => {
   try {
     const newSlot = new ClassSchedule(req.body);
     await newSlot.save();
-    res.status(201).json({ message: 'Routine slot added', slot: newSlot });
+    
+    // Notify targeted group
+    await notifyGroup(newSlot);
+
+    res.status(201).json({ message: "Routine slot added", slot: newSlot });
   } catch (err) {
     res.status(400).json({ error: err.message });
   }
 });
 
 // PUT /api/routine/:id -> Update routine slot (Admin only)
-router.put('/:id', requireAuth, requireRole(['admin']), async (req, res) => {
+router.put("/:id", requireAuth, requireRole(["admin"]), async (req, res) => {
   try {
     const updatedSlot = await ClassSchedule.findByIdAndUpdate(req.params.id, req.body, { new: true });
-    if (!updatedSlot) return res.status(404).json({ error: 'Slot not found' });
-    res.json({ message: 'Routine slot updated', slot: updatedSlot });
+    if (!updatedSlot) return res.status(404).json({ error: "Slot not found" });
+    
+    // Notify targeted group
+    await notifyGroup(updatedSlot);
+    
+    res.json({ message: "Routine slot updated", slot: updatedSlot });
   } catch (err) {
     res.status(400).json({ error: err.message });
   }
 });
 
 // DELETE /api/routine/:id -> Delete routine slot (Admin only)
-router.delete('/:id', requireAuth, requireRole(['admin']), async (req, res) => {
+router.delete("/:id", requireAuth, requireRole(["admin"]), async (req, res) => {
   try {
     const deletedSlot = await ClassSchedule.findByIdAndDelete(req.params.id);
-    if (!deletedSlot) return res.status(404).json({ error: 'Slot not found' });
-    res.json({ message: 'Routine slot deleted' });
+    if (!deletedSlot) return res.status(404).json({ error: "Slot not found" });
+    res.json({ message: "Routine slot deleted" });
   } catch (err) {
     res.status(400).json({ error: err.message });
   }

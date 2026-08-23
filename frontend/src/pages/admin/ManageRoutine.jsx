@@ -27,6 +27,8 @@ export default function ManageRoutine() {
     endTime: "08:50",
     roomOrLab: "",
     teacherInitials: "",
+    type: "theory",
+    targetGroup: "All",
   });
 
   const fetchRoutine = async () => {
@@ -58,6 +60,8 @@ export default function ManageRoutine() {
         endTime: slot.endTime || "08:50",
         roomOrLab: slot.roomOrLab || "",
         teacherInitials: slot.teacherInitials ? slot.teacherInitials.join(", ") : "",
+        type: slot.type || "theory",
+        targetGroup: slot.targetGroup || "All",
       });
     } else {
       setCurrentSlot(null);
@@ -71,6 +75,8 @@ export default function ManageRoutine() {
         endTime: "08:50",
         roomOrLab: "",
         teacherInitials: "",
+        type: "theory",
+        targetGroup: "All",
       });
     }
     setIsModalOpen(true);
@@ -138,7 +144,14 @@ export default function ManageRoutine() {
             <tbody>
               {slots.map(slot => (
                 <tr key={slot._id} className="border-b hover:bg-gray-50">
-                  <td className="p-4 font-medium text-gray-800">{slot.courseCode}</td>
+                  <td className="p-4 font-medium text-gray-800">
+                    {slot.courseCode}
+                    {slot.targetGroup && slot.targetGroup !== "All" && (
+                      <span className="ml-2 inline-flex items-center px-2 py-0.5 rounded text-[10px] font-medium bg-purple-100 text-purple-800">
+                        {slot.targetGroup}
+                      </span>
+                    )}
+                  </td>
                   <td className="p-4 text-gray-600">{slot.series} ({slot.semester})</td>
                   <td className="p-4 text-gray-600">{slot.dayOfWeek}, {slot.startTime} - {slot.endTime}</td>
                   <td className="p-4 text-gray-600">{slot.roomOrLab}</td>
@@ -207,6 +220,30 @@ export default function ManageRoutine() {
                     className="w-full border rounded-lg p-2 outline-none focus:ring-2 focus:ring-blue-500"
                     placeholder="e.g. 1-1"
                   />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">Class Type</label>
+                  <select
+                    value={formData.type}
+                    onChange={e => setFormData({ ...formData, type: e.target.value })}
+                    className="w-full border rounded-lg p-2 outline-none focus:ring-2 focus:ring-blue-500"
+                  >
+                    <option value="theory">Theory</option>
+                    <option value="sessional">Sessional / Lab</option>
+                    <option value="project">Project</option>
+                  </select>
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">Target Group</label>
+                  <select
+                    value={formData.targetGroup}
+                    onChange={e => setFormData({ ...formData, targetGroup: e.target.value })}
+                    className="w-full border rounded-lg p-2 outline-none focus:ring-2 focus:ring-blue-500"
+                  >
+                    <option value="All">All Students</option>
+                    <option value="1st 30">1st 30 (Roll 01-30)</option>
+                    <option value="2nd 30">2nd 30 (Roll 31+)</option>
+                  </select>
                 </div>
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-1">Day of Week</label>
