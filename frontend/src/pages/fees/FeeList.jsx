@@ -105,13 +105,13 @@ export function FeeList() {
   };
 
   const downloadPDF = () => {
-    const element = document.getElementById("receipt-content");
+    const element = document.getElementById("receipt-pdf-content");
     if (!element) return;
     const opt = {
       margin: 0.5,
       filename: `Receipt_${selectedReceiptFee?.transactionId || 'Payment'}.pdf`,
       image: { type: 'jpeg', quality: 0.98 },
-      html2canvas: { scale: 2 },
+      html2canvas: { scale: 2, useCORS: true },
       jsPDF: { unit: 'in', format: 'a4', orientation: 'portrait' }
     };
     html2pdf().set(opt).from(element).save();
