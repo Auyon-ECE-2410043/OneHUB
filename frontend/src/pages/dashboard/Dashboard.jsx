@@ -38,6 +38,28 @@ export function Dashboard() {
   const [togglingFeature, setTogglingFeature] = useState(null);
   const [maintenanceLoading, setMaintenanceLoading] = useState(false);
 
+  
+  const handleToggleFeature = async (featureKey) => {
+    setTogglingFeature(featureKey);
+    const currentState = features[featureKey] !== false;
+    const newState = !currentState;
+    
+    // Optimistic UI update
+    setFeatures(prev => ({ ...prev, [featureKey]: newState }));
+    
+    try {
+      const { default: api } = await import("../../services/api");
+      const res = await api.post("/settings/feature", { featureKey, enabled: newState });
+      setFeatures(res.data.features || { ...features, [featureKey]: newState });
+    } catch (e) {
+      console.error("Toggle failed", e);
+      setFeatures(prev => ({ ...prev, [featureKey]: currentState })); // revert
+      alert("Failed to save feature toggle: " + (e.response?.data?.error || e.message));
+    } finally {
+      setTogglingFeature(null);
+    }
+  };
+
   // Data states
   const [coursesData, setCoursesData] = useState(null);
   const [allCourses, setAllCourses] = useState([]);
