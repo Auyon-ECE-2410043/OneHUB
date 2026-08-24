@@ -199,15 +199,6 @@ export function FeeList() {
           <span>Payment History & Receipts ({paidFees.length})</span>
         </button>
       </div>
-      </>
-      ) : (
-        <div className="mt-8 p-12 bg-white rounded-2xl border border-slate-200 flex flex-col items-center justify-center text-center">
-          <CreditCard className="w-16 h-16 text-slate-300 mb-4" />
-          <h2 className="text-xl font-bold text-slate-800">Fee Assignment Portal Active</h2>
-          <p className="text-slate-500 mt-2 max-w-md">Click the "Assign Custom Fee" button at the top right to issue new bills.</p>
-        </div>
-      )}
-
       {/* Fee List Cards */}
       <div className="space-y-4">
         {currentList.length === 0 ? (
@@ -321,6 +312,14 @@ export function FeeList() {
           })
         )}
       </div>
+      </>
+      ) : (
+        <div className="mt-8 p-12 bg-white rounded-2xl border border-slate-200 flex flex-col items-center justify-center text-center">
+          <CreditCard className="w-16 h-16 text-slate-300 mb-4" />
+          <h2 className="text-xl font-bold text-slate-800">Fee Assignment Portal Active</h2>
+          <p className="text-slate-500 mt-2 max-w-md">Click the "Assign Custom Fee" button at the top right to issue new bills.</p>
+        </div>
+      )}
 
       {/* Online Payment Gateway Simulation Modal */}
       {selectedFeeToPay && (
