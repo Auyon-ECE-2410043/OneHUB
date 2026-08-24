@@ -481,7 +481,8 @@ export function Dashboard() {
               { key: 'medical', label: 'Medical Center' },
               { key: 'notices', label: 'Notice Board' },
               { key: 'faculty', label: 'Faculty Dir' },
-              { key: 'calendar', label: 'Calendar' }
+              { key: 'calendar', label: 'Calendar' },
+              { key: 'clearance', label: 'Clearance' }
             ].map(f => {
               const isEnabled = features[f.key] !== false;
               const isToggling = togglingFeature === f.key;
