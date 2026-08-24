@@ -426,7 +426,7 @@ export function FeeList() {
             {/* Header */}
             <div className="flex flex-col items-center justify-center border-b border-slate-200 pb-4">
               <div className="flex items-center space-x-3 mb-2">
-                <img src="https://upload.wikimedia.org/wikipedia/en/thumb/f/f6/Rajshahi_University_of_Engineering_%26_Technology_emblem.svg/1200px-Rajshahi_University_of_Engineering_%26_Technology_emblem.svg.png" alt="RUET Logo" className="w-12 h-12 object-contain" crossOrigin="anonymous" />
+                <img src="/ruet-logo.png" alt="RUET Logo" className="w-12 h-12 object-contain" crossOrigin="anonymous" />
                 <h2 className="text-lg font-extrabold text-slate-900 tracking-tight text-center leading-tight">
                   RAJSHAHI UNIVERSITY OF ENGINEERING<br/>& TECHNOLOGY
                 </h2>
