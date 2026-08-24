@@ -104,17 +104,43 @@ export function FeeList() {
     }
   };
 
-  const downloadPDF = () => {
-    const element = document.getElementById("receipt-pdf-content");
-    if (!element) return;
-    const opt = {
-      margin: 0.5,
-      filename: `Receipt_${selectedReceiptFee?.transactionId || 'Payment'}.pdf`,
-      image: { type: 'jpeg', quality: 0.98 },
-      html2canvas: { scale: 2, useCORS: true },
-      jsPDF: { unit: 'in', format: 'a4', orientation: 'portrait' }
-    };
-    html2pdf().set(opt).from(element).save();
+  const [isDownloading, setIsDownloading] = useState(false);
+
+  const downloadPDF = async () => {
+    setIsDownloading(true);
+    // Give React a tick to update the UI to show loading state
+    await new Promise((resolve) => setTimeout(resolve, 100));
+
+    try {
+      const element = document.getElementById("receipt-pdf-content");
+      if (!element) return;
+
+      // Temporarily hide action buttons so they don't appear in PDF if print:hidden fails
+      const buttons = element.querySelectorAll('.print\\:hidden');
+      buttons.forEach(btn => btn.style.display = 'none');
+
+      const opt = {
+        margin: 0.3,
+        filename: `Receipt_${selectedReceiptFee?.transactionId || 'Payment'}.pdf`,
+        image: { type: 'jpeg', quality: 0.98 },
+        html2canvas: { 
+          scale: 2, 
+          useCORS: true,
+          logging: false,
+          ignoreElements: (node) => node.classList && node.classList.contains('print:hidden')
+        },
+        jsPDF: { unit: 'in', format: 'a4', orientation: 'portrait' }
+      };
+
+      await html2pdf().set(opt).from(element).save();
+
+      // Restore buttons
+      buttons.forEach(btn => btn.style.display = '');
+    } catch (err) {
+      console.error("PDF generation failed", err);
+    } finally {
+      setIsDownloading(false);
+    }
   };
 
   const handleOpenReceipt = (fee) => {
