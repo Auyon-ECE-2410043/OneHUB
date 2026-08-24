@@ -52,6 +52,7 @@ const PageLoader = () => (
 export function AppRoutes() {
   const { user } = useAuth();
   const [maintenance, setMaintenance] = useState(false);
+  const [features, setFeatures] = useState({});
   const [checking, setChecking] = useState(true);
 
   useEffect(() => {
@@ -59,6 +60,7 @@ export function AppRoutes() {
       try {
         const res = await api.get("/settings");
         setMaintenance(res.data.maintenanceMode);
+        setFeatures(res.data.features || {});
       } catch (err) {
         console.error("Failed to check maintenance status");
       } finally {
@@ -67,6 +69,19 @@ export function AppRoutes() {
     };
     checkMaintenance();
   }, []);
+
+  
+  const FeatureGuard = ({ featureKey, title, children }) => {
+    if (user?.role === 'admin') return children;
+    if (features[featureKey] === false) {
+      return (
+        <Suspense fallback={<PageLoader />}>
+          <Maintenance embedded={true} title={`${title} is Unavailable`} message={`The ${title} module is currently turned off by the administration for maintenance or updates. Please check back later.`} />
+        </Suspense>
+      );
+    }
+    return children;
+  };
 
   if (checking) return <PageLoader />;
 
@@ -101,8 +116,8 @@ export function AppRoutes() {
         <Route path="/dashboard" element={<Dashboard />} />
 
         {/* Courses & Assignments */}
-        <Route path="/courses" element={<CourseList />} />
-        <Route path="/courses/:id" element={<CourseDetails />} />
+        <Route path="/courses" element={<FeatureGuard featureKey="courses" title="My Courses"><CourseList /></FeatureGuard>} />
+        <Route path="/courses/:id" element={<FeatureGuard featureKey="courses" title="Course Details"><CourseDetails /></FeatureGuard>} />
         <Route
           path="/course-assignments"
           element={
@@ -112,7 +127,7 @@ export function AppRoutes() {
           }
         />
 
-        <Route path="/routine" element={<Routine />} />
+        <Route path="/routine" element={<FeatureGuard featureKey="routine" title="Weekly Routine"><Routine /></FeatureGuard>} />
         <Route
           path="/manage-routine"
           element={
@@ -123,15 +138,15 @@ export function AppRoutes() {
         />
         
         {/* Course Registration */}
-        <Route path="/registration" element={<RegistrationForm />} />
+        <Route path="/registration" element={<FeatureGuard featureKey="registration" title="Course Registration"><RegistrationForm /></FeatureGuard>} />
 
         {/* Fees & Payment */}
-        <Route path="/fees" element={<FeeList />} />
-        <Route path="/fees/payment" element={<FeePayment />} />
+        <Route path="/fees" element={<FeatureGuard featureKey="fees" title="Fees & Payment"><FeeList /></FeatureGuard>} />
+        <Route path="/fees/payment" element={<FeatureGuard featureKey="fees" title="Fees & Payment"><FeePayment /></FeatureGuard>} />
 
         {/* Marks & Grading */}
-        <Route path="/marks" element={<MarksList />} />
-        <Route path="/cgpa" element={<CGPAAnalytics />} />
+        <Route path="/marks" element={<FeatureGuard featureKey="marks" title="Marks & Grades"><MarksList /></FeatureGuard>} />
+        <Route path="/cgpa" element={<FeatureGuard featureKey="cgpa" title="CGPA Analytics"><CGPAAnalytics /></FeatureGuard>} />
         <Route
           path="/marks/entry"
           element={
@@ -142,7 +157,7 @@ export function AppRoutes() {
         />
 
         {/* Attendance */}
-        <Route path="/attendance" element={<AttendanceList />} />
+        <Route path="/attendance" element={<FeatureGuard featureKey="attendance" title="Attendance"><AttendanceList /></FeatureGuard>} />
         <Route
           path="/attendance/mark"
           element={
@@ -153,10 +168,10 @@ export function AppRoutes() {
         />
 
         {/* Notice Board */}
-        <Route path="/notices" element={<NoticeList />} />
+        <Route path="/notices" element={<FeatureGuard featureKey="notices" title="Notice Board"><NoticeList /></FeatureGuard>} />
 
         {/* Hall Accommodation */}
-        <Route path="/hall" element={<HallApplicationForm />} />
+        <Route path="/hall" element={<FeatureGuard featureKey="hall" title="Hall Application"><HallApplicationForm /></FeatureGuard>} />
         <Route
           path="/hall/review"
           element={
@@ -167,17 +182,17 @@ export function AppRoutes() {
         />
 
         {/* Faculty Directory */}
-        <Route path="/faculty" element={<FacultyDirectory />} />
+        <Route path="/faculty" element={<FeatureGuard featureKey="faculty" title="Faculty Directory"><FacultyDirectory /></FeatureGuard>} />
 
         {/* Profile & Account Security */}
         <Route path="/profile" element={<Profile />} />
 
         {/* Medical & Clearance */}
-        <Route path="/medical" element={<MedicalCenter />} />
-        <Route path="/clearance" element={<ClearanceStatus />} />
+        <Route path="/medical" element={<FeatureGuard featureKey="medical" title="Medical Center"><MedicalCenter /></FeatureGuard>} />
+        <Route path="/clearance" element={<FeatureGuard featureKey="clearance" title="Clearance Status"><ClearanceStatus /></FeatureGuard>} />
         
         {/* Calendar */}
-        <Route path="/calendar" element={<AcademicCalendar />} />
+        <Route path="/calendar" element={<FeatureGuard featureKey="calendar" title="Academic Calendar"><AcademicCalendar /></FeatureGuard>} />
       </Route>
 
       {/* Fallback */}

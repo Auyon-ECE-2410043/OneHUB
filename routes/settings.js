@@ -1,20 +1,35 @@
 /**
  * File: settings.js
- * Description: Manages global system settings like maintenance mode.
+ * Description: Manages global system settings like maintenance mode and feature toggles.
  * 
  * This file is part of the RUET OneHub Project.
  */
-
 
 const express = require("express");
 const router = express.Router();
 const SystemSettings = require("../models/SystemSettings");
 const { requireAuth, requireRole } = require("../middleware/auth");
 
+const defaultFeatures = {
+  routine: true,
+  courses: true,
+  registration: true,
+  attendance: true,
+  marks: true,
+  cgpa: true,
+  fees: true,
+  hall: true,
+  clearance: true,
+  medical: true,
+  notices: true,
+  faculty: true,
+  calendar: true
+};
+
 router.get("/", async (req, res) => {
   try {
     let settings = await SystemSettings.findOne();
-    if (!settings) settings = await SystemSettings.create({ maintenanceMode: false });
+    if (!settings) settings = await SystemSettings.create({ maintenanceMode: false, features: defaultFeatures });
     res.json(settings);
   } catch (err) {
     res.status(500).json({ error: err.message });
@@ -24,7 +39,7 @@ router.get("/", async (req, res) => {
 router.post("/maintenance", requireAuth, requireRole("admin"), async (req, res) => {
   try {
     let settings = await SystemSettings.findOne();
-    if (!settings) settings = await SystemSettings.create({ maintenanceMode: false });
+    if (!settings) settings = await SystemSettings.create({ maintenanceMode: false, features: defaultFeatures });
     
     settings.maintenanceMode = !settings.maintenanceMode;
     await settings.save();
@@ -35,5 +50,28 @@ router.post("/maintenance", requireAuth, requireRole("admin"), async (req, res) 
   }
 });
 
-module.exports = router;
+// Toggle a specific feature
+router.post("/feature", requireAuth, requireRole("admin"), async (req, res) => {
+  try {
+    const { featureKey, enabled } = req.body;
+    let settings = await SystemSettings.findOne();
+    if (!settings) settings = await SystemSettings.create({ maintenanceMode: false, features: defaultFeatures });
+    
+    // Ensure features object exists
+    if (!settings.features) {
+      settings.features = defaultFeatures;
+    }
 
+    if (settings.features[featureKey] !== undefined) {
+      settings.features[featureKey] = enabled;
+      await settings.save();
+      res.json({ message: `Feature ${featureKey} is now ${enabled ? 'enabled' : 'disabled'}`, features: settings.features });
+    } else {
+      res.status(400).json({ error: "Invalid feature key" });
+    }
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+module.exports = router;

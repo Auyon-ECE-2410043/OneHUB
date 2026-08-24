@@ -34,6 +34,8 @@ export function Dashboard() {
   const { user } = useAuth();
   const [loading, setLoading] = useState(true);
   const [maintenance, setMaintenance] = useState(false);
+  const [features, setFeatures] = useState({});
+  const [togglingFeature, setTogglingFeature] = useState(null);
   const [maintenanceLoading, setMaintenanceLoading] = useState(false);
 
   // Data states
@@ -109,6 +111,8 @@ export function Dashboard() {
               const { default: api } = await import("../../services/api");
               const res = await api.get("/settings");
               setMaintenance(res.data.maintenanceMode);
+                      setFeatures(res.data.features || {});
+        setFeatures(res.data.features || {});
             } catch (e) {
               console.warn("Could not load settings", e);
             }
