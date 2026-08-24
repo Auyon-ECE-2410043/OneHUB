@@ -14,6 +14,7 @@ import { PageLoader } from "../../components/common/Loader";
 import Modal from "../../components/common/Modal";
 import {
   CreditCard,
+  Plus,
   CheckCircle2,
   Clock,
   Receipt,
@@ -117,15 +118,26 @@ export function FeeList() {
   return (
     <div className="space-y-6">
       {/* Header */}
-      <div>
-        <h1 className="text-2xl font-bold text-slate-800 flex items-center space-x-2.5">
-          <CreditCard className="w-7 h-7 text-sky-600" />
-          <span>Student Fee & Payment Center</span>
-        </h1>
-        <p className="text-slate-500 text-sm mt-1">
-          Review semester tuition bills, examination charges, hall dues, and process online payments instantly.
-        </p>
-      </div>
+      <div className="flex flex-col sm:flex-row sm:justify-between sm:items-start gap-4">
+          <div>
+            <h1 className="text-2xl font-bold text-slate-800 flex items-center space-x-2.5">
+              <CreditCard className="w-7 h-7 text-sky-600" />
+              <span>Student Fee & Payment Center</span>
+            </h1>
+            <p className="text-slate-500 text-sm mt-1">
+              Review semester tuition bills, examination charges, hall dues, and process online payments instantly.
+            </p>
+          </div>
+          {user?.role === 'admin' && (
+            <button 
+              onClick={() => setIsAssignModalOpen(true)}
+              className="px-5 py-2.5 bg-sky-600 hover:bg-sky-700 text-white font-semibold rounded-xl text-sm transition-smooth shadow-sm flex items-center gap-2"
+            >
+              <Plus className="w-4 h-4" />
+              <span>Assign Custom Fee</span>
+            </button>
+          )}
+        </div>
 
       {user?.role !== 'admin' ? (<>
       {/* Summary Stat Cards */}
