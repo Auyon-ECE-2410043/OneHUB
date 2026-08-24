@@ -23,7 +23,7 @@ router.get("/", requireAuth, async (req, res) => {
   }
 });
 
-const mongoose = require("mongoose");
+
 const Registration = require("../models/Registration");
 
 // POST /api/fees/:feeId/pay -> Simulate sandbox payment
