@@ -12,7 +12,8 @@ import feeService from "../../services/feeService";
 import { formatCurrency, formatDate, formatDateTime, getStatusBadge, getStatusLabel } from "../../utils/helpers";
 import { PageLoader } from "../../components/common/Loader";
 import Modal from "../../components/common/Modal";
-import html2pdf from 'html2pdf.js';
+import html2canvas from "html2canvas";
+import { jsPDF } from "jspdf";
 import {
   CreditCard,
   Plus,
@@ -108,36 +109,57 @@ export function FeeList() {
 
   const downloadPDF = async () => {
     setIsDownloading(true);
-    // Give React a tick to update the UI to show loading state
+    // Let React render the loading state
     await new Promise((resolve) => setTimeout(resolve, 100));
 
     try {
-      const element = document.getElementById("receipt-pdf-content");
-      if (!element) return;
+      const originalElement = document.getElementById("receipt-pdf-content");
+      if (!originalElement) return;
 
-      // Temporarily hide action buttons so they don't appear in PDF if print:hidden fails
-      const buttons = element.querySelectorAll('.print\\:hidden');
+      // Create a clone of the element to isolate it from the modal's backdrop-blur CSS
+      // which is known to cause fatal infinite loops in html2canvas.
+      const clone = originalElement.cloneNode(true);
+      
+      // Hide the buttons in the clone
+      const buttons = clone.querySelectorAll('.print\\:hidden');
       buttons.forEach(btn => btn.style.display = 'none');
 
-      const opt = {
-        margin: 0.3,
-        filename: `Receipt_${selectedReceiptFee?.transactionId || 'Payment'}.pdf`,
-        image: { type: 'jpeg', quality: 0.98 },
-        html2canvas: { 
-          scale: 2, 
-          useCORS: true,
-          logging: false,
-          ignoreElements: (node) => node.classList && node.classList.contains('print:hidden')
-        },
-        jsPDF: { unit: 'in', format: 'a4', orientation: 'portrait' }
-      };
+      // Style the clone so it renders properly but is invisible on screen
+      clone.style.position = 'absolute';
+      clone.style.top = '-9999px';
+      clone.style.left = '-9999px';
+      clone.style.width = '800px'; // Give it a fixed width for perfect rendering
+      clone.style.background = '#ffffff';
+      document.body.appendChild(clone);
 
-      await html2pdf().set(opt).from(element).save();
+      // Generate the canvas from the isolated clone
+      const canvas = await html2canvas(clone, {
+        scale: 2,
+        useCORS: true,
+        logging: false,
+        backgroundColor: '#ffffff'
+      });
 
-      // Restore buttons
-      buttons.forEach(btn => btn.style.display = '');
+      // Cleanup clone
+      document.body.removeChild(clone);
+
+      // Create PDF
+      const imgData = canvas.toDataURL('image/jpeg', 0.98);
+      const pdf = new jsPDF({
+        orientation: 'portrait',
+        unit: 'px',
+        format: 'a4'
+      });
+
+      const pdfWidth = pdf.internal.pageSize.getWidth();
+      const pdfHeight = (canvas.height * pdfWidth) / canvas.width;
+
+      pdf.addImage(imgData, 'JPEG', 0, 0, pdfWidth, pdfHeight);
+      pdf.save(`Receipt_${selectedReceiptFee?.transactionId || 'Payment'}.pdf`);
+
     } catch (err) {
-      console.error("PDF generation failed", err);
+      console.error("PDF generation failed:", err);
+      alert("Could not generate PDF. Please use the Print Receipt button and select 'Save as PDF'.");
     } finally {
       setIsDownloading(false);
     }
