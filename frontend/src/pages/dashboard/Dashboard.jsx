@@ -439,6 +439,56 @@ export function Dashboard() {
         </div>
       )}
 
+      
+      {user?.role === "admin" && (
+        <div className="mb-6 bg-white/80 dark:bg-slate-900/80 backdrop-blur-xl p-6 rounded-3xl border border-slate-200/80 dark:border-slate-800 shadow-sm">
+          <div className="mb-5">
+            <h2 className="text-xl font-bold text-slate-800 dark:text-slate-100">Module Access Control</h2>
+            <p className="text-sm text-slate-500 dark:text-slate-400 mt-1">Enable or disable specific features across the portal. Disabled modules will show an "Under Maintenance" screen to students and faculty.</p>
+          </div>
+          <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-6 gap-3">
+            {[
+              { key: 'routine', label: 'Weekly Routine' },
+              { key: 'courses', label: 'Courses' },
+              { key: 'registration', label: 'Registration' },
+              { key: 'attendance', label: 'Attendance' },
+              { key: 'marks', label: 'Marks' },
+              { key: 'cgpa', label: 'CGPA Analytics' },
+              { key: 'fees', label: 'Fees & Payment' },
+              { key: 'hall', label: 'Hall App' },
+              { key: 'medical', label: 'Medical Center' },
+              { key: 'notices', label: 'Notice Board' },
+              { key: 'faculty', label: 'Faculty Dir' },
+              { key: 'calendar', label: 'Calendar' }
+            ].map(f => {
+              const isEnabled = features[f.key] !== false;
+              const isToggling = togglingFeature === f.key;
+              
+              return (
+                <button
+                  key={f.key}
+                  onClick={() => handleToggleFeature(f.key)}
+                  disabled={isToggling}
+                  className={`p-3.5 rounded-2xl border text-left transition-all relative overflow-hidden ${isEnabled ? 'bg-white dark:bg-slate-800 border-slate-200 dark:border-slate-700 hover:border-sky-300 shadow-sm' : 'bg-slate-50 dark:bg-slate-900/50 border-rose-200 dark:border-rose-900/30'}`}
+                >
+                  <div className="flex justify-between items-start mb-2.5">
+                    <span className={`text-xs font-bold uppercase tracking-wider ${isEnabled ? 'text-slate-500 dark:text-slate-400' : 'text-rose-500 dark:text-rose-400'}`}>
+                      {f.label}
+                    </span>
+                    <div className={`w-8 h-4 rounded-full flex items-center p-0.5 transition-colors ${isEnabled ? 'bg-emerald-500' : 'bg-slate-300 dark:bg-slate-600'}`}>
+                      <div className={`w-3 h-3 bg-white rounded-full shadow-sm transform transition-transform ${isEnabled ? 'translate-x-4' : 'translate-x-0'}`} />
+                    </div>
+                  </div>
+                  <div className={`text-xs font-semibold ${isEnabled ? 'text-emerald-600 dark:text-emerald-400' : 'text-slate-500 dark:text-slate-500'}`}>
+                    {isToggling ? 'Updating...' : isEnabled ? 'Active' : 'Disabled'}
+                  </div>
+                </button>
+              );
+            })}
+          </div>
+        </div>
+      )}
+
       {/* Two Column Section: Quick Shortcuts & Recent Notices */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
         {/* Quick Actions List */}
