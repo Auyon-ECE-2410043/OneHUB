@@ -150,7 +150,16 @@ export function FeeList() {
         </h1>
         <p className="text-slate-500 text-sm mt-1">
           Review semester tuition bills, examination charges, hall dues, and process online payments instantly.
-        </p>
+          </p>
+        </div>
+        {user?.role === 'admin' && (
+          <div className="flex-shrink-0">
+            <button onClick={() => setIsAssignModalOpen(true)} className="px-5 py-2.5 bg-sky-600 hover:bg-sky-700 text-white font-medium rounded-xl text-sm flex items-center space-x-2 transition-smooth shadow-sm">
+              <span className="text-lg leading-none">+</span>
+              <span>Assign Custom Fee</span>
+            </button>
+          </div>
+        )}
       </div>
 
       {/* Summary Stat Cards */}
