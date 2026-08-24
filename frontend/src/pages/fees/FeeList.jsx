@@ -138,6 +138,7 @@ export function FeeList() {
     window.html2pdf().set(opt).from(element).save();
   };
 
+
   const currentList = activeTab === "due" ? dueFees : paidFees;
 
   return (
@@ -438,7 +439,7 @@ export function FeeList() {
           onClose={() => setIsReceiptModalOpen(false)}
           title="University Payment Receipt"
         >
-          <div className="p-6 bg-white border border-slate-200 rounded-2xl space-y-6 print:border-none">
+          <div id="receipt-content" className="p-6 bg-white border border-slate-200 rounded-2xl space-y-6 print:border-none print:shadow-none print:p-0">
             {/* Header */}
             <div className="text-center border-b border-slate-200 pb-4">
               <h2 className="text-lg font-extrabold text-slate-900 tracking-tight">
