@@ -1,0 +1,284 @@
+[
+  {
+    "name": "A H M Sarowar Sattar",
+    "designation": "Professor",
+    "isOnLeave": true,
+    "profileLink": "http://cse.ruet.ac.bd/sarowar"
+  },
+  {
+    "name": "Dr. Md. Al Mehedi Hasan",
+    "designation": "Professor",
+    "isOnLeave": true,
+    "profileLink": "http://cse.ruet.ac.bd/almehedihasan"
+  },
+  {
+    "name": "Dr. Md. Nazrul Islam Mondal",
+    "designation": "Professor",
+    "isOnLeave": false,
+    "profileLink": "http://cse.ruet.ac.bd/mondal"
+  },
+  {
+    "name": "Dr. Md. Rabiul Islam",
+    "designation": "Professor",
+    "isOnLeave": false,
+    "profileLink": "http://cse.ruet.ac.bd/rabiul-cse"
+  },
+  {
+    "name": "Dr. Md. Shahid Uz Zaman",
+    "designation": "Professor",
+    "isOnLeave": false,
+    "profileLink": "http://cse.ruet.ac.bd/szaman22ruet"
+  },
+  {
+    "name": "Dr. Mir Md. Jahangir Kabir",
+    "designation": "Professor",
+    "isOnLeave": true,
+    "profileLink": "http://cse.ruet.ac.bd/mmjahangirkabir"
+  },
+  {
+    "name": "Prof. Dr. Boshir Ahmed",
+    "designation": "Professor",
+    "isOnLeave": false,
+    "profileLink": "http://cse.ruet.ac.bd/boshir"
+  },
+  {
+    "name": "Prof. Dr. Md. Al Mamun",
+    "designation": "Professor",
+    "isOnLeave": true,
+    "profileLink": "http://cse.ruet.ac.bd/dr.almamun"
+  },
+  {
+    "name": "Professor Dr. Md. Ali Hossain",
+    "designation": "Professor",
+    "isOnLeave": true,
+    "profileLink": "http://cse.ruet.ac.bd/aliruet"
+  },
+  {
+    "name": "Dr. Julia Rahman",
+    "designation": "Associate Professor",
+    "isOnLeave": false,
+    "profileLink": "http://cse.ruet.ac.bd/julia"
+  },
+  {
+    "name": "Dr. Md. Arafat Hossain",
+    "designation": "Associate Professor",
+    "isOnLeave": true,
+    "profileLink": "http://cse.ruet.ac.bd/arafatruet03"
+  },
+  {
+    "name": "Rizoan Toufiq",
+    "designation": "Associate Professor",
+    "isOnLeave": true,
+    "profileLink": "http://cse.ruet.ac.bd/rizoantoufiq"
+  },
+  {
+    "name": "Shyla Afroge",
+    "designation": "Associate Professor",
+    "isOnLeave": false,
+    "profileLink": "http://cse.ruet.ac.bd/shylaruet"
+  },
+  {
+    "name": "A. F. M. Minhazur Rahman",
+    "designation": "Assistant Professor",
+    "isOnLeave": false,
+    "profileLink": "http://cse.ruet.ac.bd/mrsaurov"
+  },
+  {
+    "name": "Abu Sayeed",
+    "designation": "Assistant Professor",
+    "isOnLeave": true,
+    "profileLink": "http://cse.ruet.ac.bd/abusayeedcse"
+  },
+  {
+    "name": "Barshon Sen",
+    "designation": "Assistant Professor",
+    "isOnLeave": false,
+    "profileLink": "http://cse.ruet.ac.bd/BarshonSeN"
+  },
+  {
+    "name": "Bayezid Islam",
+    "designation": "Assistant Professor",
+    "isOnLeave": false,
+    "profileLink": "http://cse.ruet.ac.bd/bayezid"
+  },
+  {
+    "name": "Biprodip Pal",
+    "designation": "Assistant Professor",
+    "isOnLeave": true,
+    "profileLink": "http://cse.ruet.ac.bd/biprodip"
+  },
+  {
+    "name": "Emrana Kabir Hashi",
+    "designation": "Assistant Professor",
+    "isOnLeave": false,
+    "profileLink": "http://cse.ruet.ac.bd/emranakabir"
+  },
+  {
+    "name": "Farjana Parvin",
+    "designation": "Assistant Professor",
+    "isOnLeave": false,
+    "profileLink": "http://cse.ruet.ac.bd/farjanaparvin"
+  },
+  {
+    "name": "Firoz Mahmud",
+    "designation": "Assistant Professor",
+    "isOnLeave": true,
+    "profileLink": "http://cse.ruet.ac.bd/fmahmud"
+  },
+  {
+    "name": "Mahit Kumar Paul",
+    "designation": "Assistant Professor",
+    "isOnLeave": true,
+    "profileLink": "http://cse.ruet.ac.bd/mahitcse"
+  },
+  {
+    "name": "Md. Asifur Rahman",
+    "designation": "Assistant Professor",
+    "isOnLeave": false,
+    "profileLink": "http://cse.ruet.ac.bd/asifurrahman"
+  },
+  {
+    "name": "Md. Azmain Yakin Srizon",
+    "designation": "Assistant Professor",
+    "isOnLeave": false,
+    "profileLink": "http://cse.ruet.ac.bd/azmainsrizon"
+  },
+  {
+    "name": "Md. Farhan Shakib",
+    "designation": "Assistant Professor",
+    "isOnLeave": false,
+    "profileLink": "http://cse.ruet.ac.bd/farhan.shakib"
+  },
+  {
+    "name": "Md. Farukuzzaman Faruk",
+    "designation": "Assistant Professor",
+    "isOnLeave": true,
+    "profileLink": "http://cse.ruet.ac.bd/farukuzzaman"
+  },
+  {
+    "name": "Md. Nasif Osman Khansur",
+    "designation": "Assistant Professor",
+    "isOnLeave": false,
+    "profileLink": "http://cse.ruet.ac.bd/nasifosman0210"
+  },
+  {
+    "name": "Md. Sozib Hossain",
+    "designation": "Assistant Professor",
+    "isOnLeave": false,
+    "profileLink": "http://cse.ruet.ac.bd/md.-sozib-hossain"
+  },
+  {
+    "name": "Md. Zahirul Islam",
+    "designation": "Assistant Professor",
+    "isOnLeave": false,
+    "profileLink": "http://cse.ruet.ac.bd/kmzahir61"
+  },
+  {
+    "name": "Mohiuddin Ahmed",
+    "designation": "Assistant Professor",
+    "isOnLeave": true,
+    "profileLink": "http://cse.ruet.ac.bd/mohiuddinnirobmn"
+  },
+  {
+    "name": "Mumu Aktar",
+    "designation": "Assistant Professor",
+    "isOnLeave": true,
+    "profileLink": "http://cse.ruet.ac.bd/mumuruet"
+  },
+  {
+    "name": "Nahin Ul Sadad",
+    "designation": "Assistant Professor",
+    "isOnLeave": true,
+    "profileLink": "http://cse.ruet.ac.bd/nahinsd100"
+  },
+  {
+    "name": "S. M. Mahedy Hasan",
+    "designation": "Assistant Professor",
+    "isOnLeave": true,
+    "profileLink": "http://cse.ruet.ac.bd/mahedycseruet"
+  },
+  {
+    "name": "Sadia Zaman Mishu",
+    "designation": "Assistant Professor",
+    "isOnLeave": false,
+    "profileLink": "http://cse.ruet.ac.bd/Sadia_cse"
+  },
+  {
+    "name": "Suhrid Shakhar Ghosh",
+    "designation": "Assistant Professor",
+    "isOnLeave": true,
+    "profileLink": "http://cse.ruet.ac.bd/shakhar"
+  },
+  {
+    "name": "Syed Tauhid Zuhori",
+    "designation": "Assistant Professor",
+    "isOnLeave": true,
+    "profileLink": "http://cse.ruet.ac.bd/tauhidruet"
+  },
+  {
+    "name": "Utsha Das",
+    "designation": "Assistant Professor",
+    "isOnLeave": false,
+    "profileLink": "http://cse.ruet.ac.bd/utshadas5"
+  },
+  {
+    "name": "Khaled Zinnurine",
+    "designation": "Lecturer",
+    "isOnLeave": false,
+    "profileLink": "http://cse.ruet.ac.bd/khaledruet26"
+  },
+  {
+    "name": "Md Rakibul Haque",
+    "designation": "Lecturer",
+    "isOnLeave": true,
+    "profileLink": "http://cse.ruet.ac.bd/rakibulhaq56"
+  },
+  {
+    "name": "Md. Fahim Faisal",
+    "designation": "Lecturer",
+    "isOnLeave": false,
+    "profileLink": "http://cse.ruet.ac.bd/fahimfaisal7373"
+  },
+  {
+    "name": "Md. Hedayetul Islam Sovon",
+    "designation": "Lecturer",
+    "isOnLeave": false,
+    "profileLink": "http://cse.ruet.ac.bd/hedayet04"
+  },
+  {
+    "name": "Md. Mazharul Islam",
+    "designation": "Lecturer",
+    "isOnLeave": false,
+    "profileLink": "http://cse.ruet.ac.bd/mazharultusher111"
+  },
+  {
+    "name": "Md. Touhidul Islam",
+    "designation": "Lecturer",
+    "isOnLeave": false,
+    "profileLink": "http://cse.ruet.ac.bd/touhid"
+  },
+  {
+    "name": "Mohammad Sakif Alam",
+    "designation": "Lecturer",
+    "isOnLeave": false,
+    "profileLink": "http://cse.ruet.ac.bd/sakif2506"
+  },
+  {
+    "name": "S.M. Shovan",
+    "designation": "Lecturer",
+    "isOnLeave": true,
+    "profileLink": "http://cse.ruet.ac.bd/shovan"
+  },
+  {
+    "name": "Saniul Islam Anik",
+    "designation": "Lecturer",
+    "isOnLeave": false,
+    "profileLink": "http://cse.ruet.ac.bd/anik"
+  },
+  {
+    "name": "Tasmia Jannat",
+    "designation": "Lecturer",
+    "isOnLeave": true,
+    "profileLink": "http://cse.ruet.ac.bd/jannat22tasmia"
+  }
+]

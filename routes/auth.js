@@ -220,12 +220,14 @@ router.put("/change-password", requireAuth, async (req, res) => {
 // PUT /api/auth/profile
 router.put("/profile", requireAuth, async (req, res) => {
   try {
-    const { name, phone, bloodGroup, rollNo, batch } = req.body;
+    const { name, phone, fatherContactNo, motherContactNo, bloodGroup, rollNo, batch } = req.body;
     const user = await User.findById(req.user.id);
     if (!user) return res.status(404).json({ error: "User not found" });
     
     if (name !== undefined) user.name = name;
     if (phone !== undefined) user.phone = phone;
+    if (fatherContactNo !== undefined) user.fatherContactNo = fatherContactNo;
+    if (motherContactNo !== undefined) user.motherContactNo = motherContactNo;
     if (bloodGroup !== undefined) user.bloodGroup = bloodGroup;
     if (rollNo !== undefined) user.rollNo = rollNo;
     if (batch !== undefined) user.batch = batch;

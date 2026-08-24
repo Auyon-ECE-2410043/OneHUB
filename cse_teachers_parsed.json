@@ -1,0 +1,194 @@
+[
+  {
+    "name": "Dr. Mir Md. Jahangir Kabir",
+    "designation": "Professor",
+    "isHeadOfDept": false,
+    "isOnLeave": true,
+    "photoUrl": "https://www.cse.ruet.ac.bd/public/storage/profile/photo459.jpg",
+    "profileLink": "http://cse.ruet.ac.bd/mmjahangirkabir"
+  },
+  {
+    "name": "Dr. Md. Rabiul Islam",
+    "designation": "Professor",
+    "isHeadOfDept": false,
+    "isOnLeave": false,
+    "photoUrl": "https://www.cse.ruet.ac.bd/public/assets/images/default_avatar.png",
+    "profileLink": "http://cse.ruet.ac.bd/rabiul-cse"
+  },
+  {
+    "name": "Dr. Md. Nazrul Islam Mondal",
+    "designation": "Professor",
+    "isHeadOfDept": false,
+    "isOnLeave": false,
+    "photoUrl": "https://www.cse.ruet.ac.bd/public/storage/profile/photo60.jpg",
+    "profileLink": "http://cse.ruet.ac.bd/mondal"
+  },
+  {
+    "name": "Prof. Dr. Boshir Ahmed",
+    "designation": "Professor",
+    "isHeadOfDept": false,
+    "isOnLeave": false,
+    "photoUrl": "https://www.cse.ruet.ac.bd/public/storage/profile/photo122.jpg",
+    "profileLink": "http://cse.ruet.ac.bd/boshir"
+  },
+  {
+    "name": "Prof. Dr. Md. Al Mamun",
+    "designation": "Professor",
+    "isHeadOfDept": false,
+    "isOnLeave": true,
+    "photoUrl": "https://www.cse.ruet.ac.bd/public/storage/profile/photo36.jpg",
+    "profileLink": "http://cse.ruet.ac.bd/dr.almamun"
+  },
+  {
+    "name": "Dr. Md. Al Mehedi Hasan",
+    "designation": "Professor",
+    "isHeadOfDept": false,
+    "isOnLeave": true,
+    "photoUrl": "https://www.cse.ruet.ac.bd/public/storage/profile/photo237.jpg",
+    "profileLink": "http://cse.ruet.ac.bd/almehedihasan"
+  },
+  {
+    "name": "A H M Sarowar Sattar",
+    "designation": "Professor",
+    "isHeadOfDept": false,
+    "isOnLeave": true,
+    "photoUrl": "https://www.cse.ruet.ac.bd/public/storage/profile/photo85.JPG",
+    "profileLink": "http://cse.ruet.ac.bd/sarowar"
+  },
+  {
+    "name": "Professor Dr. Md. Ali Hossain",
+    "designation": "Professor",
+    "isHeadOfDept": false,
+    "isOnLeave": true,
+    "photoUrl": "https://www.cse.ruet.ac.bd/public/storage/profile/photo9.png",
+    "profileLink": "http://cse.ruet.ac.bd/aliruet"
+  },
+  {
+    "name": "Dr. Julia Rahman",
+    "designation": "Associate Professor",
+    "isHeadOfDept": false,
+    "isOnLeave": false,
+    "photoUrl": "https://www.cse.ruet.ac.bd/public/assets/images/default_avatar.png",
+    "profileLink": "http://cse.ruet.ac.bd/julia"
+  },
+  {
+    "name": "Mumu Aktar",
+    "designation": "Assistant Professor",
+    "isHeadOfDept": false,
+    "isOnLeave": true,
+    "photoUrl": "https://www.cse.ruet.ac.bd/public/assets/images/default_avatar.png",
+    "profileLink": "http://cse.ruet.ac.bd/mumuruet"
+  },
+  {
+    "name": "Abu Sayeed",
+    "designation": "Assistant Professor",
+    "isHeadOfDept": false,
+    "isOnLeave": true,
+    "photoUrl": "https://www.cse.ruet.ac.bd/public/storage/profile/photo59.jpg",
+    "profileLink": "http://cse.ruet.ac.bd/abusayeedcse"
+  },
+  {
+    "name": "Sadia Zaman Mishu",
+    "designation": "Assistant Professor",
+    "isHeadOfDept": false,
+    "isOnLeave": false,
+    "photoUrl": "https://www.cse.ruet.ac.bd/public/storage/profile/photo446.jpg",
+    "profileLink": "http://cse.ruet.ac.bd/Sadia_cse"
+  },
+  {
+    "name": "Barshon Sen",
+    "designation": "Assistant Professor",
+    "isHeadOfDept": false,
+    "isOnLeave": false,
+    "photoUrl": "https://www.cse.ruet.ac.bd/public/storage/profile/photo447.jpg",
+    "profileLink": "http://cse.ruet.ac.bd/BarshonSeN"
+  },
+  {
+    "name": "Md. Azmain Yakin Srizon",
+    "designation": "Assistant Professor",
+    "isHeadOfDept": false,
+    "isOnLeave": false,
+    "photoUrl": "https://www.cse.ruet.ac.bd/public/storage/profile/photo768.jpg",
+    "profileLink": "http://cse.ruet.ac.bd/azmainsrizon"
+  },
+  {
+    "name": "Mahit Kumar Paul",
+    "designation": "Assistant Professor",
+    "isHeadOfDept": false,
+    "isOnLeave": true,
+    "photoUrl": "https://www.cse.ruet.ac.bd/public/storage/profile/photo111.JPG",
+    "profileLink": "http://cse.ruet.ac.bd/mahitcse"
+  },
+  {
+    "name": "S. M. Mahedy Hasan",
+    "designation": "Assistant Professor",
+    "isHeadOfDept": false,
+    "isOnLeave": true,
+    "photoUrl": "https://www.cse.ruet.ac.bd/public/storage/profile/photo92.png",
+    "profileLink": "http://cse.ruet.ac.bd/mahedycseruet"
+  },
+  {
+    "name": "Khaled Zinnurine",
+    "designation": "Lecturer",
+    "isHeadOfDept": false,
+    "isOnLeave": false,
+    "photoUrl": "https://www.cse.ruet.ac.bd/public/storage/profile/photo1470.jpg",
+    "profileLink": "http://cse.ruet.ac.bd/khaledruet26"
+  },
+  {
+    "name": "Md. Fahim Faisal",
+    "designation": "Lecturer",
+    "isHeadOfDept": false,
+    "isOnLeave": false,
+    "photoUrl": "https://www.cse.ruet.ac.bd/public/storage/profile/photo1608.jpeg",
+    "profileLink": "http://cse.ruet.ac.bd/fahimfaisal7373"
+  },
+  {
+    "name": "Saniul Islam Anik",
+    "designation": "Lecturer",
+    "isHeadOfDept": false,
+    "isOnLeave": false,
+    "photoUrl": "https://www.cse.ruet.ac.bd/public/assets/images/default_avatar.png",
+    "profileLink": "http://cse.ruet.ac.bd/anik"
+  },
+  {
+    "name": "Mohammad Sakif Alam",
+    "designation": "Lecturer",
+    "isHeadOfDept": false,
+    "isOnLeave": false,
+    "photoUrl": "https://www.cse.ruet.ac.bd/public/assets/images/default_avatar.png",
+    "profileLink": "http://cse.ruet.ac.bd/sakif2506"
+  },
+  {
+    "name": "Md. Touhidul Islam",
+    "designation": "Lecturer",
+    "isHeadOfDept": false,
+    "isOnLeave": false,
+    "photoUrl": "https://www.cse.ruet.ac.bd/public/assets/images/default_avatar.png",
+    "profileLink": "http://cse.ruet.ac.bd/touhid"
+  },
+  {
+    "name": "Md. Asifur Rahman",
+    "designation": "Assistant Professor",
+    "isHeadOfDept": false,
+    "isOnLeave": false,
+    "photoUrl": "https://www.cse.ruet.ac.bd/public/storage/profile/photo15.png",
+    "profileLink": "http://cse.ruet.ac.bd/asifurrahman"
+  },
+  {
+    "name": "Bayezid Islam",
+    "designation": "Assistant Professor",
+    "isHeadOfDept": false,
+    "isOnLeave": false,
+    "photoUrl": "https://www.cse.ruet.ac.bd/public/assets/images/default_avatar.png",
+    "profileLink": "http://cse.ruet.ac.bd/bayezid"
+  },
+  {
+    "name": "Md. Hedayetul Islam Sovon",
+    "designation": "Lecturer",
+    "isHeadOfDept": false,
+    "isOnLeave": false,
+    "photoUrl": "https://www.cse.ruet.ac.bd/public/assets/images/default_avatar.png",
+    "profileLink": "http://cse.ruet.ac.bd/hedayet04"
+  }
+]

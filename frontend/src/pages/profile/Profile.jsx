@@ -35,6 +35,8 @@ export function Profile() {
     rollNo: user?.rollNo || "",
     batch: user?.batch || "",
     phone: user?.phone || "",
+    fatherContactNo: user?.fatherContactNo || "",
+    motherContactNo: user?.motherContactNo || "",
     bloodGroup: user?.bloodGroup || "",
   });
 
@@ -222,6 +224,32 @@ export function Profile() {
                 placeholder="e.g., 01700000000"
                 value={profileForm.phone}
                 onChange={(e) => setProfileForm({ ...profileForm, phone: e.target.value })}
+                className="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:ring-2 focus:ring-indigo-500 focus:outline-none"
+              />
+            </div>
+
+            <div>
+              <label className="block text-xs font-semibold uppercase text-slate-600 mb-1">
+                Father's Contact #
+              </label>
+              <input
+                type="text"
+                placeholder="e.g., 01700000000"
+                value={profileForm.fatherContactNo}
+                onChange={(e) => setProfileForm({ ...profileForm, fatherContactNo: e.target.value })}
+                className="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:ring-2 focus:ring-indigo-500 focus:outline-none"
+              />
+            </div>
+
+            <div>
+              <label className="block text-xs font-semibold uppercase text-slate-600 mb-1">
+                Mother's Contact #
+              </label>
+              <input
+                type="text"
+                placeholder="e.g., 01700000000"
+                value={profileForm.motherContactNo}
+                onChange={(e) => setProfileForm({ ...profileForm, motherContactNo: e.target.value })}
                 className="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:ring-2 focus:ring-indigo-500 focus:outline-none"
               />
             </div>

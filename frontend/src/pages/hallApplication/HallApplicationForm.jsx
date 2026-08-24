@@ -6,6 +6,7 @@
  */
 
 import { useState, useEffect } from "react";
+import { useAuth } from "../../context/AuthContext";
 import hallApplicationService from "../../services/hallApplicationService";
 import { HALL_NAMES, SEMESTERS } from "../../utils/constants";
 import { formatDate, getStatusBadge, getStatusLabel } from "../../utils/helpers";
@@ -20,6 +21,7 @@ import {
 } from "lucide-react";
 
 export function HallApplicationForm() {
+  const { currentUser } = useAuth();
   const [loading, setLoading] = useState(true);
   const [myApplication, setMyApplication] = useState(null);
 
@@ -29,8 +31,8 @@ export function HallApplicationForm() {
     isCurrentResident: false,
     category: "merit", // 'merit' | 'financial_need'
     financialDescription: "",
-    fatherContactNo: "",
-    motherContactNo: "",
+    fatherContactNo: currentUser?.fatherContactNo || "",
+    motherContactNo: currentUser?.motherContactNo || "",
     nidNumber: "",
     hometownInsideRajshahi: false,
     cgpa: "3.75",

@@ -25,6 +25,8 @@ const userSchema = new mongoose.Schema(
     gender: { type: String, enum: ["Male", "Female", "Other", null], default: null },
     batch: { type: String },
     phone: { type: String, default: "" },
+    fatherContactNo: { type: String, default: "" },
+    motherContactNo: { type: String, default: "" },
     bloodGroup: { type: String, default: "" },
     previouslyEarnedCredit: { type: Number, default: 0 },
     adviserId: { type: mongoose.Schema.Types.ObjectId, ref: "User", default: null },
@@ -33,7 +35,7 @@ const userSchema = new mongoose.Schema(
     teacherAcronym: { type: String, uppercase: true, trim: true, sparse: true },
     designation: {
       type: String,
-      enum: ["Professor", "Associate Professor", "Assistant Professor", "Lecturer", null],
+      enum: ["Professor", "Associate Professor", "Assistant Professor", "Lecturer", "Retired Faculty", null],
       default: null,
     },
     isPhdHolder: { type: Boolean, default: false },
