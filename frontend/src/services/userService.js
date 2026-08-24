@@ -9,7 +9,7 @@ import api from "./api";
 
 export const userService = {
   // Get faculty directory
-  getFacultyDirectory: async (page = 1, limit = 100) => {
+  getFacultyDirectory: async (page = 1, limit = 1000) => {
     const res = await api.get(`/faculty?page=${page}&limit=${limit}`);
     return Array.isArray(res.data) ? res.data : (res.data.faculty || []);
   },
