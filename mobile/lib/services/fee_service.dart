@@ -6,6 +6,13 @@
 import 'api_service.dart';
 
 class FeeService {
+
+  // Assign custom fee (Admin)
+  Future<Map<String, dynamic>> assignFee(Map<String, dynamic> payload) async {
+    final data = await _api.post('/fees/assign', body: payload);
+    return data;
+  }
+
   final ApiService _api = ApiService();
 
   // Get all fees (dues and paid) for the student

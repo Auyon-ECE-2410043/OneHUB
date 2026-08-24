@@ -7,10 +7,12 @@
 
 import { useState, useEffect } from "react";
 import { Bell, Check, Clock } from "lucide-react";
+import { useNavigate } from "react-router-dom";
 import api from "../../services/api"; // Assuming axios instance is here
 
 export function NotificationBell() {
   const [isOpen, setIsOpen] = useState(false);
+  const navigate = useNavigate();
   const [notifications, setNotifications] = useState([]);
   const [unreadCount, setUnreadCount] = useState(0);
 
@@ -87,8 +89,17 @@ export function NotificationBell() {
                 notifications.map((notif) => (
                   <div
                     key={notif._id}
-                    className={`px-4 py-3 border-b border-slate-50 hover:bg-slate-50 transition-colors ${
-                      !notif.isRead ? "bg-sky-50/30" : ""
+                    onClick={() => {
+                      if (!notif.isRead) markAsRead(notif._id);
+                      if (notif.link) {
+                        setIsOpen(false);
+                        navigate(notif.link);
+                      }
+                    }}
+                    className={`px-4 py-3 border-b border-slate-50 transition-colors ${
+                      !notif.isRead 
+                        ? "bg-sky-50/40 hover:bg-sky-100/50 cursor-pointer" 
+                        : "hover:bg-slate-50"
                     }`}
                   >
                     <div className="flex justify-between items-start">
@@ -109,15 +120,6 @@ export function NotificationBell() {
                           })}
                         </div>
                       </div>
-                      {!notif.isRead && (
-                        <button
-                          onClick={() => markAsRead(notif._id)}
-                          className="ml-2 p-1.5 text-sky-600 hover:bg-sky-100 rounded-full transition-colors"
-                          title="Mark as read"
-                        >
-                          <Check className="w-3.5 h-3.5" />
-                        </button>
-                      )}
                     </div>
                   </div>
                 ))

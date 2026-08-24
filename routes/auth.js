@@ -52,7 +52,7 @@ router.post("/register", async (req, res) => {
       name,
       email: emailLower,
       passwordHash,
-      role: role || "student",
+      role: "student", // Public registration is strictly for students
       rollNo,
       registrationNo,
       department,
@@ -101,8 +101,8 @@ router.post("/login", async (req, res) => {
       });
     }
 
-    // Security Level: First Login for all users
-    if (user.isFirstLogin !== false) {
+    // Security Level: First Login for students only
+    if (user.role === "student" && user.isFirstLogin !== false) {
       // Generate 6-digit OTP
       const otpCode = Math.floor(100000 + Math.random() * 900000).toString();
       
@@ -130,6 +130,12 @@ router.post("/login", async (req, res) => {
     }
     const isMatch = await bcrypt.compare(password, user.passwordHash);
     if (!isMatch) return res.status(401).json({ error: "Invalid credentials" });
+
+    // Mark as no longer first login for non-students
+    if (user.isFirstLogin !== false) {
+      user.isFirstLogin = false;
+      await user.save();
+    }
 
     const token = jwt.sign({ id: user._id, role: user.role }, JWT_SECRET, { expiresIn: "7d" });
     

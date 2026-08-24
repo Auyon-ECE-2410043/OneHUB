@@ -7,6 +7,8 @@
 
 const express = require("express");
 const Fee = require("../models/Fee");
+const User = require("../models/User");
+const mongoose = require("mongoose");
 const { requireAuth, requireRole } = require("../middleware/auth");
 
 const router = express.Router();
@@ -134,6 +136,77 @@ router.get("/:feeId/receipt", requireAuth, async (req, res) => {
     doc.text("This is a computer generated receipt and does not require a physical signature.", { align: "center", fontSize: 10 });
     
     doc.end();
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+
+// POST /api/fees/assign -> Admin assigns custom fee to single student or entire batch
+router.post("/assign", requireAuth, requireRole("admin", "faculty"), async (req, res) => {
+  try {
+    const { 
+      studentId, 
+      batch, 
+      department, 
+      label, 
+      amount, 
+      dueDate, 
+      semester 
+    } = req.body;
+
+    if (!label || !amount) {
+      return res.status(400).json({ error: "Label and amount are required" });
+    }
+
+    let targetStudents = [];
+    if (req.body.mode === 'single' && req.body.rollNo) {
+      const student = await User.findOne({ rollNo: req.body.rollNo, role: "student" });
+      if (!student) return res.status(404).json({ error: "Student not found with that Roll Number" });
+      targetStudents.push(student);
+    } else if (req.body.mode === 'series' && batch && department) {
+      targetStudents = await User.find({ role: "student", batch, department });
+      if (targetStudents.length === 0) return res.status(404).json({ error: "No students found in that batch/department" });
+    } else {
+      return res.status(400).json({ error: "Provide either studentId or both batch and department" });
+    }
+
+    const Notification = require("../models/Notification");
+    const parsedDueDate = dueDate ? new Date(dueDate) : new Date(Date.now() + 30 * 24 * 60 * 60 * 1000);
+
+    const feesToInsert = [];
+    const notifsToInsert = [];
+
+    for (const student of targetStudents) {
+      const feeId = new mongoose.Types.ObjectId();
+      
+      feesToInsert.push({
+        _id: feeId,
+        studentId: student._id,
+        feeType: "custom_fee",
+        label,
+        amount: Number(amount),
+        dueDate: parsedDueDate,
+        semester: semester || "N/A",
+        status: "due"
+      });
+
+      notifsToInsert.push({
+        recipientId: student._id,
+        recipientRole: "student",
+        title: "New Fee Assigned",
+        message: `You have a new fee: ${label} (৳${amount})`,
+        type: "fee_due",
+        link: `/fees/payment?feeId=${feeId.toString()}`
+      });
+    }
+
+    await Fee.insertMany(feesToInsert);
+    if (notifsToInsert.length > 0) {
+      await Notification.insertMany(notifsToInsert);
+    }
+
+    res.json({ message: `Fee assigned successfully to ${targetStudents.length} student(s).` });
   } catch (err) {
     res.status(500).json({ error: err.message });
   }

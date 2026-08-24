@@ -15,15 +15,18 @@ const notificationSchema = new mongoose.Schema(
     message: { type: String, required: true },
     type: {
       type: String,
-      enum: ["class_reminder", "exam_notice", "fee_due", "general", "payment"],
+      enum: ["class_reminder", "exam_notice", "fee_due", "general", "payment", "registration_request", "hall_application"],
       default: "general",
     },
+    link: { type: String }, // e.g. /admin/registrations or /admin/hall-applications
     meta: {
       courseCode: String,
       roomOrLab: String,
       startTime: String,
       semester: String,
       dayOfWeek: String,
+      studentId: String,
+      applicationId: String
     },
     isRead: { type: Boolean, default: false },
     sentAt: { type: Date, default: Date.now },

@@ -15,11 +15,11 @@ const breakdownItemSchema = new mongoose.Schema(
 const feeSchema = new mongoose.Schema(
   {
     studentId: { type: mongoose.Schema.Types.ObjectId, ref: "User", required: true },
-    registrationId: { type: mongoose.Schema.Types.ObjectId, ref: "Registration", required: true },
-    semester: { type: String, required: true },
+    registrationId: { type: mongoose.Schema.Types.ObjectId, ref: "Registration" },
+    semester: { type: String },
     feeType: {
       type: String,
-      enum: ["registration_fee", "exam_fee", "hall_fee", "extra_fee"],
+      enum: ["registration_fee", "exam_fee", "hall_fee", "extra_fee", "custom_fee"],
       required: true,
     },
     label: { type: String, required: true }, // e.g. "Tuition Fee", "Examination Fee", "Hall Fee", "ID Card Fee"

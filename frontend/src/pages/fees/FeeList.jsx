@@ -6,6 +6,8 @@
  */
 
 import { useState, useEffect } from "react";
+import { useLocation } from "react-router-dom";
+import { useAuth } from "../../context/AuthContext";
 import feeService from "../../services/feeService";
 import { formatCurrency, formatDate, formatDateTime, getStatusBadge, getStatusLabel } from "../../utils/helpers";
 import { PageLoader } from "../../components/common/Loader";
@@ -16,13 +18,34 @@ import {
   Clock,
   Receipt,
   Download,
+  FileDown,
   ShieldCheck,
   ChevronDown,
   ChevronUp,
 } from "lucide-react";
 
 export function FeeList() {
+  const location = useLocation();
+  const { user } = useAuth();
   const [loading, setLoading] = useState(true);
+  const [isAssignModalOpen, setIsAssignModalOpen] = useState(false);
+  const [assignForm, setAssignForm] = useState({ mode: 'single', rollNo: '', batch: '', department: '', label: '', amount: '', dueDate: '' });
+  const [assigning, setAssigning] = useState(false);
+  const handleAssignSubmit = async (e) => {
+    e.preventDefault();
+    setAssigning(true);
+    try {
+      await feeService.assignFee({ ...assignForm, amount: Number(assignForm.amount) });
+      alert('Fee assigned successfully!');
+      setIsAssignModalOpen(false);
+      setAssignForm({ mode: 'single', rollNo: '', batch: '', department: '', label: '', amount: '', dueDate: '' });
+      fetchFees();
+    } catch (err) {
+      alert(err.response?.data?.error || err.message || 'Failed to assign fee');
+    } finally {
+      setAssigning(false);
+    }
+  };
   const [fees, setFees] = useState([]);
   const [activeTab, setActiveTab] = useState("due"); // 'due' | 'paid'
 
@@ -87,6 +110,33 @@ export function FeeList() {
   if (loading) {
     return <PageLoader text="Loading your financial ledger and fee records..." />;
   }
+
+
+  const downloadPDF = async () => {
+    const element = document.getElementById('receipt-content');
+    if (!element) return;
+    
+    if (!window.html2pdf) {
+      const script = document.createElement('script');
+      script.src = "https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js";
+      script.onload = () => executePDF(element);
+      document.head.appendChild(script);
+    } else {
+      executePDF(element);
+    }
+  };
+
+  const executePDF = (element) => {
+    // Hide close button or other UI temporarily if needed
+    const opt = {
+      margin:       0.5,
+      filename:     `receipt-${selectedReceiptFee?.transactionId || 'payment'}.pdf`,
+      image:        { type: 'jpeg', quality: 0.98 },
+      html2canvas:  { scale: 2, useCORS: true },
+      jsPDF:        { unit: 'in', format: 'a4', orientation: 'portrait' }
+    };
+    window.html2pdf().set(opt).from(element).save();
+  };
 
   const currentList = activeTab === "due" ? dueFees : paidFees;
 
@@ -447,8 +497,66 @@ export function FeeList() {
           </div>
         </Modal>
       )}
-    </div>
-  );
-}
+            {/* Assign Fee Modal (Admin Only) */}
+      {user?.role === 'admin' && (
+        <Modal isOpen={isAssignModalOpen} onClose={() => setIsAssignModalOpen(false)} title="Assign Custom Fee / Bill">
+          <form onSubmit={handleAssignSubmit} className="space-y-4">
+            <div className="flex space-x-4 mb-2">
+              <label className="flex items-center space-x-2 cursor-pointer">
+                <input type="radio" checked={assignForm.mode === 'single'} onChange={() => setAssignForm({...assignForm, mode: 'single'})} />
+                <span>Specific Student</span>
+              </label>
+              <label className="flex items-center space-x-2 cursor-pointer">
+                <input type="radio" checked={assignForm.mode === 'series'} onChange={() => setAssignForm({...assignForm, mode: 'series'})} />
+                <span>Whole Series</span>
+              </label>
+            </div>
+
+            {assignForm.mode === 'single' ? (
+              <div>
+                <label className="block text-xs font-semibold text-slate-600 mb-1">Student Roll Number</label>
+                <input type="text" value={assignForm.rollNo} onChange={e => setAssignForm({...assignForm, rollNo: e.target.value})} className="w-full px-3 py-2 border border-slate-200 rounded-lg text-sm" placeholder="e.g. 2103001" required />
+              </div>
+            ) : (
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-xs font-semibold text-slate-600 mb-1">Batch / Series</label>
+                  <input type="text" value={assignForm.batch} onChange={e => setAssignForm({...assignForm, batch: e.target.value})} className="w-full px-3 py-2 border border-slate-200 rounded-lg text-sm" required />
+                </div>
+                <div>
+                  <label className="block text-xs font-semibold text-slate-600 mb-1">Department</label>
+                  <input type="text" value={assignForm.department} onChange={e => setAssignForm({...assignForm, department: e.target.value})} className="w-full px-3 py-2 border border-slate-200 rounded-lg text-sm" required placeholder="e.g. CSE" />
+                </div>
+              </div>
+            )}
+
+            <div>
+              <label className="block text-xs font-semibold text-slate-600 mb-1">Bill Title (e.g. Library Card)</label>
+              <input type="text" value={assignForm.label} onChange={e => setAssignForm({...assignForm, label: e.target.value})} className="w-full px-3 py-2 border border-slate-200 rounded-lg text-sm" required />
+            </div>
+            
+            <div className="grid grid-cols-2 gap-4">
+              <div>
+                <label className="block text-xs font-semibold text-slate-600 mb-1">Amount (৳)</label>
+                <input type="number" value={assignForm.amount} onChange={e => setAssignForm({...assignForm, amount: e.target.value})} className="w-full px-3 py-2 border border-slate-200 rounded-lg text-sm" required />
+              </div>
+              <div>
+                <label className="block text-xs font-semibold text-slate-600 mb-1">Due Date</label>
+                <input type="date" value={assignForm.dueDate} onChange={e => setAssignForm({...assignForm, dueDate: e.target.value})} className="w-full px-3 py-2 border border-slate-200 rounded-lg text-sm" required />
+              </div>
+            </div>
+
+            <div className="pt-4 flex justify-end space-x-3">
+              <button type="button" onClick={() => setIsAssignModalOpen(false)} className="px-4 py-2 border border-slate-300 text-slate-700 font-medium rounded-xl text-sm">Cancel</button>
+              <button type="submit" disabled={assigning} className="px-6 py-2 bg-sky-600 hover:bg-sky-700 text-white font-medium rounded-xl text-sm transition-colors disabled:opacity-50">
+                {assigning ? 'Assigning...' : 'Assign Fee'}
+              </button>
+            </div>
+          </form>
+        </Modal>
+      )}
+      </div>
+    );
+  }
 
 export default FeeList;

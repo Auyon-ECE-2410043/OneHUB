@@ -7,11 +7,13 @@ import 'package:flutter/material.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'dart:convert';
 import '../services/fee_service.dart';
 import 'package:intl/intl.dart';
 
 class FeePaymentScreen extends StatefulWidget {
-  const FeePaymentScreen({super.key});
+  final String? targetFeeId;
+  const FeePaymentScreen({super.key, this.targetFeeId});
 
   @override
   State<FeePaymentScreen> createState() => _FeePaymentScreenState();
@@ -21,11 +23,23 @@ class _FeePaymentScreenState extends State<FeePaymentScreen> {
   final FeeService _feeService = FeeService();
   List<dynamic> _fees = [];
   bool _isLoading = true;
+  String _userRole = "student";
 
   @override
   void initState() {
     super.initState();
-    _fetchFees();
+    _loadUserRole().then((_) => _fetchFees());
+  }
+
+  Future<void> _loadUserRole() async {
+    final prefs = await SharedPreferences.getInstance();
+    final userStr = prefs.getString('user');
+    if (userStr != null) {
+      final userObj = jsonDecode(userStr);
+      setState(() {
+        _userRole = userObj['role'] ?? "student";
+      });
+    }
   }
 
   Future<void> _fetchFees() async {
@@ -33,6 +47,19 @@ class _FeePaymentScreenState extends State<FeePaymentScreen> {
     try {
       final fees = await _feeService.getFees();
       setState(() => _fees = fees);
+      
+      // Auto-open modal if deep-linked
+      if (widget.targetFeeId != null && fees.isNotEmpty) {
+        final target = fees.firstWhere(
+          (f) => f['_id'] == widget.targetFeeId && f['status'] == 'due',
+          orElse: () => null,
+        );
+        if (target != null) {
+          WidgetsBinding.instance.addPostFrameCallback((_) {
+            _showPaymentModal(target as Map<String, dynamic>);
+          });
+        }
+      }
     } catch (e) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
@@ -42,6 +69,132 @@ class _FeePaymentScreenState extends State<FeePaymentScreen> {
     } finally {
       if (mounted) setState(() => _isLoading = false);
     }
+  }
+
+  void _showAssignFeeModal() {
+    String mode = 'single';
+    final rollCtrl = TextEditingController();
+    final batchCtrl = TextEditingController();
+    final deptCtrl = TextEditingController();
+    final titleCtrl = TextEditingController();
+    final amountCtrl = TextEditingController();
+    DateTime? selectedDate;
+
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      shape: const RoundedRectangleBorder(borderRadius: BorderRadius.vertical(top: Radius.circular(20))),
+      builder: (ctx) {
+        return StatefulBuilder(
+          builder: (BuildContext context, StateSetter setModalState) {
+            return Padding(
+              padding: EdgeInsets.only(
+                bottom: MediaQuery.of(ctx).viewInsets.bottom,
+                left: 16,
+                right: 16,
+                top: 24,
+              ),
+              child: SingleChildScrollView(
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    const Text('Assign Custom Fee', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
+                    const SizedBox(height: 16),
+                    Row(
+                      children: [
+                        Expanded(
+                          child: RadioListTile<String>(
+                            title: const Text('Specific Student', style: TextStyle(fontSize: 14)),
+                            value: 'single',
+                            groupValue: mode,
+                            onChanged: (v) => setModalState(() => mode = v!),
+                          ),
+                        ),
+                        Expanded(
+                          child: RadioListTile<String>(
+                            title: const Text('Whole Series', style: TextStyle(fontSize: 14)),
+                            value: 'series',
+                            groupValue: mode,
+                            onChanged: (v) => setModalState(() => mode = v!),
+                          ),
+                        ),
+                      ],
+                    ),
+                    if (mode == 'single') ...[
+                      TextField(controller: rollCtrl, decoration: const InputDecoration(labelText: 'Roll Number (e.g. 2103001)')),
+                    ] else ...[
+                      Row(
+                        children: [
+                          Expanded(child: TextField(controller: batchCtrl, decoration: const InputDecoration(labelText: 'Batch (e.g. 2021)'))),
+                          const SizedBox(width: 8),
+                          Expanded(child: TextField(controller: deptCtrl, decoration: const InputDecoration(labelText: 'Dept (e.g. CSE)'))),
+                        ],
+                      ),
+                    ],
+                    const SizedBox(height: 8),
+                    TextField(controller: titleCtrl, decoration: const InputDecoration(labelText: 'Bill Title (e.g. Library Card)')),
+                    const SizedBox(height: 8),
+                    TextField(controller: amountCtrl, keyboardType: TextInputType.number, decoration: const InputDecoration(labelText: 'Amount (৳)')),
+                    const SizedBox(height: 16),
+                    Row(
+                      children: [
+                        Expanded(
+                          child: Text(selectedDate == null ? 'No Due Date Selected' : 'Due: ${DateFormat('yyyy-MM-dd').format(selectedDate!)}'),
+                        ),
+                        TextButton(
+                          onPressed: () async {
+                            final d = await showDatePicker(
+                              context: ctx,
+                              initialDate: DateTime.now().add(const Duration(days: 30)),
+                              firstDate: DateTime.now(),
+                              lastDate: DateTime(2030),
+                            );
+                            if (d != null) setModalState(() => selectedDate = d);
+                          },
+                          child: const Text('Pick Date'),
+                        )
+                      ],
+                    ),
+                    const SizedBox(height: 24),
+                    SizedBox(
+                      width: double.infinity,
+                      child: ElevatedButton(
+                        style: ElevatedButton.styleFrom(padding: const EdgeInsets.symmetric(vertical: 16)),
+                        onPressed: () async {
+                          if (titleCtrl.text.isEmpty || amountCtrl.text.isEmpty || selectedDate == null) {
+                            ScaffoldMessenger.of(ctx).showSnackBar(const SnackBar(content: Text('Please fill all fields')));
+                            return;
+                          }
+                          try {
+                            await _feeService.assignFee({
+                              'mode': mode,
+                              'rollNo': rollCtrl.text.trim(),
+                              'batch': batchCtrl.text.trim(),
+                              'department': deptCtrl.text.trim(),
+                              'label': titleCtrl.text.trim(),
+                              'amount': double.parse(amountCtrl.text.trim()),
+                              'dueDate': selectedDate!.toIso8601String(),
+                            });
+                            Navigator.pop(ctx);
+                            ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Fee Assigned Successfully')));
+                            _fetchFees();
+                          } catch (e) {
+                            ScaffoldMessenger.of(ctx).showSnackBar(SnackBar(content: Text('Error: $e')));
+                          }
+                        },
+                        child: const Text('Assign Fee', style: TextStyle(fontSize: 16)),
+                      ),
+                    ),
+                    const SizedBox(height: 24),
+                  ],
+                ),
+              ),
+            );
+          },
+        );
+      },
+    );
   }
 
   void _showPaymentModal(Map<String, dynamic> fee) {
@@ -142,6 +295,11 @@ class _FeePaymentScreenState extends State<FeePaymentScreen> {
       appBar: AppBar(
         title: const Text('Fee & Payment'),
       ),
+      floatingActionButton: _userRole == 'admin' ? FloatingActionButton.extended(
+        onPressed: _showAssignFeeModal,
+        icon: const Icon(Icons.add),
+        label: const Text('Assign Fee'),
+      ) : null,
       body: _isLoading
           ? const Center(child: CircularProgressIndicator())
           : _fees.isEmpty

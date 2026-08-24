@@ -6,6 +6,7 @@
  */
 
 import { useState, useEffect, useCallback } from "react";
+import { useLocation } from "react-router-dom";
 import hallApplicationService from "../../services/hallApplicationService";
 import { getStatusBadge, getStatusLabel } from "../../utils/helpers";
 import { PageLoader } from "../../components/common/Loader";
@@ -17,6 +18,7 @@ import {
 } from "lucide-react";
 
 export function HallApplicationStatus() {
+  const location = useLocation();
   const [loading, setLoading] = useState(true);
   const [applications, setApplications] = useState([]);
   const [statusFilter, setStatusFilter] = useState("all");

@@ -9,7 +9,7 @@ class UserService {
   final ApiService _api = ApiService();
 
   Future<List<dynamic>> getFaculty() async {
-    final data = await _api.get('/faculty?limit=100');
+    final data = await _api.get('/faculty?limit=1000');
     if (data is List) return data;
     if (data is Map) return data['faculty'] ?? [];
     return [];

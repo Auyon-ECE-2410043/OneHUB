@@ -21,6 +21,12 @@ export const feeService = {
   },
 
   // Get payment history (paid only)
+  
+  // Assign a custom fee (Admin only)
+  assignFee: async (payload) => {
+    const res = await api.post("/fees/assign", payload);
+    return res.data;
+  },
   getPaymentHistory: async () => {
     const res = await api.get("/fees/history");
     return res.data.fees || [];

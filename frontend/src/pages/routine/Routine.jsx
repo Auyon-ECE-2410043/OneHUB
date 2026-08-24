@@ -8,8 +8,9 @@
 import { useState, useEffect } from "react";
 import { useAuth } from "../../context/AuthContext";
 import routineService from "../../services/routineService";
+import { calendarService } from "../../services/calendarService";
 import { PageLoader } from "../../components/common/Loader";
-import { Calendar, Clock, MapPin, User as UserIcon } from "lucide-react";
+import { Calendar, Clock, MapPin, User as UserIcon, CalendarOff } from "lucide-react";
 
 const DAYS = ["Saturday", "Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday"];
 const START_HOUR = 8; // 08:00
@@ -20,145 +21,161 @@ export function Routine() {
   const { user } = useAuth();
   const [loading, setLoading] = useState(true);
   const [classes, setClasses] = useState([]);
+  const [holidays, setHolidays] = useState([]);
   const [currentTime, setCurrentTime] = useState(new Date());
 
   useEffect(() => {
-    const fetchRoutine = async () => {
+    const fetchData = async () => {
       try {
-        const data = await routineService.getWeeklyRoutine();
-        setClasses(data.routine || data.classes || []);
+        const [routineData, holidayData] = await Promise.all([
+          routineService.getWeeklyRoutine(),
+          calendarService.getHolidays().catch(() => [])
+        ]);
+        setClasses(routineData.routine || routineData.classes || []);
+        setHolidays(holidayData || []);
       } catch (err) {
-        console.error("Failed to fetch routine", err);
+        console.error("Failed to fetch routine/holidays", err);
       } finally {
         setLoading(false);
       }
     };
-    fetchRoutine();
+    fetchData();
 
     // Update current time every minute for the red line indicator
     const interval = setInterval(() => setCurrentTime(new Date()), 60000);
     return () => clearInterval(interval);
   }, []);
 
-  if (loading) {
-    return <PageLoader text="Loading your class routine..." />;
-  }
+  const getWeekDates = () => {
+    const today = new Date();
+    const currentDayVal = today.getDay(); // 0 = Sunday, 6 = Saturday
+    let offsetToSat = currentDayVal === 6 ? 0 : currentDayVal + 1;
 
-  // Helper to parse HH:mm to minutes from START_HOUR
-  const timeToMinutesFromStart = (timeStr) => {
-    let [h, m] = timeStr.split(":").map(Number);
-    // Auto-convert 1 PM - 7 PM to 24-hour format
-    if (h >= 1 && h <= 7) h += 12;
-    const totalMinutes = (h * 60 + m) - (START_HOUR * 60);
-    return totalMinutes;
+    const satDate = new Date(today);
+    satDate.setDate(today.getDate() - offsetToSat);
+    satDate.setHours(0, 0, 0, 0);
+
+    const dates = {};
+    DAYS.forEach((d, i) => {
+      const dd = new Date(satDate);
+      dd.setDate(satDate.getDate() + i);
+      dates[d] = dd;
+    });
+    return dates;
   };
 
-  // Helper to calculate top and height in px
+  const weekDates = getWeekDates();
+
+  const getHolidayForDay = (day) => {
+    const dayDate = weekDates[day];
+    return holidays.find((h) => {
+      if (!h.classesSuspended) return false;
+      const start = new Date(h.startDate);
+      start.setHours(0, 0, 0, 0);
+      const end = new Date(h.endDate);
+      end.setHours(23, 59, 59, 999);
+      return dayDate >= start && dayDate <= end;
+    });
+  };
+
   const getStyleForSlot = (startTime, endTime) => {
-    const startMins = timeToMinutesFromStart(startTime);
-    const endMins = timeToMinutesFromStart(endTime);
-    const top = (startMins / 60) * HOUR_HEIGHT;
-    const height = ((endMins - startMins) / 60) * HOUR_HEIGHT;
-    return { top: `${top}px`, height: `${height}px` };
+    const parseTime = (timeStr) => {
+      if (!timeStr) return 0;
+      const [time, period] = timeStr.split(" ");
+      let [hours, minutes] = time.split(":").map(Number);
+      if (period === "PM" && hours !== 12) hours += 12;
+      if (period === "AM" && hours === 12) hours = 0;
+      return hours + minutes / 60;
+    };
+
+    const start = parseTime(startTime);
+    const end = parseTime(endTime);
+    
+    // Fallbacks to avoid crashes on invalid time
+    if (!start || !end || start >= end) return { display: 'none' };
+
+    const top = (start - START_HOUR) * HOUR_HEIGHT;
+    const height = (end - start) * HOUR_HEIGHT;
+
+    return {
+      top: `${top}px`,
+      height: `${height}px`,
+    };
   };
 
-  // Generate current time line position
   const getCurrentTimeLine = (day) => {
-    const today = new Date().toLocaleString("en-US", { weekday: "long", timeZone: "Asia/Dhaka" });
-    if (day !== today) return null;
+    const currentDayStr = currentTime.toLocaleString("en-US", { weekday: "long", timeZone: "Asia/Dhaka" });
+    if (day !== currentDayStr) return null;
 
-    const bdTime = new Date(new Date().toLocaleString("en-US", { timeZone: "Asia/Dhaka" }));
-    const currentH = bdTime.getHours();
-    
-    // Only show line if within routine hours
-    if (currentH < START_HOUR || currentH > END_HOUR) return null;
+    const hours = currentTime.getHours();
+    const minutes = currentTime.getMinutes();
+    const timeInHours = hours + minutes / 60;
 
-    const currentM = bdTime.getMinutes();
-    const totalMinutes = (currentH * 60 + currentM) - (START_HOUR * 60);
-    const top = (totalMinutes / 60) * HOUR_HEIGHT;
+    if (timeInHours < START_HOUR || timeInHours > END_HOUR) return null;
+
+    const top = (timeInHours - START_HOUR) * HOUR_HEIGHT;
 
     return (
       <div 
-        className="absolute left-0 right-0 z-20 border-t-2 border-rose-500 shadow-sm shadow-rose-500/50 flex items-center"
-        style={{ top: `${top}px` }}
+        className="absolute left-0 right-0 z-20 flex items-center pointer-events-none"
+        style={{ top: `${top}px`, transform: 'translateY(-50%)' }}
       >
-        <div className="w-2 h-2 bg-rose-500 rounded-full -ml-1 absolute pulse-dot"></div>
+        <div className="w-2 h-2 rounded-full bg-rose-500 shadow-[0_0_8px_rgba(244,63,94,0.8)] pulse-dot -ml-1 shrink-0 z-10" />
+        <div className="flex-1 h-[2px] bg-rose-500/80 shadow-[0_0_5px_rgba(244,63,94,0.5)]" />
       </div>
     );
   };
 
-  // Find the exact next upcoming class
-  const getNextClass = () => {
-    const bdTime = new Date(new Date().toLocaleString("en-US", { timeZone: "Asia/Dhaka" }));
-    const todayStr = bdTime.toLocaleString("en-US", { weekday: "long" });
-    const currentH = String(bdTime.getHours()).padStart(2, "0");
-    const currentM = String(bdTime.getMinutes()).padStart(2, "0");
-    const currentTime24 = `${currentH}:${currentM}`;
+  if (loading) return <PageLoader />;
 
-    // First try today's remaining classes
-    let todayClasses = classes.filter(c => c.dayOfWeek === todayStr && c.startTime > currentTime24);
-    if (todayClasses.length > 0) {
-      return todayClasses.reduce((prev, curr) => (prev.startTime < curr.startTime ? prev : curr));
-    }
+  // Generate hour markers
+  const hourLines = [];
+  for (let i = START_HOUR; i <= END_HOUR; i++) {
+    hourLines.push(
+      <div key={i} className="absolute w-full border-t border-slate-100" style={{ top: `${(i - START_HOUR) * HOUR_HEIGHT}px` }}>
+        <span className="absolute -top-3 -left-14 sm:-left-16 w-12 sm:w-14 text-right text-[10px] sm:text-xs font-medium text-slate-400 bg-slate-50/50 pr-2">
+          {i === 12 ? '12:00 PM' : i > 12 ? `${i-12}:00 PM` : `${i}:00 AM`}
+        </span>
+      </div>
+    );
+  }
 
-    // Otherwise find the very first class of tomorrow or next available day
-    const dayIndex = DAYS.indexOf(todayStr);
-    for (let i = 1; i <= 7; i++) {
-      const nextDay = DAYS[(dayIndex + i) % 7];
-      const nextDayClasses = classes.filter(c => c.dayOfWeek === nextDay);
-      if (nextDayClasses.length > 0) {
-        return nextDayClasses.reduce((prev, curr) => (prev.startTime < curr.startTime ? prev : curr));
+  // Find next upcoming class
+  const getNextUpcomingClass = () => {
+    const currentDayStr = currentTime.toLocaleString("en-US", { weekday: "long", timeZone: "Asia/Dhaka" });
+    const hours = currentTime.getHours();
+    const minutes = currentTime.getMinutes();
+    const timeInHours = hours + minutes / 60;
+    
+    // Only check today's classes
+    const todayClasses = classes.filter(c => c.dayOfWeek === currentDayStr);
+    
+    const parseTime = (timeStr) => {
+      if (!timeStr) return 0;
+      const [time, period] = timeStr.split(" ");
+      let [h, m] = time.split(":").map(Number);
+      if (period === "PM" && h !== 12) h += 12;
+      if (period === "AM" && h === 12) h = 0;
+      return h + m / 60;
+    };
+    
+    // Sort by start time
+    todayClasses.sort((a, b) => parseTime(a.startTime) - parseTime(b.startTime));
+    
+    // Find the first class that hasn't ended yet
+    for (const c of todayClasses) {
+      if (parseTime(c.endTime) > timeInHours) {
+        return c;
       }
     }
     return null;
   };
 
-  const nextUpcoming = getNextClass();
-
-  // Generate background hour lines
-  const TIME_SLOTS = [
-    { label: "08:00 - 08:50", start: "08:00", end: "08:50" },
-    { label: "08:50 - 09:40", start: "08:50", end: "09:40" },
-    { label: "09:40 - 10:30", start: "09:40", end: "10:30" },
-    { label: "10:30 - 10:50", start: "10:30", end: "10:50", isBreak: true },
-    { label: "10:50 - 11:40", start: "10:50", end: "11:40" },
-    { label: "11:40 - 12:30", start: "11:40", end: "12:30" },
-    { label: "12:30 - 01:20", start: "12:30", end: "01:20" },
-    { label: "01:20 - 02:30", start: "01:20", end: "02:30", isBreak: true },
-    { label: "02:30 - 03:20", start: "02:30", end: "03:20" },
-    { label: "03:20 - 04:10", start: "03:20", end: "04:10" },
-    { label: "04:10 - 05:00", start: "04:10", end: "05:00" },
-  ];
-
-  const hourLines = TIME_SLOTS.map((slot, index) => {
-    const style = getStyleForSlot(slot.start, slot.end);
-    return (
-      <div key={index} className="absolute left-0 right-0 flex group border-t border-slate-200/80" style={style}>
-        <div className="w-16 sm:w-20 pr-1.5 sm:pr-3 flex flex-col justify-center items-end text-right text-[10px] sm:text-xs font-bold text-slate-600 tracking-tight">
-          <span className="leading-none text-slate-700">{slot.label.split(" - ")[0]}</span>
-          <span className="text-[8px] text-slate-400 my-0.5 font-medium uppercase">to</span>
-          <span className="leading-none text-slate-700">{slot.label.split(" - ")[1]}</span>
-        </div>
-        <div className={`flex-1 border-l border-slate-200/80 ${slot.isBreak ? 'bg-slate-100/70 flex items-center justify-center border-y border-dashed border-slate-300' : ''}`}>
-           {slot.isBreak && <span className="text-xs sm:text-sm font-black text-slate-400/80 tracking-[0.2em] uppercase">{slot.label.includes("01:20") ? "Lunch Break" : "Tea Break"}</span>}
-        </div>
-      </div>
-    );
-  });
-  
-  // Add a final closing line for 05:00 PM so the last slot doesn't look like it bleeds down
-  hourLines.push(
-    <div key="end-line" className="absolute left-0 right-0 flex group border-t border-slate-200/80" style={{ top: `${(END_HOUR - START_HOUR) * HOUR_HEIGHT}px` }}>
-      <div className="w-16 sm:w-20 pr-1.5 sm:pr-3 flex flex-col justify-center items-end text-right text-[10px] sm:text-xs font-bold text-slate-600 tracking-tight">
-      </div>
-      <div className="flex-1 border-l border-slate-200/80"></div>
-    </div>
-  );
+  const nextUpcoming = getNextUpcomingClass();
 
   return (
-    <div className="space-y-6 animate-in fade-in duration-300">
-      {/* Header */}
-      <div className="bg-white p-6 rounded-2xl border border-slate-200/80 shadow-sm flex flex-col md:flex-row justify-between md:items-center gap-4">
+    <div className="space-y-6 max-w-full pb-10">
+      <div className="flex flex-col md:flex-row justify-between md:items-center gap-4">
         <div>
           <h1 className="text-2xl font-bold text-slate-800 flex items-center space-x-2">
             <Calendar className="w-7 h-7 text-sky-600" />
@@ -199,15 +216,20 @@ export function Routine() {
             <div className="w-16 sm:w-20 shrink-0 border-r border-slate-200 bg-slate-50/95"></div>
             {DAYS.map((day) => {
               const isToday = day === new Date().toLocaleString("en-US", { weekday: "long", timeZone: "Asia/Dhaka" });
+              const isHoliday = !!getHolidayForDay(day);
+              
               return (
                 <div 
                   key={day} 
-                  className={`flex-1 text-center py-3 sm:py-4 border-r last:border-r-0 border-slate-200 transition-colors ${isToday ? 'bg-sky-50/90' : ''}`}
+                  className={`flex-1 text-center py-3 sm:py-4 border-r last:border-r-0 border-slate-200 transition-colors ${isToday ? 'bg-sky-50/90' : ''} ${isHoliday ? 'bg-rose-50/50' : ''}`}
                 >
-                  <span className={`text-xs sm:text-sm font-semibold uppercase tracking-wider ${isToday ? 'text-sky-700' : 'text-slate-600'}`}>
+                  <span className={`text-xs sm:text-sm font-semibold uppercase tracking-wider ${isToday ? 'text-sky-700' : (isHoliday ? 'text-rose-600' : 'text-slate-600')}`}>
                     {window.innerWidth < 640 ? day.substring(0, 3) : day}
                   </span>
-                  {isToday && <div className="mt-1 text-[10px] font-bold text-sky-600 bg-sky-100 rounded-full px-2 py-0.5 inline-block">TODAY</div>}
+                  <div className="flex justify-center mt-1 space-x-1">
+                    {isToday && <span className="text-[10px] font-bold text-sky-600 bg-sky-100 rounded-full px-2 py-0.5 inline-block">TODAY</span>}
+                    {isHoliday && <span className="text-[10px] font-bold text-rose-600 bg-rose-100 rounded-full px-2 py-0.5 inline-block">HOLIDAY</span>}
+                  </div>
                 </div>
               );
             })}
@@ -221,72 +243,86 @@ export function Routine() {
             </div>
 
             {/* Empty space for time labels column */}
-            <div className="w-16 sm:w-20 shrink-0 border-r border-slate-200 z-10"></div>
+            <div className="w-16 sm:w-20 shrink-0 border-r border-slate-200 z-10 bg-slate-50/50"></div>
 
             {/* Day Columns */}
-            {DAYS.map((day) => (
-              <div key={day} className="flex-1 border-r last:border-r-0 border-slate-200 relative pt-[35px]" style={{ minHeight: `${(END_HOUR - START_HOUR) * HOUR_HEIGHT}px` }}>
-                {/* Current Time Indicator Line */}
-                {getCurrentTimeLine(day)}
+            {DAYS.map((day) => {
+              const holiday = getHolidayForDay(day);
 
-                {/* Render Classes for this Day */}
-                {classes
-                  .filter((c) => c.dayOfWeek === day)
-                  .map((c) => {
-                    const style = getStyleForSlot(c.startTime, c.endTime);
-                    const isSessional = c.type === "sessional" || c.type === "project";
-                    
-                    return (
-                      <div
-                        key={c._id}
-                        className={`absolute left-1 right-1 sm:left-2 sm:right-2 rounded-xl p-1.5 sm:p-2 overflow-hidden shadow-sm transition-all hover:-translate-y-0.5 hover:shadow-md cursor-pointer border-l-4 group ${
-                          isSessional
-                            ? "bg-indigo-50 border-indigo-500 hover:bg-indigo-100"
-                            : "bg-sky-50 border-sky-500 hover:bg-sky-100"
-                        }`}
-                        style={style}
-                        title={`${c.courseCode} - ${c.courseName}\nRoom: ${c.roomOrLab}\nTeacher: ${c.teacherInitials.join(", ")}`}
-                      >
-                        <div className="h-full flex flex-col relative z-10">
-                          <div className="flex justify-between items-start">
-                            <h4 className={`text-xs sm:text-sm font-bold truncate shrink-0 ${isSessional ? "text-indigo-800" : "text-sky-800"}`}>
-                              {c.courseCode}
-                            </h4>
-                            {c.targetGroup && c.targetGroup !== "All" && (
-                              <span className="text-[8px] sm:text-[9px] font-bold px-1.5 py-0.5 rounded-full bg-white/70 text-indigo-700 ml-1 shrink-0">
-                                {c.targetGroup}
-                              </span>
-                            )}
-                          </div>
-                          <p className={`text-[10px] sm:text-xs truncate font-medium mt-0.5 shrink-0 ${isSessional ? "text-indigo-600" : "text-sky-600"}`}>
-                            {c.startTime} - {c.endTime}
-                          </p>
-                          
-                          {c.assessmentType && c.assessmentType !== 'None' && (
-                            <div className="mt-1 flex items-start gap-1 bg-red-100/90 text-red-700 px-1.5 py-0.5 rounded text-[9px] font-bold border border-red-200/50">
-                              <span className="shrink-0">🚨 {c.assessmentType}</span>
-                              {c.assessmentInfo && <span className="truncate font-medium opacity-90">- {c.assessmentInfo}</span>}
-                            </div>
-                          )}
+              return (
+                <div key={day} className="flex-1 border-r last:border-r-0 border-slate-200 relative pt-[35px]" style={{ minHeight: `${(END_HOUR - START_HOUR) * HOUR_HEIGHT}px` }}>
+                  {/* Current Time Indicator Line */}
+                  {getCurrentTimeLine(day)}
 
-                          <div className="mt-auto space-y-0.5 pt-1">
-                            <div className={`flex items-center text-[10px] sm:text-xs font-semibold ${isSessional ? "text-indigo-700" : "text-sky-700"}`}>
-                              <MapPin className="w-3 h-3 mr-1 shrink-0" />
-                              <span className="truncate">{c.roomOrLab}</span>
-                            </div>
-                            {c.teacherInitials && c.teacherInitials.length > 0 && (
-                              <div className={`flex items-center text-[10px] sm:text-xs ${isSessional ? "text-indigo-700/80" : "text-sky-700/80"}`}>
-                                <UserIcon className="w-3 h-3 mr-1 shrink-0" />
-                                <span className="truncate">{c.teacherInitials.join(", ")}</span>
-                              </div>
-                            )}
-                          </div>
-                        </div>
+                  {holiday ? (
+                    <div className="absolute inset-0 m-3 mt-10 rounded-2xl bg-rose-50/80 border-2 border-dashed border-rose-200 flex flex-col items-center justify-center text-center p-4">
+                      <div className="w-12 h-12 rounded-full bg-rose-100 text-rose-500 flex items-center justify-center mb-3">
+                        <CalendarOff className="w-6 h-6" />
                       </div>
-                    );
-                  })}
-              </div>
-            ))}
+                      <h3 className="font-bold text-rose-800 mb-1">{holiday.title}</h3>
+                      <p className="text-xs text-rose-600 font-medium">Classes Suspended</p>
+                    </div>
+                  ) : (
+                    /* Render Classes for this Day */
+                    classes
+                      .filter((c) => c.dayOfWeek === day)
+                      .map((c) => {
+                        const style = getStyleForSlot(c.startTime, c.endTime);
+                        const isSessional = c.type === "sessional" || c.type === "project";
+                        
+                        return (
+                          <div
+                            key={c._id}
+                            className={`absolute left-1 right-1 sm:left-2 sm:right-2 rounded-xl p-1.5 sm:p-2 overflow-hidden shadow-sm transition-all hover:-translate-y-0.5 hover:shadow-md cursor-pointer border-l-4 group ${
+                              isSessional
+                                ? "bg-indigo-50 border-indigo-500 hover:bg-indigo-100"
+                                : "bg-sky-50 border-sky-500 hover:bg-sky-100"
+                            }`}
+                            style={style}
+                            title={`${c.courseCode} - ${c.courseName}\nRoom: ${c.roomOrLab}\nTeacher: ${c.teacherInitials.join(", ")}`}
+                          >
+                            <div className="h-full flex flex-col relative z-10">
+                              <div className="flex justify-between items-start">
+                                <h4 className={`text-xs sm:text-sm font-bold truncate shrink-0 ${isSessional ? "text-indigo-800" : "text-sky-800"}`}>
+                                  {c.courseCode}
+                                </h4>
+                                {c.targetGroup && c.targetGroup !== "All" && (
+                                  <span className="text-[8px] sm:text-[9px] font-bold px-1.5 py-0.5 rounded-full bg-white/70 text-indigo-700 ml-1 shrink-0">
+                                    {c.targetGroup}
+                                  </span>
+                                )}
+                              </div>
+                              <p className={`text-[10px] sm:text-xs truncate font-medium mt-0.5 shrink-0 ${isSessional ? "text-indigo-600" : "text-sky-600"}`}>
+                                {c.startTime} - {c.endTime}
+                              </p>
+                              
+                              {c.assessmentType && c.assessmentType !== 'None' && (
+                                <div className="mt-1 flex items-start gap-1 bg-red-100/90 text-red-700 px-1.5 py-0.5 rounded text-[9px] font-bold border border-red-200/50">
+                                  <span className="shrink-0">⚠️ {c.assessmentType}</span>
+                                  {c.assessmentInfo && <span className="truncate font-medium opacity-90">- {c.assessmentInfo}</span>}
+                                </div>
+                              )}
+
+                              <div className="mt-auto space-y-0.5 pt-1">
+                                <div className={`flex items-center text-[10px] sm:text-xs font-semibold ${isSessional ? "text-indigo-700" : "text-sky-700"}`}>
+                                  <MapPin className="w-3 h-3 mr-1 shrink-0" />
+                                  <span className="truncate">{c.roomOrLab}</span>
+                                </div>
+                                {c.teacherInitials && c.teacherInitials.length > 0 && (
+                                  <div className={`flex items-center text-[10px] sm:text-xs ${isSessional ? "text-indigo-700/80" : "text-sky-700/80"}`}>
+                                    <UserIcon className="w-3 h-3 mr-1 shrink-0" />
+                                    <span className="truncate">{c.teacherInitials.join(", ")}</span>
+                                  </div>
+                                )}
+                              </div>
+                            </div>
+                          </div>
+                        );
+                      })
+                  )}
+                </div>
+              );
+            })}
           </div>
           </div>
         </div>

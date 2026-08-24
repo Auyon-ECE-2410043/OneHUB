@@ -56,8 +56,9 @@ export function Sidebar({ isOpen, onClose }) {
           { label: "Registration Approvals", path: "/registration", icon: CheckSquare },
           { label: "Hall Applications", path: "/hall/review", icon: Building },
           { label: "Mark Entry", path: "/marks/entry", icon: Award },
-          { label: "Notice Board", path: "/notices", icon: Bell },
-          { label: "Faculty Management", path: "/faculty", icon: Users },
+            { label: "Fee Management", path: "/fees", icon: CreditCard },
+            { label: "Notice Board", path: "/notices", icon: Bell },
+            { label: "Faculty Management", path: "/faculty", icon: Users },
           { label: "My Profile", path: "/profile", icon: User },
         ];
 

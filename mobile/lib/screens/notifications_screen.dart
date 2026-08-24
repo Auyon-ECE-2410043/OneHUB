@@ -6,6 +6,11 @@
 import 'package:flutter/material.dart';
 import '../services/api_service.dart';
 
+import 'registration_approvals_screen.dart';
+import 'hall_applications_screen.dart';
+import 'fee_payment_screen.dart';
+
+
 class NotificationsScreen extends StatefulWidget {
   const NotificationsScreen({super.key});
 
@@ -93,6 +98,14 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
                       subtitle: Text(notif['message'] ?? ''),
                       onTap: () {
                         if (!isRead) _markAsRead(notif['_id']);
+                        final link = notif['link'] as String?;
+                        if (link != null) {
+                          if (link.startsWith('/registration')) {
+                             Navigator.push(context, MaterialPageRoute(builder: (_) => const RegistrationApprovalsScreen()));
+                          } else if (link.startsWith('/hall/review')) {
+                             Navigator.push(context, MaterialPageRoute(builder: (_) => const HallApplicationsScreen()));
+                          }
+                        }
                       },
                     );
                   },
