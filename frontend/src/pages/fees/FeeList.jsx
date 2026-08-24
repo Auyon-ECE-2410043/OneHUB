@@ -109,41 +109,31 @@ export function FeeList() {
 
   const downloadPDF = async () => {
     setIsDownloading(true);
-    // Let React render the loading state
     await new Promise((resolve) => setTimeout(resolve, 100));
 
     try {
-      const originalElement = document.getElementById("receipt-pdf-content");
-      if (!originalElement) return;
+      const element = document.getElementById("receipt-pdf-content");
+      if (!element) return;
 
-      // Create a clone of the element to isolate it from the modal's backdrop-blur CSS
-      // which is known to cause fatal infinite loops in html2canvas.
-      const clone = originalElement.cloneNode(true);
-      
-      // Hide the buttons in the clone
-      const buttons = clone.querySelectorAll('.print\\:hidden');
+      // Temporarily remove blur from parent modal if it exists to prevent freeze
+      const modalBackdrop = element.closest('.backdrop-blur-sm');
+      if (modalBackdrop) modalBackdrop.classList.remove('backdrop-blur-sm');
+
+      // Hide buttons
+      const buttons = element.querySelectorAll('.print\\:hidden');
       buttons.forEach(btn => btn.style.display = 'none');
 
-      // Style the clone so it renders properly but is invisible on screen
-      clone.style.position = 'absolute';
-      clone.style.top = '-9999px';
-      clone.style.left = '-9999px';
-      clone.style.width = '800px'; // Give it a fixed width for perfect rendering
-      clone.style.background = '#ffffff';
-      document.body.appendChild(clone);
-
-      // Generate the canvas from the isolated clone
-      const canvas = await html2canvas(clone, {
+      const canvas = await html2canvas(element, {
         scale: 2,
         useCORS: true,
         logging: false,
         backgroundColor: '#ffffff'
       });
 
-      // Cleanup clone
-      document.body.removeChild(clone);
+      // Restore buttons and blur
+      buttons.forEach(btn => btn.style.display = '');
+      if (modalBackdrop) modalBackdrop.classList.add('backdrop-blur-sm');
 
-      // Create PDF
       const imgData = canvas.toDataURL('image/jpeg', 0.98);
       const pdf = new jsPDF({
         orientation: 'portrait',
@@ -159,7 +149,7 @@ export function FeeList() {
 
     } catch (err) {
       console.error("PDF generation failed:", err);
-      alert("Could not generate PDF. Please use the Print Receipt button and select 'Save as PDF'.");
+      alert("Could not generate PDF: " + (err.message || err.toString()) + "\nPlease use the Print Receipt button instead.");
     } finally {
       setIsDownloading(false);
     }
