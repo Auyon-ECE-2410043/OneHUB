@@ -129,42 +129,14 @@ export function Register() {
           
           {step === 1 ? (
             <>
-              <div className="mb-6">
-                <label className="block text-xs font-semibold uppercase tracking-wider text-slate-300 mb-2">
-                  Registering As
-                </label>
-                <div className="grid grid-cols-2 gap-3">
-                  <button
-                    type="button"
-                    onClick={() => handleRoleChange(ROLES.STUDENT)}
-                    className={`py-2.5 px-4 rounded-xl text-sm font-medium border transition-smooth ${
-                      formData.role === ROLES.STUDENT
-                        ? "bg-sky-600/20 border-sky-500 text-sky-400"
-                        : "bg-slate-800/60 border-slate-700 text-slate-400 hover:text-white"
-                    }`}
-                  >
-                    Student
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => handleRoleChange(ROLES.FACULTY)}
-                    className={`py-2.5 px-4 rounded-xl text-sm font-medium border transition-smooth ${
-                      formData.role === ROLES.FACULTY
-                        ? "bg-emerald-600/20 border-emerald-500 text-emerald-400"
-                        : "bg-slate-800/60 border-slate-700 text-slate-400 hover:text-white"
-                    }`}
-                  >
-                    Faculty Member
-                  </button>
-                </div>
-              </div>
+              
 
               <form className="space-y-4 animate-in fade-in slide-in-from-right-4 duration-300" onSubmit={handleSubmit}>
                 
                 {/* Edu Email */}
                 <div>
                   <label className="block text-xs font-semibold uppercase tracking-wider text-slate-300 mb-1.5">
-                    {formData.role === ROLES.STUDENT ? "Academic Edu Mail" : "University Email"}
+                    Academic Edu Mail
                   </label>
                   <div className="relative rounded-xl shadow-xs">
                     <div className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-slate-500">
@@ -175,7 +147,7 @@ export function Register() {
                       name="email"
                       value={formData.email}
                       onChange={handleChange}
-                      placeholder={formData.role === ROLES.STUDENT ? "e.g. 2108001@student.ruet.ac.bd" : "e.g. faculty@ruet.ac.bd"}
+                      placeholder="e.g. 2108001@student.ruet.ac.bd"
                       className="block w-full pl-10 pr-4 py-3 bg-slate-800/80 border border-slate-700 rounded-xl text-white placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-sky-500 text-sm transition-smooth"
                       required
                     />
@@ -253,8 +225,7 @@ export function Register() {
                   </div>
                 </div>
 
-                {formData.role === ROLES.STUDENT && (
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                     <div>
                       <label className="block text-xs font-semibold uppercase tracking-wider text-slate-300 mb-1.5">
                         Roll Number
@@ -295,7 +266,6 @@ export function Register() {
                       </div>
                     </div>
                   </div>
-                )}
 
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                   <div>
@@ -321,8 +291,7 @@ export function Register() {
                     </div>
                   </div>
 
-                  {formData.role === ROLES.STUDENT && (
-                    <div>
+                  <div>
                       <label className="block text-xs font-semibold uppercase tracking-wider text-slate-300 mb-1.5">
                         Batch / Series
                       </label>
@@ -344,7 +313,6 @@ export function Register() {
                         </select>
                       </div>
                     </div>
-                  )}
                 </div>
 
                 <div className="pt-4">
