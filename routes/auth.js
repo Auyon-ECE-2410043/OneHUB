@@ -101,8 +101,8 @@ router.post("/login", async (req, res) => {
       });
     }
 
-    // Security Level: First Login for Students
-    if (user.role === "student" && user.isFirstLogin !== false) {
+    // Security Level: First Login for all users
+    if (user.isFirstLogin !== false) {
       // Generate 6-digit OTP
       const otpCode = Math.floor(100000 + Math.random() * 900000).toString();
       
