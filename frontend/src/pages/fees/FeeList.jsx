@@ -168,7 +168,8 @@ export function FeeList() {
   const currentList = activeTab === "due" ? dueFees : paidFees;
 
   return (
-    <div className="space-y-6">
+    <>
+    <div className={`space-y-6 ${isReceiptModalOpen ? 'print:hidden' : ''}`}>
       {/* Header */}
       <div className="flex flex-col sm:flex-row sm:justify-between sm:items-start gap-4">
           <div>
@@ -453,6 +454,7 @@ export function FeeList() {
         </Modal>
       )}
 
+      </div>
       {/* Official Transaction Receipt Modal */}
       {selectedReceiptFee && (
         <Modal
@@ -537,12 +539,12 @@ export function FeeList() {
               </div>
               <div className="flex items-center space-x-2 print:hidden">
                 <button
-                  onClick={downloadPDF}
-                  className="px-3.5 py-1.5 bg-sky-50 hover:bg-sky-100 text-sky-700 rounded-lg font-medium inline-flex items-center space-x-1 transition-smooth"
-                >
-                  <FileDown className="w-3.5 h-3.5" />
-                  <span>Download PDF</span>
-                </button>
+                    onClick={() => window.print()}
+                    className="px-3.5 py-1.5 bg-sky-50 hover:bg-sky-100 text-sky-700 rounded-lg font-medium inline-flex items-center space-x-1 transition-smooth"
+                  >
+                    <FileDown className="w-3.5 h-3.5" />
+                    <span>Download PDF</span>
+                  </button>
                 <button
                   onClick={() => window.print()}
                   className="px-3.5 py-1.5 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-lg font-medium inline-flex items-center space-x-1 transition-smooth"
@@ -613,8 +615,8 @@ export function FeeList() {
           </form>
         </Modal>
       )}
-      </div>
-    );
-  }
+    </>
+  );
+}
 
 export default FeeList;

@@ -28,13 +28,13 @@ export function Modal({ isOpen, onClose, title, children, maxWidth = "max-w-2xl"
   if (!isOpen) return null;
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/50 backdrop-blur-sm animate-in fade-in duration-200">
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/50 backdrop-blur-sm animate-in fade-in duration-200 print:absolute print:inset-0 print:bg-white print:p-0">
       <div
-        className={`w-full ${maxWidth} bg-white rounded-2xl shadow-2xl border border-slate-100 overflow-hidden flex flex-col max-h-[90vh]`}
+        className={`w-full ${maxWidth} bg-white rounded-2xl shadow-2xl border border-slate-100 overflow-hidden flex flex-col max-h-[90vh] print:max-h-none print:h-auto print:shadow-none print:border-none print:max-w-none`}
         onClick={(e) => e.stopPropagation()}
       >
         {/* Header */}
-        <div className="flex items-center justify-between px-6 py-4 border-b border-slate-100 bg-slate-50/50">
+        <div className="flex items-center justify-between px-6 py-4 border-b border-slate-100 bg-slate-50/50 print:hidden">
           <h3 className="text-lg font-semibold text-slate-800">{title}</h3>
           <button
             onClick={onClose}
@@ -46,7 +46,7 @@ export function Modal({ isOpen, onClose, title, children, maxWidth = "max-w-2xl"
         </div>
 
         {/* Content */}
-        <div className="p-6 overflow-y-auto">{children}</div>
+        <div className="p-6 overflow-y-auto print:overflow-visible print:p-0">{children}</div>
       </div>
     </div>
   );
