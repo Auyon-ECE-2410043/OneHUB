@@ -143,13 +143,16 @@ export function FeeList() {
   return (
     <div className="space-y-6">
       {/* Header */}
-      <div>
-        <h1 className="text-2xl font-bold text-slate-800 flex items-center space-x-2.5">
-          <CreditCard className="w-7 h-7 text-sky-600" />
-          <span>Student Fee & Payment Center</span>
-        </h1>
-        <p className="text-slate-500 text-sm mt-1">
-          Review semester tuition bills, examination charges, hall dues, and process online payments instantly.
+      <div className="flex justify-between items-start">
+        <div>
+          <h1 className="text-2xl font-bold text-slate-800 flex items-center space-x-2.5">
+            <CreditCard className="w-7 h-7 text-sky-600" />
+            <span>{user?.role === 'admin' ? 'Admin Fee & Billing Center' : 'Student Fee & Payment Center'}</span>
+          </h1>
+          <p className="text-slate-500 text-sm mt-1">
+            {user?.role === 'admin' 
+              ? 'Assign custom fees, track outstanding invoices, and manage university billing.'
+              : 'Review semester tuition bills, examination charges, hall dues, and process online payments instantly.'}
           </p>
         </div>
         {user?.role === 'admin' && (
@@ -162,6 +165,8 @@ export function FeeList() {
         )}
       </div>
 
+      {user?.role !== 'admin' ? (
+        <>
       {/* Summary Stat Cards */}
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-5">
         <div className="p-5 bg-white rounded-2xl border border-slate-200/80 shadow-xs">
@@ -221,8 +226,17 @@ export function FeeList() {
           <span>Payment History & Receipts ({paidFees.length})</span>
         </button>
       </div>
+        </>
+      ) : (
+        <div className="mt-8 p-12 bg-white rounded-2xl border border-slate-200 flex flex-col items-center justify-center text-center">
+          <CreditCard className="w-16 h-16 text-slate-300 mb-4" />
+          <h2 className="text-xl font-bold text-slate-800">Fee Assignment Portal Active</h2>
+          <p className="text-slate-500 mt-2 max-w-md">Click the "Assign Custom Fee" button at the top right to issue new bills (like Library or ID Card fees) to specific students or entire batches.</p>
+        </div>
+      )}
 
       {/* Fee List Cards */}
+      {user?.role !== 'admin' && (
       <div className="space-y-4">
         {currentList.length === 0 ? (
           <div className="p-12 bg-white rounded-2xl border border-slate-200 text-center">
@@ -335,6 +349,7 @@ export function FeeList() {
           })
         )}
       </div>
+      )}
 
       {/* Online Payment Gateway Simulation Modal */}
       {selectedFeeToPay && (
