@@ -112,62 +112,22 @@ export function FeeList() {
   }
 
 
-  const downloadPDF = async () => {
-    const element = document.getElementById('receipt-content');
-    if (!element) return;
-    
-    if (!window.html2pdf) {
-      const script = document.createElement('script');
-      script.src = "https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js";
-      script.onload = () => executePDF(element);
-      document.head.appendChild(script);
-    } else {
-      executePDF(element);
-    }
-  };
-
-  const executePDF = (element) => {
-    // Hide close button or other UI temporarily if needed
-    const opt = {
-      margin:       0.5,
-      filename:     `receipt-${selectedReceiptFee?.transactionId || 'payment'}.pdf`,
-      image:        { type: 'jpeg', quality: 0.98 },
-      html2canvas:  { scale: 2, useCORS: true },
-      jsPDF:        { unit: 'in', format: 'a4', orientation: 'portrait' }
-    };
-    window.html2pdf().set(opt).from(element).save();
-  };
-
-
   const currentList = activeTab === "due" ? dueFees : paidFees;
 
   return (
     <div className="space-y-6">
       {/* Header */}
-      <div className="flex justify-between items-start">
-        <div>
-          <h1 className="text-2xl font-bold text-slate-800 flex items-center space-x-2.5">
-            <CreditCard className="w-7 h-7 text-sky-600" />
-            <span>{user?.role === 'admin' ? 'Admin Fee & Billing Center' : 'Student Fee & Payment Center'}</span>
-          </h1>
-          <p className="text-slate-500 text-sm mt-1">
-            {user?.role === 'admin' 
-              ? 'Assign custom fees, track outstanding invoices, and manage university billing.'
-              : 'Review semester tuition bills, examination charges, hall dues, and process online payments instantly.'}
-          </p>
-        </div>
-        {user?.role === 'admin' && (
-          <div className="flex-shrink-0">
-            <button onClick={() => setIsAssignModalOpen(true)} className="px-5 py-2.5 bg-sky-600 hover:bg-sky-700 text-white font-medium rounded-xl text-sm flex items-center space-x-2 transition-smooth shadow-sm">
-              <span className="text-lg leading-none">+</span>
-              <span>Assign Custom Fee</span>
-            </button>
-          </div>
-        )}
+      <div>
+        <h1 className="text-2xl font-bold text-slate-800 flex items-center space-x-2.5">
+          <CreditCard className="w-7 h-7 text-sky-600" />
+          <span>Student Fee & Payment Center</span>
+        </h1>
+        <p className="text-slate-500 text-sm mt-1">
+          Review semester tuition bills, examination charges, hall dues, and process online payments instantly.
+        </p>
       </div>
 
-      {user?.role !== 'admin' ? (
-        <>
+      {user?.role !== 'admin' ? (<>
       {/* Summary Stat Cards */}
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-5">
         <div className="p-5 bg-white rounded-2xl border border-slate-200/80 shadow-xs">
@@ -227,17 +187,16 @@ export function FeeList() {
           <span>Payment History & Receipts ({paidFees.length})</span>
         </button>
       </div>
-        </>
+      </>
       ) : (
         <div className="mt-8 p-12 bg-white rounded-2xl border border-slate-200 flex flex-col items-center justify-center text-center">
           <CreditCard className="w-16 h-16 text-slate-300 mb-4" />
           <h2 className="text-xl font-bold text-slate-800">Fee Assignment Portal Active</h2>
-          <p className="text-slate-500 mt-2 max-w-md">Click the "Assign Custom Fee" button at the top right to issue new bills (like Library or ID Card fees) to specific students or entire batches.</p>
+          <p className="text-slate-500 mt-2 max-w-md">Click the "Assign Custom Fee" button at the top right to issue new bills.</p>
         </div>
       )}
 
       {/* Fee List Cards */}
-      {user?.role !== 'admin' && (
       <div className="space-y-4">
         {currentList.length === 0 ? (
           <div className="p-12 bg-white rounded-2xl border border-slate-200 text-center">
@@ -350,7 +309,6 @@ export function FeeList() {
           })
         )}
       </div>
-      )}
 
       {/* Online Payment Gateway Simulation Modal */}
       {selectedFeeToPay && (
@@ -439,12 +397,15 @@ export function FeeList() {
           onClose={() => setIsReceiptModalOpen(false)}
           title="University Payment Receipt"
         >
-          <div id="receipt-content" className="p-6 bg-white border border-slate-200 rounded-2xl space-y-6 print:border-none print:shadow-none print:p-0">
+          <div id="receipt-pdf-content" className="p-6 bg-white border border-slate-200 rounded-2xl space-y-6 print:border-none print:shadow-none print:p-0">
             {/* Header */}
-            <div className="text-center border-b border-slate-200 pb-4">
-              <h2 className="text-lg font-extrabold text-slate-900 tracking-tight">
-                RAJSHAHI UNIVERSITY OF ENGINEERING & TECHNOLOGY
-              </h2>
+            <div className="flex flex-col items-center justify-center border-b border-slate-200 pb-4">
+              <div className="flex items-center space-x-3 mb-2">
+                <img src="https://upload.wikimedia.org/wikipedia/en/thumb/f/f6/Rajshahi_University_of_Engineering_%26_Technology_emblem.svg/1200px-Rajshahi_University_of_Engineering_%26_Technology_emblem.svg.png" alt="RUET Logo" className="w-12 h-12 object-contain" crossOrigin="anonymous" />
+                <h2 className="text-lg font-extrabold text-slate-900 tracking-tight text-center leading-tight">
+                  RAJSHAHI UNIVERSITY OF ENGINEERING<br/>& TECHNOLOGY
+                </h2>
+              </div>
               <p className="text-xs text-slate-500 uppercase tracking-wider font-semibold mt-0.5">
                 Central Accounts Office • OneHUB Money Receipt
               </p>
@@ -511,13 +472,22 @@ export function FeeList() {
                 <CheckCircle2 className="w-4 h-4" />
                 <span>Digitally Authenticated by OneHUB</span>
               </div>
-              <button
-                onClick={() => window.print()}
-                className="px-3.5 py-1.5 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-lg font-medium inline-flex items-center space-x-1 transition-smooth"
-              >
-                <Download className="w-3.5 h-3.5" />
-                <span>Print Receipt</span>
-              </button>
+              <div className="flex items-center space-x-2 print:hidden">
+                <button
+                  onClick={downloadPDF}
+                  className="px-3.5 py-1.5 bg-sky-50 hover:bg-sky-100 text-sky-700 rounded-lg font-medium inline-flex items-center space-x-1 transition-smooth"
+                >
+                  <FileDown className="w-3.5 h-3.5" />
+                  <span>Download PDF</span>
+                </button>
+                <button
+                  onClick={() => window.print()}
+                  className="px-3.5 py-1.5 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-lg font-medium inline-flex items-center space-x-1 transition-smooth"
+                >
+                  <Download className="w-3.5 h-3.5" />
+                  <span>Print Receipt</span>
+                </button>
+              </div>
             </div>
           </div>
         </Modal>
