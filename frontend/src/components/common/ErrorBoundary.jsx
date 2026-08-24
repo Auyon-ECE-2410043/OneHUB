@@ -19,6 +19,13 @@ export class ErrorBoundary extends React.Component {
   }
 
   componentDidCatch(error, errorInfo) {
+    if (error?.message?.includes('Failed to fetch dynamically imported module') || error?.message?.includes('Importing a module script failed')) {
+      if (!sessionStorage.getItem('auto_reloaded_chunk')) {
+        sessionStorage.setItem('auto_reloaded_chunk', 'true');
+        window.location.reload();
+        return;
+      }
+    }
     console.error("ErrorBoundary caught an error:", error, errorInfo);
   }
 
