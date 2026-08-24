@@ -30,7 +30,14 @@ router.get("/", async (req, res) => {
   try {
     let settings = await SystemSettings.findOne();
     if (!settings) settings = await SystemSettings.create({ maintenanceMode: false, features: defaultFeatures });
-    res.json(settings);
+    
+    // Merge existing features with defaults in case of new additions
+    const mergedFeatures = { ...defaultFeatures, ...((settings.features || {}).toJSON ? settings.features.toJSON() : settings.features) };
+    
+    res.json({
+      ...settings.toObject(),
+      features: mergedFeatures
+    });
   } catch (err) {
     res.status(500).json({ error: err.message });
   }
@@ -57,15 +64,21 @@ router.post("/feature", requireAuth, requireRole("admin"), async (req, res) => {
     let settings = await SystemSettings.findOne();
     if (!settings) settings = await SystemSettings.create({ maintenanceMode: false, features: defaultFeatures });
     
-    // Ensure features object exists
-    if (!settings.features) {
-      settings.features = defaultFeatures;
-    }
-
-    if (settings.features[featureKey] !== undefined) {
+    // Validate if it's a known feature
+    if (Object.keys(defaultFeatures).includes(featureKey)) {
+      // Ensure features object exists
+      if (!settings.features) {
+        settings.features = { ...defaultFeatures };
+      }
+      
       settings.features[featureKey] = enabled;
+      settings.markModified('features'); // Tell mongoose the nested object changed
       await settings.save();
-      res.json({ message: `Feature ${featureKey} is now ${enabled ? 'enabled' : 'disabled'}`, features: settings.features });
+      
+      res.json({ 
+        message: `Feature ${featureKey} is now ${enabled ? 'enabled' : 'disabled'}`, 
+        features: settings.features 
+      });
     } else {
       res.status(400).json({ error: "Invalid feature key" });
     }
