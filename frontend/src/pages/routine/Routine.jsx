@@ -81,11 +81,19 @@ export function Routine() {
   const getStyleForSlot = (startTime, endTime) => {
     const parseTime = (timeStr) => {
       if (!timeStr) return 0;
-      const [time, period] = timeStr.split(" ");
-      let [hours, minutes] = time.split(":").map(Number);
-      if (period === "PM" && hours !== 12) hours += 12;
-      if (period === "AM" && hours === 12) hours = 0;
-      return hours + minutes / 60;
+      // Handle "08:00 AM" format if it exists
+      if (timeStr.includes(" ")) {
+        const [time, period] = timeStr.split(" ");
+        let [hours, minutes] = time.split(":").map(Number);
+        if (period === "PM" && hours !== 12) hours += 12;
+        if (period === "AM" && hours === 12) hours = 0;
+        return hours + minutes / 60;
+      }
+      
+      // Handle "08:00" format (auto-convert 1 PM - 7 PM to 24-hour)
+      let [h, m] = timeStr.split(":").map(Number);
+      if (h >= 1 && h <= 7) h += 12;
+      return h + m / 60;
     };
 
     const start = parseTime(startTime);
