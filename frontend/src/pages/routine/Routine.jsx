@@ -128,26 +128,41 @@ export function Routine() {
 
   if (loading) return <PageLoader />;
 
-  // Generate hour markers
+  // RUET Standard Class Periods
+  const PERIOD_MARKERS = [
+    { label: "08:00", hours: 8.0 },
+    { label: "08:50", hours: 8 + 50/60 },
+    { label: "09:40", hours: 9 + 40/60 },
+    { label: "10:30", hours: 10 + 30/60 },
+    { label: "10:50", hours: 10 + 50/60 },
+    { label: "11:40", hours: 11 + 40/60 },
+    { label: "12:30", hours: 12 + 30/60 },
+    { label: "01:20", hours: 13 + 20/60 },
+    { label: "02:30", hours: 14 + 30/60 },
+    { label: "03:20", hours: 15 + 20/60 },
+    { label: "04:10", hours: 16 + 10/60 },
+    { label: "05:00", hours: 17.0 }
+  ];
+
+  // Generate period markers instead of just hourly lines
   const hourLines = [];
-  for (let i = START_HOUR; i <= END_HOUR; i++) {
+  PERIOD_MARKERS.forEach((marker, index) => {
     hourLines.push(
-      <div key={i} className="absolute w-full border-t border-slate-100" style={{ top: `${(i - START_HOUR) * HOUR_HEIGHT}px` }}>
+      <div key={index} className="absolute w-full border-t border-slate-100" style={{ top: `${(marker.hours - START_HOUR) * HOUR_HEIGHT}px` }}>
       </div>
     );
-  }
+  });
 
-  
-    const hourLabels = [];
-    for (let i = START_HOUR; i <= END_HOUR; i++) {
-      hourLabels.push(
-        <div key={i} className="absolute w-full" style={{ top: `${(i - START_HOUR) * HOUR_HEIGHT}px` }}>
-          <span className="absolute -top-3 left-0 w-16 sm:w-20 pr-3 text-right text-[10px] sm:text-xs font-medium text-slate-400 bg-slate-50">
-            {i === 12 ? '12:00 PM' : i > 12 ? `${i-12}:00 PM` : `${i}:00 AM`}
-          </span>
-        </div>
-      );
-    }
+  const hourLabels = [];
+  PERIOD_MARKERS.forEach((marker, index) => {
+    hourLabels.push(
+      <div key={index} className="absolute w-full" style={{ top: `${(marker.hours - START_HOUR) * HOUR_HEIGHT}px` }}>
+        <span className="absolute -top-2 left-0 w-16 sm:w-20 pr-2 sm:pr-3 text-right text-[10px] sm:text-xs font-semibold tracking-tighter text-slate-500 bg-slate-50">
+          {marker.label}
+        </span>
+      </div>
+    );
+  });
 
     // Find next upcoming class
   const getNextUpcomingClass = () => {
