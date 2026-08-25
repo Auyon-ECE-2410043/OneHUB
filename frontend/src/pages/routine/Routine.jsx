@@ -133,7 +133,7 @@ export function Routine() {
   for (let i = START_HOUR; i <= END_HOUR; i++) {
     hourLines.push(
       <div key={i} className="absolute w-full border-t border-slate-100" style={{ top: `${(i - START_HOUR) * HOUR_HEIGHT}px` }}>
-        <span className="absolute -top-3 -left-14 sm:-left-16 w-12 sm:w-14 text-right text-[10px] sm:text-xs font-medium text-slate-400 bg-slate-50/50 pr-2">
+        <span className="absolute -top-3 left-0 w-16 sm:w-20 pr-3 text-right text-[10px] sm:text-xs font-medium text-slate-400 bg-slate-50">
           {i === 12 ? '12:00 PM' : i > 12 ? `${i-12}:00 PM` : `${i}:00 AM`}
         </span>
       </div>
