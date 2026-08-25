@@ -40,7 +40,7 @@ app.use("/api/", apiLimiter);
 // Specific stricter limit for auth routes
 const authLimiter = rateLimit({
   windowMs: 15 * 60 * 1000, // 15 minutes
-  max: 10, // Limit each IP to 10 login/OTP requests per window
+  max: 50, // Temporarily increased to 50 for testing
   message: "Too many authentication attempts, please try again later",
 });
 app.use("/api/auth", authLimiter);
