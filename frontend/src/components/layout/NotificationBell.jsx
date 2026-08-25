@@ -67,7 +67,7 @@ export function NotificationBell() {
       {isOpen && (
         <>
           <div className="fixed inset-0 z-40" onClick={() => setIsOpen(false)}></div>
-          <div className="absolute right-0 mt-2 w-80 bg-white rounded-xl shadow-xl border border-slate-100 py-2 z-50 animate-in fade-in slide-in-from-top-2">
+          <div className="fixed top-16 right-4 left-4 sm:absolute sm:top-auto sm:left-auto sm:right-0 mt-2 sm:w-80 bg-white rounded-xl shadow-xl border border-slate-100 py-2 z-50 animate-in fade-in slide-in-from-top-2">
             <div className="px-4 py-2 border-b border-slate-100 flex justify-between items-center">
               <h3 className="text-sm font-semibold text-slate-800">Notifications</h3>
               {unreadCount > 0 && (
