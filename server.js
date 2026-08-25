@@ -69,6 +69,7 @@ app.use("/api/notifications", notificationRoutes);
 app.use("/api/clearance", clearanceRoutes);
 app.use("/api/medical", medicalRoutes);
 app.use("/api/calendar", calendarRoutes);
+app.use("/api/cron", cronRoutes);
 app.use("/api/settings", require("./routes/settings"));
 
 // Global 404 handler
