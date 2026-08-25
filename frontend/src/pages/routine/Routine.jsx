@@ -191,26 +191,41 @@ export function Routine() {
     
     const parseTime = (timeStr) => {
       if (!timeStr) return 0;
-      const [time, period] = timeStr.split(" ");
-      let [h, m] = time.split(":").map(Number);
-      if (period === "PM" && h !== 12) h += 12;
-      if (period === "AM" && h === 12) h = 0;
+      if (timeStr.includes(" ")) {
+        const [time, period] = timeStr.split(" ");
+        let [hStr, mStr] = time.split(":").map(Number);
+        if (period === "PM" && hStr !== 12) hStr += 12;
+        if (period === "AM" && hStr === 12) hStr = 0;
+        return hStr + mStr / 60;
+      }
+      let [h, m] = timeStr.split(":").map(Number);
+      if (h >= 1 && h <= 7) h += 12;
       return h + m / 60;
     };
     
     // Sort by start time
     todayClasses.sort((a, b) => parseTime(a.startTime) - parseTime(b.startTime));
     
-    // Find the first class that hasn't ended yet
+    let current = null;
+    let next = null;
+
     for (const c of todayClasses) {
-      if (parseTime(c.endTime) > timeInHours) {
-        return c;
+      const start = parseTime(c.startTime);
+      const end = parseTime(c.endTime);
+      
+      if (timeInHours >= start && timeInHours < end) {
+        current = c;
+      } else if (start >= timeInHours && !next) {
+        next = c;
       }
     }
-    return null;
+    
+    return { current, next };
   };
 
-  const nextUpcoming = getNextUpcomingClass();
+  const { current: currentClass, next: nextUpcoming } = getNextUpcomingClass();
+  const displayClass = currentClass || nextUpcoming;
+  const isCurrent = !!currentClass;
 
   return (
     <div className="space-y-6 max-w-full pb-10">
@@ -227,22 +242,24 @@ export function Routine() {
           </p>
         </div>
 
-        {nextUpcoming && (
-          <div className="bg-gradient-to-r from-sky-50 to-indigo-50 border border-sky-100 p-4 rounded-xl flex items-start space-x-4 max-w-sm">
-            <div className="w-10 h-10 rounded-full bg-sky-200/50 flex items-center justify-center text-sky-700 shrink-0">
-              <Clock className="w-5 h-5 animate-pulse" />
-            </div>
-            <div>
-              <p className="text-xs font-semibold uppercase tracking-wider text-sky-700">Next Upcoming Class</p>
-              <h4 className="text-base font-bold text-slate-800 mt-0.5">{nextUpcoming.courseCode}</h4>
-              <div className="flex items-center text-xs text-slate-600 mt-1 space-x-3">
-                <span className="flex items-center"><Calendar className="w-3.5 h-3.5 mr-1" /> {nextUpcoming.dayOfWeek}</span>
-                <span className="flex items-center"><Clock className="w-3.5 h-3.5 mr-1" /> {nextUpcoming.startTime}</span>
-                <span className="flex items-center"><MapPin className="w-3.5 h-3.5 mr-1" /> {nextUpcoming.roomOrLab}</span>
+        {displayClass && (
+            <div className="bg-gradient-to-r from-sky-50 to-indigo-50 border border-sky-100 p-4 rounded-xl flex items-start space-x-4 max-w-sm">
+              <div className={`w-10 h-10 rounded-full flex items-center justify-center shrink-0 ${isCurrent ? 'bg-indigo-200/50 text-indigo-700' : 'bg-sky-200/50 text-sky-700'}`}>
+                <Clock className={`w-5 h-5 ${isCurrent ? 'animate-pulse' : ''}`} />
+              </div>
+              <div>
+                <p className={`text-xs font-semibold uppercase tracking-wider ${isCurrent ? 'text-indigo-700' : 'text-sky-700'}`}>
+                  {isCurrent ? "Currently Ongoing" : "Next Upcoming Class"}
+                </p>
+                <h4 className="text-base font-bold text-slate-800 mt-0.5">{displayClass.courseCode}</h4>
+                <div className="flex items-center text-xs text-slate-600 mt-1 space-x-3">
+                  <span className="flex items-center"><Calendar className="w-3.5 h-3.5 mr-1" /> {displayClass.dayOfWeek}</span>
+                  <span className="flex items-center"><Clock className="w-3.5 h-3.5 mr-1" /> {displayClass.startTime} - {displayClass.endTime}</span>
+                  <span className="flex items-center"><MapPin className="w-3.5 h-3.5 mr-1" /> {displayClass.roomOrLab}</span>
+                </div>
               </div>
             </div>
-          </div>
-        )}
+          )}
       </div>
 
       {/* Calendar Grid */}
