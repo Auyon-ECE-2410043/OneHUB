@@ -15,7 +15,7 @@ export const ROLES = {
 
 export const DEPARTMENTS = [
   "ECE", "CSE", "EEE", "ETE", "ME", "IPE", "GCE", "MTE",
-  "CE", "URP", "Arch", "CFPE", "MSE", "BECM", "Physics", "Chemistry", "Math", "Humanities", "CME", "ChE"
+  "CE", "URP", "Arch", "MSE", "BECM", "Physics", "Chemistry", "Math", "Humanities", "CME", "ChE"
 ];
 
 export const SEMESTERS = [
