@@ -538,21 +538,14 @@ export function FeeList() {
                 <span>Digitally Authenticated by OneHUB</span>
               </div>
               <div className="flex items-center space-x-2 print:hidden">
-                <button
+                  <button
                     onClick={() => window.print()}
-                    className="px-3.5 py-1.5 bg-sky-50 hover:bg-sky-100 text-sky-700 rounded-lg font-medium inline-flex items-center space-x-1 transition-smooth"
+                    className="px-4 py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-lg font-medium inline-flex items-center space-x-2 transition-smooth"
                   >
-                    <FileDown className="w-3.5 h-3.5" />
-                    <span>Download PDF</span>
+                    <Download className="w-4 h-4" />
+                    <span>Save PDF / Print</span>
                   </button>
-                <button
-                  onClick={() => window.print()}
-                  className="px-3.5 py-1.5 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-lg font-medium inline-flex items-center space-x-1 transition-smooth"
-                >
-                  <Download className="w-3.5 h-3.5" />
-                  <span>Print Receipt</span>
-                </button>
-              </div>
+                </div>
             </div>
           </div>
         </Modal>
