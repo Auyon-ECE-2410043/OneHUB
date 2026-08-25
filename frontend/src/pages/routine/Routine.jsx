@@ -133,14 +133,23 @@ export function Routine() {
   for (let i = START_HOUR; i <= END_HOUR; i++) {
     hourLines.push(
       <div key={i} className="absolute w-full border-t border-slate-100" style={{ top: `${(i - START_HOUR) * HOUR_HEIGHT}px` }}>
-        <span className="absolute -top-3 left-0 w-16 sm:w-20 pr-3 text-right text-[10px] sm:text-xs font-medium text-slate-400 bg-slate-50">
-          {i === 12 ? '12:00 PM' : i > 12 ? `${i-12}:00 PM` : `${i}:00 AM`}
-        </span>
       </div>
     );
   }
 
-  // Find next upcoming class
+  
+    const hourLabels = [];
+    for (let i = START_HOUR; i <= END_HOUR; i++) {
+      hourLabels.push(
+        <div key={i} className="absolute w-full" style={{ top: `${(i - START_HOUR) * HOUR_HEIGHT}px` }}>
+          <span className="absolute -top-3 left-0 w-16 sm:w-20 pr-3 text-right text-[10px] sm:text-xs font-medium text-slate-400 bg-slate-50">
+            {i === 12 ? '12:00 PM' : i > 12 ? `${i-12}:00 PM` : `${i}:00 AM`}
+          </span>
+        </div>
+      );
+    }
+
+    // Find next upcoming class
   const getNextUpcomingClass = () => {
     const currentDayStr = currentTime.toLocaleString("en-US", { weekday: "long", timeZone: "Asia/Dhaka" });
     const hours = currentTime.getHours();
@@ -213,7 +222,7 @@ export function Routine() {
           <div className="min-w-[700px] h-full relative">
           {/* Days Header */}
           <div className="flex border-b border-slate-200 bg-slate-50/95 backdrop-blur-sm sticky top-0 z-30 shadow-sm">
-            <div className="w-16 sm:w-20 shrink-0 border-r border-slate-200 bg-slate-50/95"></div>
+            <div className="w-16 sm:w-20 shrink-0 border-r border-slate-200 bg-slate-50/95 sticky left-0 z-40"></div>
             {DAYS.map((day) => {
               const isToday = day === new Date().toLocaleString("en-US", { weekday: "long", timeZone: "Asia/Dhaka" });
               const isHoliday = !!getHolidayForDay(day);
@@ -242,8 +251,12 @@ export function Routine() {
               {hourLines}
             </div>
 
-            {/* Empty space for time labels column */}
-            <div className="w-16 sm:w-20 shrink-0 border-r border-slate-200 z-10 bg-slate-50/50"></div>
+            {/* Sticky Time labels column */}
+              <div className="w-16 sm:w-20 shrink-0 border-r border-slate-200 z-20 bg-slate-50 sticky left-0 relative">
+                <div className="absolute inset-0 pt-[35px] pointer-events-none">
+                  {hourLabels}
+                </div>
+              </div>
 
             {/* Day Columns */}
             {DAYS.map((day) => {
