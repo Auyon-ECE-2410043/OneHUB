@@ -128,38 +128,45 @@ export function Routine() {
 
   if (loading) return <PageLoader />;
 
-  // RUET Standard Class Periods
-  const PERIOD_MARKERS = [
-    { label: "08:00", hours: 8.0 },
-    { label: "08:50", hours: 8 + 50/60 },
-    { label: "09:40", hours: 9 + 40/60 },
-    { label: "10:30", hours: 10 + 30/60 },
-    { label: "10:50", hours: 10 + 50/60 },
-    { label: "11:40", hours: 11 + 40/60 },
-    { label: "12:30", hours: 12 + 30/60 },
-    { label: "01:20", hours: 13 + 20/60 },
-    { label: "02:30", hours: 14 + 30/60 },
-    { label: "03:20", hours: 15 + 20/60 },
-    { label: "04:10", hours: 16 + 10/60 },
-    { label: "05:00", hours: 17.0 }
+  const TIME_SLOTS = [
+    { label: "08:00 - 08:50", start: "08:00", end: "08:50" },
+    { label: "08:50 - 09:40", start: "08:50", end: "09:40" },
+    { label: "09:40 - 10:30", start: "09:40", end: "10:30" },
+    { label: "10:30 - 10:50", start: "10:30", end: "10:50", isBreak: true },
+    { label: "10:50 - 11:40", start: "10:50", end: "11:40" },
+    { label: "11:40 - 12:30", start: "11:40", end: "12:30" },
+    { label: "12:30 - 01:20", start: "12:30", end: "01:20" },
+    { label: "01:20 - 02:30", start: "01:20", end: "02:30", isBreak: true },
+    { label: "02:30 - 03:20", start: "02:30", end: "03:20" },
+    { label: "03:20 - 04:10", start: "03:20", end: "04:10" },
+    { label: "04:10 - 05:00", start: "04:10", end: "05:00" },
   ];
 
-  // Generate period markers instead of just hourly lines
-  const hourLines = [];
-  PERIOD_MARKERS.forEach((marker, index) => {
-    hourLines.push(
-      <div key={index} className="absolute w-full border-t border-slate-100" style={{ top: `${(marker.hours - START_HOUR) * HOUR_HEIGHT}px` }}>
+  const hourLines = TIME_SLOTS.map((slot, index) => {
+    const style = getStyleForSlot(slot.start, slot.end);
+    return (
+      <div key={index} className="absolute left-0 right-0 flex border-t border-slate-200/80" style={style}>
+        {/* Spacer for sticky column */}
+        <div className="w-16 sm:w-20 shrink-0"></div>
+        <div className={`flex-1 border-l border-slate-200/80 ${slot.isBreak ? 'bg-slate-100/70 flex items-center justify-center border-y border-dashed border-slate-300' : ''}`}>
+           {slot.isBreak && <span className="text-xs sm:text-sm font-black text-slate-400/80 tracking-[0.2em] uppercase">{slot.label.includes("01:20") ? "Lunch Break" : "Tea Break"}</span>}
+        </div>
       </div>
     );
   });
+  
+  hourLines.push(
+    <div key="end-line" className="absolute left-0 right-0 border-t border-slate-200/80" style={{ top: `${(END_HOUR - START_HOUR) * HOUR_HEIGHT}px` }}>
+    </div>
+  );
 
-  const hourLabels = [];
-  PERIOD_MARKERS.forEach((marker, index) => {
-    hourLabels.push(
-      <div key={index} className="absolute w-full" style={{ top: `${(marker.hours - START_HOUR) * HOUR_HEIGHT}px` }}>
-        <span className="absolute -top-2 left-0 w-16 sm:w-20 pr-2 sm:pr-3 text-right text-[10px] sm:text-xs font-semibold tracking-tighter text-slate-500 bg-slate-50">
-          {marker.label}
-        </span>
+  const hourLabels = TIME_SLOTS.map((slot, index) => {
+    const style = getStyleForSlot(slot.start, slot.end);
+    return (
+      <div key={index} className="absolute left-0 right-0 flex flex-col justify-center items-end text-right pr-1.5 sm:pr-3" style={style}>
+        <span className="leading-none text-[10px] sm:text-xs font-bold text-slate-700">{slot.label.split(" - ")[0]}</span>
+        <span className="text-[8px] text-slate-400 my-0.5 font-medium uppercase">to</span>
+        <span className="leading-none text-[10px] sm:text-xs font-bold text-slate-700">{slot.label.split(" - ")[1]}</span>
       </div>
     );
   });
