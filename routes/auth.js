@@ -24,7 +24,7 @@ const generateOTPTemplate = (otp, type) => {
     <div style="font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; max-width: 600px; margin: 0 auto; background-color: #f4f7f6; padding: 30px 20px; border-radius: 12px;">
       
       <div style="text-align: center; margin-bottom: 30px;">
-        <img src="https://upload.wikimedia.org/wikipedia/en/thumb/f/f7/Rajshahi_University_of_Engineering_%26_Technology_logo.svg/300px-Rajshahi_University_of_Engineering_%26_Technology_logo.svg.png" alt="RUET Logo" style="width: 80px; height: auto; margin-bottom: 15px;" />
+        <img src="https://res.cloudinary.com/qhkorghf/image/upload/v1787858448/onehub_assets/ruet_logo_email.png" alt="RUET Logo" style="width: 80px; height: auto; margin-bottom: 15px;" />
         <h1 style="color: #0f172a; margin: 0; font-size: 26px; font-weight: 700; letter-spacing: -0.5px;">RUET OneHUB</h1>
         <p style="color: #64748b; margin-top: 5px; font-size: 14px; text-transform: uppercase; letter-spacing: 1px; font-weight: 600;">Central Integrated Automation Portal</p>
       </div>
