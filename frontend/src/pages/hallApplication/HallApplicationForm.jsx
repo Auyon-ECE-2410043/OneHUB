@@ -8,7 +8,7 @@
 import { useState, useEffect } from "react";
 import { useAuth } from "../../context/AuthContext";
 import hallApplicationService from "../../services/hallApplicationService";
-import { HALL_NAMES, SEMESTERS } from "../../utils/constants";
+import { MALE_HALLS, FEMALE_HALLS, SEMESTERS } from "../../utils/constants";
 import { formatDate, getStatusBadge, getStatusLabel } from "../../utils/helpers";
 import { PageLoader } from "../../components/common/Loader";
 import {
@@ -244,7 +244,7 @@ export function HallApplicationForm() {
                 onChange={handleChange}
                 className="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-xs font-semibold text-slate-800 focus:ring-2 focus:ring-sky-500"
               >
-                {HALL_NAMES.map((h) => (
+                {allowedHalls.map((h) => (
                   <option key={h} value={h}>
                     {h}
                   </option>

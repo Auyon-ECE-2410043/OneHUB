@@ -33,15 +33,22 @@ export const SEMESTER_LABELS = {
   "4-2": "4th Year 2nd Term (4-2)",
 };
 
-export const HALL_NAMES = [
+export const MALE_HALLS = [
   "Shahid President Ziaur Rahman Hall",
   "Shahid Lt. Selim Hall",
   "Shahid Shahidul Islam Hall",
   "Shahid Abdul Hamid Hall",
   "Sher E Bangla A K Fazlul Haque",
   "Tin Shed Hall (Extension)",
-  "Male Hall 3",
+  "Bangabandhu Sheikh Mujibur Rahman Hall"
 ];
+
+export const FEMALE_HALLS = [
+  "Deshratna Sheikh Hasina Hall",
+  "Taposhi Rabeya Hall"
+];
+
+export const HALL_NAMES = [...MALE_HALLS, ...FEMALE_HALLS];
 
 export const DESIGNATIONS = [
   "Professor",
