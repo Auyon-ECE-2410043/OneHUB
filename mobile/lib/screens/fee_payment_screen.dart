@@ -1,3 +1,4 @@
+// ignore_for_file: deprecated_member_use
 // ==========================================
 // File: fee_payment_screen.dart
 // Description: Flutter screen widget for the fee_payment view.
@@ -104,7 +105,7 @@ class _FeePaymentScreenState extends State<FeePaymentScreen> {
                     Row(
                       children: [
                         Expanded(
-                          child: RadioListTile<String>(
+                                                      child: RadioListTile<String>(
                             title: const Text('Specific Student', style: TextStyle(fontSize: 14)),
                             value: 'single',
                             groupValue: mode,
@@ -112,7 +113,7 @@ class _FeePaymentScreenState extends State<FeePaymentScreen> {
                           ),
                         ),
                         Expanded(
-                          child: RadioListTile<String>(
+                                                      child: RadioListTile<String>(
                             title: const Text('Whole Series', style: TextStyle(fontSize: 14)),
                             value: 'series',
                             groupValue: mode,
@@ -176,10 +177,12 @@ class _FeePaymentScreenState extends State<FeePaymentScreen> {
                               'amount': double.parse(amountCtrl.text.trim()),
                               'dueDate': selectedDate!.toIso8601String(),
                             });
+                            if (!ctx.mounted || !context.mounted) return;
                             Navigator.pop(ctx);
                             ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Fee Assigned Successfully')));
                             _fetchFees();
                           } catch (e) {
+                            if (!ctx.mounted) return;
                             ScaffoldMessenger.of(ctx).showSnackBar(SnackBar(content: Text('Error: $e')));
                           }
                         },

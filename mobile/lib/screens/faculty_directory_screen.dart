@@ -431,7 +431,7 @@ class _FacultyDirectoryScreenState extends State<FacultyDirectoryScreen> {
                                   color: isSelected ? Theme.of(context).primaryColor : Colors.white,
                                   fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
                                 ),
-                                backgroundColor: Colors.white.withOpacity(0.2),
+                                backgroundColor: Colors.white.withValues(alpha: 0.2),
                               ),
                             );
                           }).toList(),

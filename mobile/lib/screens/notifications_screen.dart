@@ -8,7 +8,6 @@ import '../services/api_service.dart';
 
 import 'registration_approvals_screen.dart';
 import 'hall_applications_screen.dart';
-import 'fee_payment_screen.dart';
 
 
 class NotificationsScreen extends StatefulWidget {
