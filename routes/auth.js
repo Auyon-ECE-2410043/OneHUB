@@ -14,36 +14,43 @@ const sendEmail = require("../utils/sendEmail");
 const { requireAuth } = require("../middleware/auth");
 
 
+
 const generateOTPTemplate = (otp, type) => {
   const message = type === 'register' 
     ? 'Thank you for registering with RUET OneHUB. Please use the verification code below to verify your email address and activate your account.'
     : 'Welcome to RUET OneHUB! Please use the verification code below to complete your first-time login and set up your secure password.';
 
   return `
-    <div style="font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; max-width: 600px; margin: 0 auto; background-color: #f8fafc; padding: 20px; border-radius: 12px; border: 1px solid #e2e8f0;">
-      <div style="text-align: center; margin-bottom: 24px;">
-        <h1 style="color: #0284c7; margin: 0; font-size: 28px;">RUET OneHUB</h1>
-        <p style="color: #64748b; margin-top: 4px; font-size: 14px;">Central Integrated Automation Portal</p>
+    <div style="font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; max-width: 600px; margin: 0 auto; background-color: #f4f7f6; padding: 30px 20px; border-radius: 12px;">
+      
+      <div style="text-align: center; margin-bottom: 30px;">
+        <img src="https://upload.wikimedia.org/wikipedia/en/thumb/f/f7/Rajshahi_University_of_Engineering_%26_Technology_logo.svg/300px-Rajshahi_University_of_Engineering_%26_Technology_logo.svg.png" alt="RUET Logo" style="width: 80px; height: auto; margin-bottom: 15px;" />
+        <h1 style="color: #0f172a; margin: 0; font-size: 26px; font-weight: 700; letter-spacing: -0.5px;">RUET OneHUB</h1>
+        <p style="color: #64748b; margin-top: 5px; font-size: 14px; text-transform: uppercase; letter-spacing: 1px; font-weight: 600;">Central Integrated Automation Portal</p>
       </div>
       
-      <div style="background-color: #ffffff; padding: 30px; border-radius: 8px; box-shadow: 0 1px 3px rgba(0,0,0,0.05);">
-        <h2 style="color: #0f172a; margin-top: 0; font-size: 20px;">Verify your identity</h2>
-        <p style="color: #475569; line-height: 1.6; font-size: 15px;">
+      <div style="background-color: #ffffff; padding: 40px; border-radius: 12px; box-shadow: 0 4px 6px rgba(0,0,0,0.02); border: 1px solid #e2e8f0;">
+        <h2 style="color: #1e293b; margin-top: 0; font-size: 20px; text-align: center;">Identity Verification Required</h2>
+        <div style="height: 3px; width: 40px; background-color: #0284c7; margin: 15px auto 25px auto; border-radius: 2px;"></div>
+        
+        <p style="color: #475569; line-height: 1.6; font-size: 15px; text-align: center;">
           ${message}
         </p>
         
-        <div style="background-color: #f1f5f9; border-radius: 8px; padding: 20px; text-align: center; margin: 30px 0;">
-          <span style="font-size: 32px; font-weight: bold; letter-spacing: 6px; color: #0284c7;">${otp}</span>
+        <div style="background-color: #f8fafc; border: 1px dashed #cbd5e1; border-radius: 8px; padding: 25px; text-align: center; margin: 35px 0;">
+          <span style="font-size: 38px; font-weight: 800; letter-spacing: 8px; color: #0284c7; font-family: monospace;">${otp}</span>
         </div>
         
-        <p style="color: #64748b; font-size: 13px; text-align: center; margin-bottom: 0;">
-          If you didn't request this code, you can safely ignore this email.
+        <p style="color: #64748b; font-size: 13px; text-align: center; margin-bottom: 0; line-height: 1.5;">
+          This code will expire in 10 minutes. If you did not initiate this request, please contact the IT Helpdesk immediately or safely ignore this email.
         </p>
       </div>
       
-      <div style="text-align: center; margin-top: 20px;">
-        <p style="color: #94a3b8; font-size: 12px;">
-          &copy; ${new Date().getFullYear()} Rajshahi University of Engineering & Technology
+      <div style="text-align: center; margin-top: 30px; border-top: 1px solid #e2e8f0; padding-top: 20px;">
+        <p style="color: #94a3b8; font-size: 11px; line-height: 1.6; margin: 0;">
+          <strong>Rajshahi University of Engineering & Technology</strong><br/>
+          Kazla, Rajshahi-6204, Bangladesh<br/>
+          This is an automated security message. Please do not reply to this email.
         </p>
       </div>
     </div>

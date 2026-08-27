@@ -33,7 +33,7 @@ const sendEmail = async (options) => {
   }
 
   const mailOptions = {
-    from: `OneHUB <${emailUser || "noreply@onehub.edu"}>`,
+    from: `"RUET OneHUB Verification" <${emailUser || "noreply@onehub.edu"}>`,
     to: options.to,
     subject: options.subject,
     text: options.text,
