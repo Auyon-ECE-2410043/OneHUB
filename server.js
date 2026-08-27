@@ -18,6 +18,7 @@ const notificationRoutes = require("./routes/notifications");
 const clearanceRoutes = require("./routes/clearance");
 const medicalRoutes = require("./routes/medical");
 const calendarRoutes = require("./routes/calendar");
+const cronRoutes = require("./routes/cron");
 
 const { initReminderScheduler } = require("./services/reminderScheduler");
 const logger = require("./utils/logger");
