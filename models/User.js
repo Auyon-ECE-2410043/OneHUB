@@ -33,6 +33,7 @@ const userSchema = new mongoose.Schema(
 
     // Faculty specific fields
     teacherAcronym: { type: String, uppercase: true, trim: true, sparse: true },
+    seniorityOrder: { type: Number, default: 999 },
     designation: {
       type: String,
       enum: ["Professor", "Associate Professor", "Assistant Professor", "Lecturer", "Retired Faculty", null],
