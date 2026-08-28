@@ -26,6 +26,15 @@ export const authService = {
     return res.data;
   },
 
+  forcePasswordChange: async (userId, newPassword) => {
+    const res = await api.post("/auth/force-password-change", { userId, newPassword });
+    if (res.data.token) {
+      localStorage.setItem("token", res.data.token);
+      localStorage.setItem("user", JSON.stringify(res.data.user));
+    }
+    return res.data;
+  },
+
   register: async (userData) => {
     const res = await api.post("/auth/register", userData);
     if (res.data.token) {

@@ -177,10 +177,13 @@ router.post("/login", async (req, res) => {
     const isMatch = await bcrypt.compare(password, user.passwordHash);
     if (!isMatch) return res.status(401).json({ error: "Invalid credentials" });
 
-    // Mark as no longer first login for non-students
-    if (user.isFirstLogin !== false) {
-      user.isFirstLogin = false;
-      await user.save();
+    // Force password change for non-students on first login
+    if (user.role !== "student" && user.isFirstLogin !== false) {
+      return res.json({ 
+        requirePasswordChange: true, 
+        userId: user._id, 
+        message: "Please change your default password to secure your account." 
+      });
     }
 
     const token = jwt.sign({ id: user._id, role: user.role }, JWT_SECRET, { expiresIn: "7d" });
@@ -189,6 +192,38 @@ router.post("/login", async (req, res) => {
     delete userObj.passwordHash;
 
     res.json({ token, user: userObj });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+
+// POST /api/auth/force-password-change
+router.post("/force-password-change", async (req, res) => {
+  try {
+    const { userId, newPassword } = req.body;
+    const user = await User.findById(userId);
+    if (!user) return res.status(404).json({ error: "User not found" });
+
+    if (user.isFirstLogin === false) {
+      return res.status(400).json({ error: "Password change already completed." });
+    }
+
+    if (!newPassword || newPassword.length < 6) {
+      return res.status(400).json({ error: "New password must be at least 6 characters long." });
+    }
+
+    const salt = await bcrypt.genSalt(10);
+    const passwordHash = await bcrypt.hash(newPassword, salt);
+    user.passwordHash = passwordHash;
+    user.isFirstLogin = false;
+    await user.save();
+
+    const token = jwt.sign({ id: user._id, role: user.role }, JWT_SECRET, { expiresIn: "7d" });
+    const userObj = user.toObject();
+    delete userObj.passwordHash;
+
+    res.json({ token, user: userObj, message: "Password updated successfully." });
   } catch (err) {
     res.status(500).json({ error: err.message });
   }

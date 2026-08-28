@@ -65,15 +65,38 @@ export function Login() {
     try {
       const res = await login(formData);
       if (res.requiresOtp) {
-        setStep("verify");
-        setUserId(res.userId);
-        toast.info(res.message);
-      } else {
+          setStep("verify");
+          setUserId(res.userId);
+          toast.info(res.message);
+        } else if (res.requirePasswordChange) {
+          setStep("force_password_change");
+          setUserId(res.userId);
+          toast.info(res.message || "Please change your default password.");
+        } else {
         toast.success("Welcome back to OneHUB!");
         navigate(from, { replace: true });
       }
     } catch (err) {
       toast.error(err.message || "Invalid credentials. Please check your email and password.");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  
+  const handleForcePasswordSubmit = async (e) => {
+    e.preventDefault();
+    if (!verifyData.newPassword || verifyData.newPassword.length < 6) {
+      toast.error("Password must be at least 6 characters.");
+      return;
+    }
+    setLoading(true);
+    try {
+      await authService.forcePasswordChange(userId, verifyData.newPassword);
+      toast.success("Password updated successfully!");
+      navigate(from, { replace: true });
+    } catch (err) {
+      toast.error(err.message || "Failed to update password.");
     } finally {
       setLoading(false);
     }
@@ -233,7 +256,66 @@ export function Login() {
                 </div>
               </div>
             </>
-          ) : (
+
+          ) : step === "force_password_change" ? (
+            <form className="space-y-5 animate-fade-in" onSubmit={handleForcePasswordSubmit}>
+              <div className="text-center mb-6">
+                <Lock className="w-12 h-12 text-purple-400 mx-auto mb-2" />
+                <h3 className="text-xl font-bold text-white">Update Default Password</h3>
+                <p className="text-sm text-slate-400 mt-2">
+                  For security reasons, faculty members must change their default password on first login.
+                </p>
+              </div>
+
+              <div>
+                <label className="block text-xs font-semibold uppercase tracking-wider text-slate-300 mb-1.5">
+                  New Password
+                </label>
+                <div className="relative rounded-xl shadow-xs">
+                  <div className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-slate-500">
+                    <Lock className="h-5 w-5" />
+                  </div>
+                  <input
+                    type={showPassword ? "text" : "password"}
+                    name="newPassword"
+                    value={verifyData.newPassword}
+                    onChange={handleVerifyChange}
+                    placeholder="At least 6 characters"
+                    className="block w-full pl-10 pr-10 py-2.5 bg-slate-800/80 border border-slate-700 rounded-xl text-white placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent text-sm transition-smooth"
+                    required
+                  />
+                  <button
+                    type="button"
+                    onClick={() => setShowPassword(!showPassword)}
+                    className="absolute inset-y-0 right-0 pr-3.5 flex items-center text-slate-400 hover:text-slate-200 transition-smooth"
+                  >
+                    {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                  </button>
+                </div>
+              </div>
+
+              <div>
+                <button
+                  type="submit"
+                  disabled={loading}
+                  className="w-full flex items-center justify-center py-3 px-4 rounded-xl shadow-lg shadow-purple-600/30 text-sm font-semibold text-white bg-gradient-to-r from-purple-500 to-indigo-600 hover:from-purple-400 hover:to-indigo-500 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-purple-500 disabled:opacity-50 transition-smooth cursor-pointer"
+                >
+                  {loading ? (
+                    <span className="flex items-center space-x-2">
+                      <span className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin"></span>
+                      <span>Updating...</span>
+                    </span>
+                  ) : (
+                    <span className="flex items-center space-x-2">
+                      <span>Update Password & Login</span>
+                      <ArrowRight className="w-4 h-4" />
+                    </span>
+                  )}
+                </button>
+              </div>
+            </form>
+
+          ) : step === "verify" ? (
             <form className="space-y-5 animate-fade-in" onSubmit={handleVerifySubmit}>
               <div className="text-center mb-6">
                 <ShieldCheck className="w-12 h-12 text-sky-400 mx-auto mb-2" />
