@@ -97,7 +97,7 @@ router.get("/active", requireAuth, async (req, res) => {
       .sort({ createdAt: -1 });
 
     if (!registration) return res.status(404).json({ error: "No registration found" });
-    res.json({ registration });
+    res.json({ registration: updatedRegistration || registration });
   } catch (err) {
     res.status(500).json({ error: err.message });
   }
@@ -108,8 +108,18 @@ router.put("/:id/approve", requireAuth, requireRole("faculty", "admin"), async (
   try {
     const { adviserComment, hallFeeAmount, extraFees, dueDate } = req.body;
 
+    
     const registration = await Registration.findById(req.params.id).populate("courseIds");
     if (!registration) return res.status(404).json({ error: "Registration not found" });
+
+    // Security Check: Only Admin or the specific Student's Adviser can approve
+    if (req.user.role === "faculty") {
+      const student = await User.findById(registration.studentId);
+      if (!student || !student.adviserId || student.adviserId.toString() !== req.user.id) {
+        return res.status(403).json({ error: "Access Denied: You are not the assigned adviser for this student." });
+      }
+    }
+
 
     if (registration.status === "approved") {
       return res.status(400).json({ error: "Registration is already approved and billed." });
@@ -193,7 +203,7 @@ router.put("/:id/approve", requireAuth, requireRole("faculty", "admin"), async (
     registration.adviserComment = adviserComment || "";
     await registration.save();
 
-    res.json({ registration });
+    res.json({ registration: updatedRegistration || registration });
   } catch (err) {
     res.status(500).json({ error: err.message });
   }
@@ -203,13 +213,25 @@ router.put("/:id/approve", requireAuth, requireRole("faculty", "admin"), async (
 router.put("/:id/reject", requireAuth, requireRole("faculty", "admin"), async (req, res) => {
   try {
     const { adviserComment } = req.body;
-    const registration = await Registration.findByIdAndUpdate(
+    
+    const registration = await Registration.findById(req.params.id);
+    if (!registration) return res.status(404).json({ error: "Registration not found" });
+
+    // Security Check: Only Admin or the specific Student's Adviser can reject
+    if (req.user.role === "faculty") {
+      const student = await User.findById(registration.studentId);
+      if (!student || !student.adviserId || student.adviserId.toString() !== req.user.id) {
+        return res.status(403).json({ error: "Access Denied: You are not the assigned adviser for this student." });
+      }
+    }
+
+    const updatedRegistration = await Registration.findByIdAndUpdate(
       req.params.id,
       { status: "rejected", approvedBy: req.user.id, approvedAt: new Date(), adviserComment: adviserComment || "" },
       { new: true }
     );
-    if (!registration) return res.status(404).json({ error: "Registration not found" });
-    res.json({ registration });
+
+    res.json({ registration: updatedRegistration || registration });
   } catch (err) {
     res.status(500).json({ error: err.message });
   }
