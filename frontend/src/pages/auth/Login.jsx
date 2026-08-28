@@ -9,6 +9,7 @@ import { useState } from "react";
 import { Link, useNavigate, useLocation } from "react-router-dom";
 import { toast } from "sonner";
 import { useAuth } from "../../context/AuthContext";
+import authService from "../../services/authService";
 import {
   GraduationCap,
   Mail,
@@ -23,7 +24,7 @@ import {
 } from "lucide-react";
 
 export function Login() {
-  const { login, verifyFirstLogin } = useAuth();
+  const { login, verifyFirstLogin, forcePasswordChange } = useAuth();
   const navigate = useNavigate();
   const location = useLocation();
 
@@ -92,7 +93,7 @@ export function Login() {
     }
     setLoading(true);
     try {
-      await authService.forcePasswordChange(userId, verifyData.newPassword);
+      await forcePasswordChange(userId, verifyData.newPassword);
       toast.success("Password updated successfully!");
       navigate(from, { replace: true });
     } catch (err) {
@@ -403,4 +404,8 @@ export function Login() {
 }
 
 export default Login;
+
+
+
+
 

@@ -56,6 +56,13 @@ export function AuthProvider({ children }) {
     return data;
   };
 
+  const forcePasswordChange = async (userId, newPassword) => {
+    const data = await authService.forcePasswordChange(userId, newPassword);
+    setToken(data.token);
+    setUser(data.user);
+    return data;
+  };
+
   const logout = () => {
     authService.logout();
     setToken(null);
@@ -93,6 +100,7 @@ export function AuthProvider({ children }) {
     sendOtp,
     verifyOtp,
     verifyFirstLogin,
+    forcePasswordChange,
     logout,
     updateUser,
   };
@@ -101,3 +109,5 @@ export function AuthProvider({ children }) {
 }
 
 export default AuthProvider;
+
+
