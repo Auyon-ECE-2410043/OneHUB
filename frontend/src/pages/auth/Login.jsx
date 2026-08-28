@@ -387,7 +387,7 @@ export function Login() {
                 </button>
               </div>
             </form>
-          )}
+          ) : null}
 
           <div className="mt-6 text-center text-xs text-slate-400">
             Don't have an account?{" "}
@@ -403,3 +403,4 @@ export function Login() {
 }
 
 export default Login;
+
