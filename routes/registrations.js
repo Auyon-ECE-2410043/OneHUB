@@ -19,17 +19,23 @@ const EXAM_FEE_THEORY = 50;
 const EXAM_FEE_SESSIONAL = 30;
 
 // GET /api/registrations/pending -> Faculty/Admin review pending list
-router.get("/pending", requireAuth, requireRole("faculty", "admin"), async (req, res) => {
-  try {
-    const registrations = await Registration.find({ status: "pending_approval" })
-      .populate("studentId", "name rollNo department batch")
-      .populate("courseIds")
-      .sort({ createdAt: 1 });
-    res.json({ registrations });
-  } catch (err) {
-    res.status(500).json({ error: err.message });
-  }
-});
+  router.get("/pending", requireAuth, requireRole("faculty", "admin"), async (req, res) => {
+    try {
+      let query = { status: "pending_approval" };
+      if (req.user.role === "faculty") {
+        const myStudents = await User.find({ adviserId: req.user.id }).select("_id");
+        const myStudentIds = myStudents.map(s => s._id);
+        query.studentId = { $in: myStudentIds };
+      }
+      const registrations = await Registration.find(query)
+        .populate("studentId", "name rollNo department batch")
+        .populate("courseIds")
+        .sort({ createdAt: 1 });
+      res.json({ registrations });
+    } catch (err) {
+      res.status(500).json({ error: err.message });
+    }
+  });
 
 // POST /api/registrations -> Student applies for fixed courses
 router.post("/", requireAuth, requireRole("student"), async (req, res) => {

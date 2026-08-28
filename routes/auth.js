@@ -189,7 +189,11 @@ router.post("/login", async (req, res) => {
     const token = jwt.sign({ id: user._id, role: user.role }, JWT_SECRET, { expiresIn: "7d" });
     
     const userObj = user.toObject();
-    delete userObj.passwordHash;
+      delete userObj.passwordHash;
+      if (user.role === 'faculty') {
+        const studentCount = await User.countDocuments({ adviserId: user._id });
+        userObj.isAdviser = studentCount > 0;
+      }
 
     res.json({ token, user: userObj });
   } catch (err) {
@@ -221,7 +225,11 @@ router.post("/force-password-change", async (req, res) => {
 
     const token = jwt.sign({ id: user._id, role: user.role }, JWT_SECRET, { expiresIn: "7d" });
     const userObj = user.toObject();
-    delete userObj.passwordHash;
+      delete userObj.passwordHash;
+      if (user.role === 'faculty') {
+        const studentCount = await User.countDocuments({ adviserId: user._id });
+        userObj.isAdviser = studentCount > 0;
+      }
 
     res.json({ token, user: userObj, message: "Password updated successfully." });
   } catch (err) {
@@ -260,7 +268,11 @@ router.post("/verify-first-login", async (req, res) => {
     // Login user
     const token = jwt.sign({ id: user._id, role: user.role }, JWT_SECRET, { expiresIn: "7d" });
     const userObj = user.toObject();
-    delete userObj.passwordHash;
+      delete userObj.passwordHash;
+      if (user.role === 'faculty') {
+        const studentCount = await User.countDocuments({ adviserId: user._id });
+        userObj.isAdviser = studentCount > 0;
+      }
 
     res.json({ token, user: userObj, message: newPassword ? "Password updated successfully." : "Email verified successfully." });
   } catch (err) {
@@ -275,7 +287,11 @@ router.get("/me", requireAuth, async (req, res) => {
     if (!user) return res.status(404).json({ error: "User not found" });
 
     const userObj = user.toObject();
-    delete userObj.passwordHash;
+      delete userObj.passwordHash;
+      if (user.role === 'faculty') {
+        const studentCount = await User.countDocuments({ adviserId: user._id });
+        userObj.isAdviser = studentCount > 0;
+      }
     res.json({ user: userObj });
   } catch (err) {
     res.status(500).json({ error: err.message });
@@ -321,7 +337,11 @@ router.put("/profile", requireAuth, async (req, res) => {
     await user.save();
     
     const userObj = user.toObject();
-    delete userObj.passwordHash;
+      delete userObj.passwordHash;
+      if (user.role === 'faculty') {
+        const studentCount = await User.countDocuments({ adviserId: user._id });
+        userObj.isAdviser = studentCount > 0;
+      }
 
     res.json({ message: "Profile updated successfully", user: userObj });
   } catch (err) {

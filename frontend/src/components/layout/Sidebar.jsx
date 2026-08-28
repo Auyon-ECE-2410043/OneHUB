@@ -39,7 +39,7 @@ export function Sidebar({ isOpen, onClose }) {
           { label: "Academic Calendar", path: "/calendar", icon: CalendarDays },
           { label: "Weekly Routine", path: "/routine", icon: CalendarClock },
           { label: "Course Catalog", path: "/courses", icon: BookOpen },
-          { label: "Pending Registrations", path: "/registration", icon: CheckSquare },
+          ...(user?.isAdviser || user?.role === 'admin' ? [{ label: "Pending Registrations", path: "/registration", icon: CheckSquare }] : []),
           { label: "Mark Attendance", path: "/attendance/mark", icon: CalendarCheck },
           { label: "Enter Marks & Grades", path: "/marks/entry", icon: Award },
           { label: "Notice Board", path: "/notices", icon: Bell },
