@@ -17,6 +17,19 @@ export function NotificationBell() {
   const [unreadCount, setUnreadCount] = useState(0);
   const containerRef = useRef(null);
 
+  const formatNotifDate = (dateString) => {
+    const date = new Date(dateString);
+    const today = new Date();
+    const isToday = date.getDate() === today.getDate() && date.getMonth() === today.getMonth() && date.getFullYear() === today.getFullYear();
+    const time = date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+    if (isToday) return time;
+    const yesterday = new Date(today);
+    yesterday.setDate(yesterday.getDate() - 1);
+    const isYesterday = date.getDate() === yesterday.getDate() && date.getMonth() === yesterday.getMonth() && date.getFullYear() === yesterday.getFullYear();
+    if (isYesterday) return "Yesterday, " + time;
+    return date.toLocaleDateString([], { month: 'short', day: 'numeric' }) + ", " + time;
+  };
+
   const fetchNotifications = async () => {
     try {
       const { data } = await api.get("/notifications");
@@ -149,10 +162,7 @@ export function NotificationBell() {
                       <p className="text-xs text-slate-500 mt-1">{notif.message}</p>
                       <div className="flex items-center mt-2 text-[10px] text-slate-400">
                         <Clock className="w-3 h-3 mr-1" />
-                        {new Date(notif.createdAt).toLocaleTimeString([], {
-                          hour: "2-digit",
-                          minute: "2-digit",
-                        })}
+                        {formatNotifDate(notif.createdAt)}
                       </div>
                     </div>
                   </div>

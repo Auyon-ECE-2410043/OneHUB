@@ -40,16 +40,19 @@ async function checkAndSendClassReminders() {
       return;
     }
 
-    // Look ahead 5 minutes
-    const targetTime = new Date(bdTime.getTime() + 5 * 60 * 1000);
-    const targetHours = String(targetTime.getHours()).padStart(2, "0");
-    const targetMinutes = String(targetTime.getMinutes()).padStart(2, "0");
-    const targetTime24 = `${targetHours}:${targetMinutes}`; // "09:40"
+        // Look ahead 0 to 15 minutes to safely catch classes even if the free Render server was sleeping
+    const targetTimes = [];
+    for (let offset = 0; offset <= 15; offset++) {
+      const targetTime = new Date(bdTime.getTime() + offset * 60 * 1000);
+      const targetHours = String(targetTime.getHours()).padStart(2, "0");
+      const targetMinutes = String(targetTime.getMinutes()).padStart(2, "0");
+      targetTimes.push(`${targetHours}:${targetMinutes}`);
+    }
 
-    // Find all classes starting at this exact target time
+    // Find all classes starting at any of these target times
     const upcomingSlots = await ClassSchedule.find({
       dayOfWeek: currentDay,
-      startTime: targetTime24,
+      startTime: { $in: targetTimes },
     });
 
     if (upcomingSlots.length === 0) return;
@@ -84,7 +87,7 @@ async function checkAndSendClassReminders() {
           "meta.courseCode": slot.courseCode,
           "meta.startTime": slot.startTime,
           "meta.dayOfWeek": slot.dayOfWeek,
-          createdAt: { $gte: new Date(Date.now() - 15 * 60 * 1000) },
+          createdAt: { $gte: new Date(Date.now() - 25 * 60 * 1000) },
         });
 
         if (!alreadySent) {
@@ -123,7 +126,7 @@ async function checkAndSendClassReminders() {
           "meta.courseCode": slot.courseCode,
           "meta.startTime": slot.startTime,
           "meta.dayOfWeek": slot.dayOfWeek,
-          createdAt: { $gte: new Date(Date.now() - 15 * 60 * 1000) },
+          createdAt: { $gte: new Date(Date.now() - 25 * 60 * 1000) },
         });
 
         if (!alreadySentTeacher) {
