@@ -103,7 +103,7 @@ router.get("/active", requireAuth, async (req, res) => {
       .sort({ createdAt: -1 });
 
     if (!registration) return res.status(404).json({ error: "No registration found" });
-    res.json({ registration: updatedRegistration || registration });
+    res.json({ registration });
   } catch (err) {
     res.status(500).json({ error: err.message });
   }
@@ -209,7 +209,7 @@ router.put("/:id/approve", requireAuth, requireRole("faculty", "admin"), async (
     registration.adviserComment = adviserComment || "";
     await registration.save();
 
-    res.json({ registration: updatedRegistration || registration });
+    res.json({ registration });
   } catch (err) {
     res.status(500).json({ error: err.message });
   }
@@ -237,7 +237,7 @@ router.put("/:id/reject", requireAuth, requireRole("faculty", "admin"), async (r
       { new: true }
     );
 
-    res.json({ registration: updatedRegistration || registration });
+    res.json({ registration: updatedRegistration });
   } catch (err) {
     res.status(500).json({ error: err.message });
   }
