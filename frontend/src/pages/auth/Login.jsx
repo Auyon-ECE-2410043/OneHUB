@@ -132,28 +132,27 @@ export function Login() {
   };
 
   return (
-    <div className="min-h-screen bg-slate-950 flex flex-col justify-center py-12 px-4 sm:px-6 lg:px-8 relative overflow-hidden">
-      {/* Subtle Background Glows */}
-      <div className="absolute top-0 left-1/4 w-96 h-96 bg-sky-500/10 rounded-full blur-3xl pointer-events-none"></div>
-      <div className="absolute bottom-0 right-1/4 w-96 h-96 bg-indigo-500/10 rounded-full blur-3xl pointer-events-none"></div>
+    <div className="min-h-screen bg-slate-950 flex relative overflow-hidden">
+      {/* Left Column - Form */}
+      <div className="flex-1 flex flex-col justify-center py-12 px-4 sm:px-6 lg:px-20 xl:px-24 bg-slate-950 z-20 shadow-[20px_0_40px_rgba(0,0,0,0.4)] relative">
+        <div className="absolute top-0 left-0 w-96 h-96 bg-sky-500/10 rounded-full blur-3xl pointer-events-none lg:hidden"></div>
+        <div className="absolute bottom-0 right-0 w-96 h-96 bg-indigo-500/10 rounded-full blur-3xl pointer-events-none lg:hidden"></div>
 
-      <div className="sm:mx-auto sm:w-full sm:max-w-md relative z-10">
-        <div className="flex justify-center">
-          <div className="w-14 h-14 rounded-2xl bg-gradient-to-tr from-sky-500 to-indigo-600 flex items-center justify-center text-white shadow-xl shadow-sky-500/25 ring-1 ring-white/20">
-            <GraduationCap className="w-8 h-8" />
+        <div className="mx-auto w-full max-w-sm lg:max-w-md relative z-10">
+          <div className="flex justify-center lg:justify-start">
+            <div className="w-12 h-12 rounded-xl bg-white/5 flex items-center justify-center text-white ring-1 ring-white/10 shadow-lg">
+              <GraduationCap className="w-6 h-6 text-slate-300" />
+            </div>
           </div>
-        </div>
-        <h2 className="mt-4 text-center text-3xl font-extrabold tracking-tight text-white">
-          RUET OneHUB
-        </h2>
-        
-        <p className="mt-1 text-center text-sm text-slate-400">
-          Central Integrated University Automation Portal
-        </p>
-      </div>
-      
-      <div className="mt-8 sm:mx-auto sm:w-full sm:max-w-md relative z-10">
-        <div className="bg-slate-900/90 backdrop-blur-xl border border-slate-800 py-8 px-6 shadow-2xl rounded-2xl sm:px-10">
+          <h2 className="mt-6 text-center lg:text-left text-2xl font-semibold tracking-tight text-white">
+            Sign in to OneHUB
+          </h2>
+          <p className="mt-2 text-center lg:text-left text-sm text-slate-400 font-light">
+            Enter your university credentials to continue.
+          </p>
+          
+          <div className="mt-10 relative z-10 w-full">
+            <div className="bg-transparent lg:bg-slate-900/30 lg:backdrop-blur-md lg:border lg:border-slate-800/80 lg:shadow-2xl rounded-2xl py-2 px-0 lg:py-8 lg:px-8">
           {step === "login" ? (
             <>
               <form className="space-y-5" onSubmit={handleSubmit}>
@@ -395,11 +394,51 @@ export function Login() {
             <Link to="/register" className="font-semibold text-sky-400 hover:text-sky-300 transition-smooth">
               Create student / faculty account
             </Link>
-          </div>
+                  </div>
+        </div>
+        </div>
+      </div>
+      </div>
+      
+      {/* Right Column - Minimal Brand Panel */}
+      <div className="hidden lg:flex flex-1 relative overflow-hidden bg-slate-900 items-center justify-center">
+        {/* Deep, abstract grid pattern */}
+        <div className="absolute inset-0 bg-[linear-gradient(to_right,#ffffff05_1px,transparent_1px),linear-gradient(to_bottom,#ffffff05_1px,transparent_1px)] bg-[size:48px_48px]"></div>
+        
+        {/* Very subtle, slow glowing orbs */}
+        <div className="absolute top-1/4 left-1/4 w-96 h-96 bg-sky-500/10 rounded-full blur-[100px] pointer-events-none"></div>
+        <div className="absolute bottom-1/4 right-1/4 w-96 h-96 bg-indigo-500/10 rounded-full blur-[100px] pointer-events-none"></div>
+        
+        {/* Minimal Glass Panel */}
+        <div className="relative z-10 max-w-lg p-12 bg-slate-900/40 backdrop-blur-2xl border border-slate-700/30 rounded-[2rem] shadow-2xl">
+           <div className="w-12 h-12 mb-8 rounded-full bg-sky-500/10 flex items-center justify-center border border-sky-500/20">
+             <BookOpen className="w-5 h-5 text-sky-400 opacity-90" />
+           </div>
+           
+           <h2 className="text-4xl font-light tracking-wide text-white mb-6 leading-tight">
+             Elevating Academic <br />
+             <span className="font-semibold text-transparent bg-clip-text bg-gradient-to-r from-sky-400 to-indigo-400">
+               Automation.
+             </span>
+           </h2>
+           
+           <p className="text-slate-400 leading-relaxed font-light text-sm">
+             A unified, transparent portal for students and faculty of Rajshahi University of Engineering & Technology. Streamlining workflows effortlessly.
+           </p>
+           
+           <div className="mt-10 pt-8 border-t border-slate-800/50 flex items-center space-x-8">
+             <div className="flex items-center space-x-2.5 text-xs text-slate-500 font-medium tracking-wide uppercase">
+               <div className="w-2 h-2 rounded-full bg-emerald-500/80 animate-pulse"></div>
+               <span>Systems Operational</span>
+             </div>
+             <div className="flex items-center space-x-2 text-xs text-slate-500 font-medium tracking-wide uppercase">
+               <ShieldCheck className="w-3.5 h-3.5 text-slate-600" />
+               <span>End-to-end Secure</span>
+             </div>
+           </div>
         </div>
       </div>
     </div>
-    
   );
 }
 
