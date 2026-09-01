@@ -57,7 +57,7 @@ async function checkAndSendClassReminders() {
 
     if (upcomingSlots.length === 0) return;
 
-    console.log(`[Class Reminder] Found ${upcomingSlots.length} class(es) starting at ${targetTime24} (${currentDay})`);
+    console.log(`[Class Reminder] Found ${upcomingSlots.length} class(es) starting at ${targetTimes.join(", ")} (${currentDay})`);
 
     for (const slot of upcomingSlots) {
       const formattedStart = formatTime12h(slot.startTime);
