@@ -23,6 +23,153 @@ import {
   BookOpen,
 } from "lucide-react";
 
+
+const Hero3DStage = () => {
+  const [transform, setTransform] = useState({ px: 0, py: 0 });
+
+  const handleMouseMove = (e) => {
+    const rect = e.currentTarget.getBoundingClientRect();
+    const tx = ((e.clientX - rect.left) / rect.width - 0.5) * 32;
+    const ty = ((e.clientY - rect.top) / rect.height - 0.5) * 32;
+    setTransform({ px: tx, py: ty });
+  };
+
+  const handleMouseLeave = () => setTransform({ px: 0, py: 0 });
+
+  return (
+    <div 
+      className="hidden lg:flex flex-1 items-center justify-center relative overflow-hidden"
+      style={{ perspective: '1400px' }}
+      onMouseMove={handleMouseMove}
+      onMouseLeave={handleMouseLeave}
+    >
+      <style>{`
+        @keyframes orbit {
+          0% { transform: rotateX(14deg) rotateY(0deg); }
+          100% { transform: rotateX(14deg) rotateY(360deg); }
+        }
+        .hero-stack {
+          position: relative;
+          width: 320px;
+          height: 200px;
+          transform-style: preserve-3d;
+          animation: orbit 22s linear infinite;
+        }
+        .hero-stage:hover .hero-stack {
+          animation-play-state: paused;
+        }
+        .hero-card {
+          position: absolute;
+          inset: 0;
+          border-radius: 16px;
+          padding: 24px;
+          background: #0f172a; 
+          border: 1px solid #1e293b; 
+          border-top: 3px solid var(--accent);
+          box-shadow: 0 30px 60px -20px rgba(0, 0, 0, 0.7);
+          backface-visibility: hidden;
+          display: flex;
+          flex-direction: column;
+          justify-content: space-between;
+          transition: border-color 0.25s ease;
+          cursor: default;
+        }
+        .hero-card:hover {
+          border-color: var(--accent);
+        }
+      `}</style>
+
+      {/* Glows */}
+      <div className="absolute w-[500px] h-[500px] rounded-full bg-sky-500/10 blur-3xl pointer-events-none"></div>
+      <div className="absolute w-96 h-96 rounded-full bg-indigo-500/10 blur-3xl pointer-events-none translate-x-24 -translate-y-24"></div>
+
+      {/* Stage / Stack */}
+      <div 
+        className="hero-stage flex items-center justify-center h-[520px] w-full" 
+        style={{ transformStyle: 'preserve-3d', transform: `translate(${transform.px}px, ${transform.py}px)`, transition: 'transform 0.1s ease-out' }}
+      >
+         <div className="hero-stack">
+           {/* Card 1 */}
+           <div className="hero-card" style={{ '--accent': '#0ea5e9', transform: 'translateZ(135px)' }}>
+             <div className="flex justify-between items-start">
+                <div>
+                  <div className="text-xs text-sky-400 font-semibold mb-1">AUTOMATION</div>
+                  <div className="text-lg font-bold text-white">Course Reg.</div>
+                </div>
+                <div className="px-2.5 py-1 text-[10px] font-bold tracking-widest text-emerald-400 bg-emerald-400/10 rounded-full border border-emerald-400/20">APPROVED</div>
+             </div>
+             <div>
+                <div className="text-xl font-bold text-white">Semester 2-1</div>
+                <div className="text-xs text-slate-400 mt-1">19.5 Credits Total</div>
+             </div>
+           </div>
+
+           {/* Card 2 */}
+           <div className="hero-card" style={{ '--accent': '#8b5cf6', transform: 'rotateY(72deg) translateZ(135px)' }}>
+             <div className="flex justify-between items-start">
+                <div>
+                  <div className="text-xs text-purple-400 font-semibold mb-1">FINANCIALS</div>
+                  <div className="text-lg font-bold text-white">Fee Payment</div>
+                </div>
+                <div className="px-2.5 py-1 text-[10px] font-bold tracking-widest text-rose-400 bg-rose-400/10 rounded-full border border-rose-400/20">DUE</div>
+             </div>
+             <div>
+                <div className="text-xl font-bold text-white">৳2,150</div>
+                <div className="text-xs text-slate-400 mt-1">Due in 5 days</div>
+             </div>
+           </div>
+
+           {/* Card 3 */}
+           <div className="hero-card" style={{ '--accent': '#10b981', transform: 'rotateY(144deg) translateZ(135px)' }}>
+             <div className="flex justify-between items-start">
+                <div>
+                  <div className="text-xs text-emerald-400 font-semibold mb-1">ACADEMICS</div>
+                  <div className="text-lg font-bold text-white">Attendance</div>
+                </div>
+                <div className="px-2.5 py-1 text-[10px] font-bold tracking-widest text-emerald-400 bg-emerald-400/10 rounded-full border border-emerald-400/20">92%</div>
+             </div>
+             <div>
+                <div className="text-xl font-bold text-white">ECE 2111</div>
+                <div className="text-xs text-slate-400 mt-1">Present today</div>
+             </div>
+           </div>
+
+           {/* Card 4 */}
+           <div className="hero-card" style={{ '--accent': '#f59e0b', transform: 'rotateY(216deg) translateZ(135px)' }}>
+             <div className="flex justify-between items-start">
+                <div>
+                  <div className="text-xs text-amber-400 font-semibold mb-1">RESIDENTIAL</div>
+                  <div className="text-lg font-bold text-white">Hall App.</div>
+                </div>
+                <div className="px-2.5 py-1 text-[10px] font-bold tracking-widest text-sky-400 bg-sky-400/10 rounded-full border border-sky-400/20">PENDING</div>
+             </div>
+             <div>
+                <div className="text-xl font-bold text-white">Zia Hall</div>
+                <div className="text-xs text-slate-400 mt-1">Reviewing</div>
+             </div>
+           </div>
+
+           {/* Card 5 */}
+           <div className="hero-card" style={{ '--accent': '#f43f5e', transform: 'rotateY(288deg) translateZ(135px)' }}>
+             <div className="flex justify-between items-start">
+                <div>
+                  <div className="text-xs text-rose-400 font-semibold mb-1">PERFORMANCE</div>
+                  <div className="text-lg font-bold text-white">CGPA</div>
+                </div>
+                <div className="px-2.5 py-1 text-[10px] font-bold tracking-widest text-emerald-400 bg-emerald-400/10 rounded-full border border-emerald-400/20">DEAN'S</div>
+             </div>
+             <div>
+                <div className="text-xl font-bold text-white">3.92</div>
+                <div className="text-xs text-slate-400 mt-1">Cumulative</div>
+             </div>
+           </div>
+         </div>
+      </div>
+    </div>
+  );
+};
+
+
 export function Login() {
   const { login, verifyFirstLogin, forcePasswordChange } = useAuth();
   const navigate = useNavigate();
@@ -132,27 +279,30 @@ export function Login() {
   };
 
   return (
-    <div className="min-h-screen bg-slate-950 flex flex-col justify-center py-12 px-4 sm:px-6 lg:px-8 relative overflow-hidden">
+    <div className="min-h-screen bg-slate-950 flex relative overflow-hidden">
+      {/* Left Column - Login Form */}
+      <div className="flex-1 flex flex-col justify-center py-12 px-4 sm:px-6 lg:px-20 xl:px-24 relative z-10 w-full max-w-xl mx-auto lg:mx-0">
+
       {/* Subtle Background Glows */}
-      <div className="absolute top-0 left-1/4 w-96 h-96 bg-sky-500/10 rounded-full blur-3xl pointer-events-none"></div>
-      <div className="absolute bottom-0 right-1/4 w-96 h-96 bg-indigo-500/10 rounded-full blur-3xl pointer-events-none"></div>
+      <div className="absolute top-0 left-0 w-96 h-96 bg-sky-500/10 rounded-full blur-3xl pointer-events-none lg:hidden"></div>
+      <div className="absolute bottom-0 right-0 w-96 h-96 bg-indigo-500/10 rounded-full blur-3xl pointer-events-none lg:hidden"></div>
 
       <div className="sm:mx-auto sm:w-full sm:max-w-md relative z-10">
-        <div className="flex justify-center">
+        <div className="flex justify-center lg:justify-start">
           <div className="w-14 h-14 rounded-2xl bg-gradient-to-tr from-sky-500 to-indigo-600 flex items-center justify-center text-white shadow-xl shadow-sky-500/25 ring-1 ring-white/20">
             <GraduationCap className="w-8 h-8" />
           </div>
         </div>
-        <h2 className="mt-4 text-center text-3xl font-extrabold tracking-tight text-white">
+        <h2 className="mt-4 text-center lg:text-left text-3xl font-extrabold tracking-tight text-white">
           RUET OneHUB
         </h2>
         
-        <p className="mt-1 text-center text-sm text-slate-400">
+        <p className="mt-1 text-center lg:text-left text-sm text-slate-400">
           Central Integrated University Automation Portal
         </p>
       </div>
       
-      <div className="mt-8 sm:mx-auto sm:w-full sm:max-w-md relative z-10">
+      <div className="mt-8 relative z-10 w-full">
         <div className="bg-slate-900/90 backdrop-blur-xl border border-slate-800 py-8 px-6 shadow-2xl rounded-2xl sm:px-10">
           {step === "login" ? (
             <>
@@ -396,10 +546,11 @@ export function Login() {
               Create student / faculty account
             </Link>
           </div>
-        </div>
+                </div>
       </div>
+      </div>
+      <Hero3DStage />
     </div>
-    
   );
 }
 
