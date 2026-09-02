@@ -40,9 +40,9 @@ async function checkAndSendClassReminders() {
       return;
     }
 
-        // Look ahead 0 to 15 minutes to safely catch classes even if the free Render server was sleeping
+        // Look ahead 0 to 5 minutes to safely catch classes even if the free Render server was sleeping
     const targetTimes = [];
-    for (let offset = 0; offset <= 15; offset++) {
+    for (let offset = 0; offset <= 5; offset++) {
       const targetTime = new Date(bdTime.getTime() + offset * 60 * 1000);
       const targetHours = String(targetTime.getHours()).padStart(2, "0");
       const targetMinutes = String(targetTime.getMinutes()).padStart(2, "0");
