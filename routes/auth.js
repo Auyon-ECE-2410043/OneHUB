@@ -359,4 +359,25 @@ router.post("/verify-otp", async (req, res) => {
   res.json({ message: "OTP verified successfully (mocked)", token: "mock_reset_token" });
 });
 
+
+// POST /api/auth/update-fcm-token
+router.post('/update-fcm-token', requireAuth, async (req, res) => {
+  try {
+    const { token } = req.body;
+    if (!token) return res.status(400).json({ error: 'FCM token is required' });
+
+    const user = await User.findById(req.user.id);
+    if (!user) return res.status(404).json({ error: 'User not found' });
+
+    if (!user.fcmTokens.includes(token)) {
+      user.fcmTokens.push(token);
+      await user.save();
+    }
+
+    res.json({ message: 'FCM token updated successfully' });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
 module.exports = router;
+

@@ -27,7 +27,8 @@ const userSchema = new mongoose.Schema(
     phone: { type: String, default: "" },
     fatherContactNo: { type: String, default: "" },
     motherContactNo: { type: String, default: "" },
-    bloodGroup: { type: String, default: "" },
+    bloodGroup: { type: String, default: '' },
+    fcmTokens: [{ type: String }], // Added for mobile push notifications
     previouslyEarnedCredit: { type: Number, default: 0 },
     adviserId: { type: mongoose.Schema.Types.ObjectId, ref: "User", default: null },
 
