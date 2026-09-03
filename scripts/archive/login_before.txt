@@ -1,0 +1,134 @@
+/**
+ * File: Login.jsx
+ * Description: React component handling user login.
+ * 
+ * This file is part of the RUET OneHub Project.
+ */
+
+import { useState } from "react";
+import { Link, useNavigate, useLocation } from "react-router-dom";
+import { toast } from "sonner";
+import { useAuth } from "../../context/AuthContext";
+import authService from "../../services/authService";
+import {
+  GraduationCap,
+  Mail,
+  Lock,
+  Eye,
+  EyeOff,
+  ArrowRight,
+  AlertCircle,
+  ShieldCheck,
+  UserCheck,
+  BookOpen,
+} from "lucide-react";
+
+export function Login() {
+  const { login, verifyFirstLogin, forcePasswordChange } = useAuth();
+  const navigate = useNavigate();
+  const location = useLocation();
+
+  const from = location.state?.from?.pathname || "/dashboard";
+
+  const [step, setStep] = useState("login");
+  const [userId, setUserId] = useState(null);
+
+  const [formData, setFormData] = useState({
+    email: "",
+    password: "",
+  });
+  
+  const [verifyData, setVerifyData] = useState({
+    otp: "",
+    newPassword: "",
+  });
+
+  const [showPassword, setShowPassword] = useState(false);
+  const [loading, setLoading] = useState(false);
+
+  const handleChange = (e) => {
+    setFormData({ ...formData, [e.target.name]: e.target.value });
+  };
+
+  const handleVerifyChange = (e) => {
+    setVerifyData({ ...verifyData, [e.target.name]: e.target.value });
+  };
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    if (!formData.email) {
+      toast.error("Please fill in your email.");
+      return;
+    }
+
+    setLoading(true);
+
+    try {
+      const res = await login(formData);
+      if (res.requiresOtp) {
+          setStep("verify");
+          setUserId(res.userId);
+          toast.info(res.message);
+        } else if (res.requirePasswordChange) {
+          setStep("force_password_change");
+          setUserId(res.userId);
+          toast.info(res.message || "Please change your default password.");
+        } else {
+        toast.success("Welcome back to OneHUB!");
+        navigate(from, { replace: true });
+      }
+    } catch (err) {
+      toast.error(err.message || "Invalid credentials. Please check your email and password.");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  
+  const handleForcePasswordSubmit = async (e) => {
+    e.preventDefault();
+    if (!verifyData.newPassword || verifyData.newPassword.length < 6) {
+      toast.error("Password must be at least 6 characters.");
+      return;
+    }
+    setLoading(true);
+    try {
+      await forcePasswordChange(userId, verifyData.newPassword);
+      toast.success("Password updated successfully!");
+      navigate(from, { replace: true });
+    } catch (err) {
+      toast.error(err.message || "Failed to update password.");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleVerifySubmit = async (e) => {
+    e.preventDefault();
+    if (!verifyData.otp || !verifyData.newPassword) {
+      toast.error("Please fill in OTP and a new password.");
+      return;
+    }
+    if (verifyData.newPassword.length < 6) {
+      toast.error("New password must be at least 6 characters.");
+      return;
+    }
+
+    setLoading(true);
+
+    try {
+      await verifyFirstLogin(userId, verifyData.otp, verifyData.newPassword);
+      toast.success("Password updated! Welcome to OneHUB.");
+      navigate(from, { replace: true });
+    } catch (err) {
+      toast.error(err.message || "Invalid verification code.");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const fillCredentials = (email, password) => {
+    setFormData({ email, password });
+  };
+
+  
