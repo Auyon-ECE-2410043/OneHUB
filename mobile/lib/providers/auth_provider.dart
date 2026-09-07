@@ -85,4 +85,26 @@ class AuthProvider with ChangeNotifier {
     await prefs.remove('token');
     notifyListeners();
   }
+
+  Future<void> sendPasswordResetOtp(String email) async {
+    await _api.post('/auth/send-otp', body: {
+      'email': email,
+    });
+  }
+
+  Future<void> verifyPasswordReset(String email, String otp, String newPassword) async {
+    final data = await _api.post('/auth/verify-otp', body: {
+      'email': email,
+      'otp': otp,
+      'newPassword': newPassword,
+    });
+    
+    _token = data['token'];
+    _user = data['user'];
+    
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setString('token', _token!);
+    
+    notifyListeners();
+  }
 }

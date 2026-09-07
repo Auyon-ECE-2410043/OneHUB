@@ -12,12 +12,21 @@ import 'theme/app_theme.dart';
 
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'services/local_notification_service.dart';
+import 'package:firebase_core/firebase_core.dart';
+import 'services/push_notification_service.dart';
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
   await dotenv.load(fileName: ".env").catchError((_) {}); // Load .env, ignore if missing
   
-  await LocalNotificationService.init();
+    await LocalNotificationService.init();
+
+  try {
+    await Firebase.initializeApp();
+    await PushNotificationService.initialize();
+  } catch (e) {
+    debugPrint('Firebase initialization skipped (ensure google-services.json is added): $e');
+  }
 
   runApp(
     MultiProvider(
@@ -58,3 +67,4 @@ class OneHubApp extends StatelessWidget {
     );
   }
 }
+

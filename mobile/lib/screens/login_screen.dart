@@ -26,6 +26,7 @@ class _LoginScreenState extends State<LoginScreen> {
   String _error = '';
   
   bool _isVerifyStep = false;
+  bool _isPasswordReset = false;
   String _userId = '';
 
   Future<void> _handleLogin() async {
@@ -58,6 +59,34 @@ class _LoginScreenState extends State<LoginScreen> {
     }
   }
 
+
+  Future<void> _handleForgotPassword() async {
+    setState(() {
+      _isLoading = true;
+      _error = '';
+    });
+
+    try {
+      if (_emailController.text.trim().isEmpty) {
+        throw Exception('Please enter your email address first to reset password');
+      }
+      await context.read<AuthProvider>().sendPasswordResetOtp(_emailController.text.trim());
+      setState(() {
+        _isVerifyStep = true;
+        _isPasswordReset = true;
+        _error = 'A password reset code has been sent to your email.';
+      });
+    } catch (e) {
+      setState(() {
+        _error = e.toString().replaceAll('Exception: ', '');
+      });
+    } finally {
+      setState(() {
+        _isLoading = false;
+      });
+    }
+  }
+
   Future<void> _handleVerify() async {
     setState(() {
       _isLoading = true;
@@ -69,11 +98,19 @@ class _LoginScreenState extends State<LoginScreen> {
         throw Exception('New password must be at least 6 characters');
       }
       
-      await context.read<AuthProvider>().verifyFirstLogin(
-        _userId,
-        _otpController.text.trim(),
-        _newPasswordController.text,
-      );
+      if (_isPasswordReset) {
+        await context.read<AuthProvider>().verifyPasswordReset(
+          _emailController.text.trim(),
+          _otpController.text.trim(),
+          _newPasswordController.text,
+        );
+      } else {
+        await context.read<AuthProvider>().verifyFirstLogin(
+          _userId,
+          _otpController.text.trim(),
+          _newPasswordController.text,
+        );
+      }
     } catch (e) {
       setState(() {
         _error = e.toString().replaceAll('Exception: ', '');
@@ -102,7 +139,7 @@ class _LoginScreenState extends State<LoginScreen> {
               ),
               const SizedBox(height: 16),
               Text(
-                _isVerifyStep ? 'Security Check' : 'RUET OneHUB',
+                _isVerifyStep ? (_isPasswordReset ? 'Password Reset' : 'Security Check') : 'RUET OneHUB',
                 textAlign: TextAlign.center,
                 style: const TextStyle(
                   fontSize: 28,
@@ -153,8 +190,17 @@ class _LoginScreenState extends State<LoginScreen> {
                   ),
                   obscureText: true,
                 ),
-                const SizedBox(height: 24),
+                
+                Align(
+                  alignment: Alignment.centerRight,
+                  child: TextButton(
+                    onPressed: _isLoading ? null : _handleForgotPassword,
+                    child: const Text('Forgot Password?'),
+                  ),
+                ),
+                const SizedBox(height: 16),
                 ElevatedButton(
+
                   onPressed: _isLoading ? null : _handleLogin,
                   child: _isLoading 
                       ? const SizedBox(
@@ -196,6 +242,18 @@ class _LoginScreenState extends State<LoginScreen> {
                         )
                       : const Text('Verify & Change Password', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
                 ),
+                const SizedBox(height: 16),
+                TextButton(
+                  onPressed: () {
+                    setState(() {
+                      _isVerifyStep = false;
+                      _isPasswordReset = false;
+                      _error = '';
+                    });
+                  },
+                  child: const Text('Back to Login'),
+                ),
+
               ],
             ].animate(interval: 50.ms).fade(duration: 500.ms).slideY(begin: 0.05, end: 0),
           ),
