@@ -241,6 +241,7 @@ router.post("/force-password-change", async (req, res) => {
 router.post("/verify-first-login", async (req, res) => {
   try {
     const { userId, otp, newPassword } = req.body;
+    if (!otp) return res.status(400).json({ error: "Verification code is required." });
 
     const user = await User.findById(userId);
     if (!user) return res.status(404).json({ error: "User not found" });
@@ -379,6 +380,8 @@ router.post("/send-otp", async (req, res) => {
 router.post("/verify-otp", async (req, res) => {
   try {
     const { email, otp, newPassword } = req.body;
+    if (!otp) return res.status(400).json({ error: "Verification code is required." });
+    if (!newPassword) return res.status(400).json({ error: "New password is required." });
     
     const user = await User.findOne({ email: email.toLowerCase() });
     if (!user) return res.status(404).json({ error: "User not found" });
@@ -401,6 +404,10 @@ router.post("/verify-otp", async (req, res) => {
     
     const userObj = user.toObject();
     delete userObj.passwordHash;
+    if (user.role === 'faculty') {
+      const studentCount = await User.countDocuments({ adviserId: user._id });
+      userObj.isAdviser = studentCount > 0;
+    }
 
     res.json({ token, user: userObj, message: "Password reset successful. You are now logged in." });
   } catch (err) {
