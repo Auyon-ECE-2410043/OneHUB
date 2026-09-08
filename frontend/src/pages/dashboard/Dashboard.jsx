@@ -252,7 +252,6 @@ export function Dashboard() {
         </div>
       </motion.div>
 
-      <div className="flex flex-col lg:flex-row gap-8 items-stretch">
       <div className="flex flex-col xl:flex-row gap-8 items-start">
         
         {/* Main Content Area (Middle) */}
@@ -425,6 +424,8 @@ export function Dashboard() {
           </div>
         </div>
       
+        </div>
+
         </div>
 
         {/* Right Sidebar Area (Stacked Metrics) */}
