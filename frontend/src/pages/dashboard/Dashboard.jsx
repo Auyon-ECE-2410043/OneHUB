@@ -178,13 +178,17 @@ export function Dashboard() {
       animate="show"
       className="space-y-8"
     >
-      {/* Welcome Banner */}
-      <motion.div variants={itemVariants} className="relative overflow-hidden rounded-3xl bg-gradient-to-r from-sky-700 via-sky-600 to-indigo-700 dark:from-sky-900 dark:via-sky-800 dark:to-indigo-950 p-6 sm:p-8 text-white shadow-lg shadow-sky-900/10">
+      <div className="flex flex-col xl:flex-row gap-8 items-start">
+        
+        {/* Main Content Area (Middle) */}
+        <div className="flex-1 flex flex-col space-y-8 min-w-0">
+          {/* Welcome Banner */}
+      <motion.div variants={itemVariants} className="relative overflow-hidden rounded-3xl bg-gradient-to-r from-sky-700 via-sky-600 to-indigo-700 dark:from-sky-900 dark:via-sky-800 dark:to-indigo-950 p-5 sm:p-6 text-white shadow-lg shadow-sky-900/10">
         <div className="absolute top-0 right-0 -mt-10 -mr-10 w-64 h-64 bg-white/10 rounded-full blur-2xl"></div>
         <div className="relative z-10 flex flex-col md:flex-row md:items-center justify-between gap-4">
           
           <div className="space-y-2 max-w-xl">
-            <h1 className="text-3xl sm:text-4xl font-extrabold tracking-tight text-white">
+            <h1 className="text-2xl sm:text-3xl font-extrabold tracking-tight text-white">
               Welcome back, {user?.name.split(" ")[0]}!
             </h1>
             <p className="text-sky-100 text-sm sm:text-base leading-relaxed">
@@ -197,15 +201,7 @@ export function Dashboard() {
           </div>
 
           <div className="flex items-center space-x-3">
-            {user?.role === "student" && (
-              <Link
-                to="/registration"
-                className="px-4 py-2.5 bg-white text-sky-700 hover:bg-sky-50 font-semibold rounded-xl text-sm transition-smooth shadow-sm inline-flex items-center space-x-2"
-              >
-                <span>Course Registration</span>
-                <ArrowRight className="w-4 h-4" />
-              </Link>
-            )}
+            
             {user?.role === "faculty" && (
               <Link
                 to="/attendance/mark"
@@ -251,11 +247,6 @@ export function Dashboard() {
           </div>
         </div>
       </motion.div>
-
-      <div className="flex flex-col xl:flex-row gap-8 items-start">
-        
-        {/* Main Content Area (Middle) */}
-        <div className="flex-1 flex flex-col space-y-8 min-w-0">
           
           {/* HUGE LIVE FEED */}
           <div className="w-full">
