@@ -252,14 +252,195 @@ export function Dashboard() {
         </div>
       </motion.div>
 
-      <div className="flex flex-col lg:flex-row gap-8 items-stretch">
+            <div className="flex flex-col xl:flex-row gap-8 items-start">
+        
+        {/* Main Content Area (Middle) */}
         <div className="flex-1 flex flex-col space-y-8 min-w-0">
+          
+          {/* HUGE LIVE FEED */}
+          <div className="w-full">
+            <LiveSidebar />
+          </div>
 
-      {/* STUDENT DASHBOARD METRICS */}
+          {/* Two Column Section: Quick Shortcuts & Recent Notices */}
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+        {/* Quick Actions List */}
+        <div className="lg:col-span-1 space-y-4">
+          <h2 className="text-lg font-bold text-slate-800 flex items-center space-x-2">
+            <span>Quick Services</span>
+          </h2>
+
+          <div className="grid grid-cols-1 gap-3">
+            {user?.role === "student" && (
+              <>
+                <Link
+                  to="/attendance"
+                  className="p-4 bg-white hover:bg-sky-50/50 rounded-2xl border border-slate-200/80 flex items-center justify-between group transition-smooth"
+                >
+                  <div className="flex items-center space-x-3.5">
+                    <div className="w-10 h-10 rounded-xl bg-sky-100 text-sky-700 flex items-center justify-center group-hover:bg-sky-600 group-hover:text-white transition-smooth">
+                      <CalendarCheck className="w-5 h-5" />
+                    </div>
+                    <div>
+                      <h4 className="text-sm font-semibold text-slate-800">Attendance Tracker</h4>
+                      <p className="text-xs text-slate-500">Day-by-day class attendance %</p>
+                    </div>
+                  </div>
+                  <ArrowRight className="w-4 h-4 text-slate-400 group-hover:text-sky-600 group-hover:translate-x-1 transition-smooth" />
+                </Link>
+
+                <Link
+                  to="/marks"
+                  className="p-4 bg-white hover:bg-sky-50/50 rounded-2xl border border-slate-200/80 flex items-center justify-between group transition-smooth"
+                >
+                  <div className="flex items-center space-x-3.5">
+                    <div className="w-10 h-10 rounded-xl bg-amber-100 text-amber-700 flex items-center justify-center group-hover:bg-amber-600 group-hover:text-white transition-smooth">
+                      <Award className="w-5 h-5" />
+                    </div>
+                    <div>
+                      <h4 className="text-sm font-semibold text-slate-800">Marks & Grade Sheets</h4>
+                      <p className="text-xs text-slate-500">CTs, Quizzes, Assignments, Finals</p>
+                    </div>
+                  </div>
+                  <ArrowRight className="w-4 h-4 text-slate-400 group-hover:text-amber-600 group-hover:translate-x-1 transition-smooth" />
+                </Link>
+
+                <Link
+                  to="/fees"
+                  className="p-4 bg-white hover:bg-sky-50/50 rounded-2xl border border-slate-200/80 flex items-center justify-between group transition-smooth"
+                >
+                  <div className="flex items-center space-x-3.5">
+                    <div className="w-10 h-10 rounded-xl bg-emerald-100 text-emerald-700 flex items-center justify-center group-hover:bg-emerald-600 group-hover:text-white transition-smooth">
+                      <CreditCard className="w-5 h-5" />
+                    </div>
+                    <div>
+                      <h4 className="text-sm font-semibold text-slate-800">Fee Payment Gateway</h4>
+                      <p className="text-xs text-slate-500">Pay tuition, exam, hall dues</p>
+                    </div>
+                  </div>
+                  <ArrowRight className="w-4 h-4 text-slate-400 group-hover:text-emerald-600 group-hover:translate-x-1 transition-smooth" />
+                </Link>
+              </>
+            )}
+
+            {(user?.role === "faculty" || user?.role === "admin") && (
+              <>
+                <Link
+                  to="/attendance/mark"
+                  className="p-4 bg-white hover:bg-sky-50/50 rounded-2xl border border-slate-200/80 flex items-center justify-between group transition-smooth"
+                >
+                  <div className="flex items-center space-x-3.5">
+                    <div className="w-10 h-10 rounded-xl bg-sky-100 text-sky-700 flex items-center justify-center group-hover:bg-sky-600 group-hover:text-white transition-smooth">
+                      <CalendarCheck className="w-5 h-5" />
+                    </div>
+                    <div>
+                      <h4 className="text-sm font-semibold text-slate-800">Bulk Attendance Entry</h4>
+                      <p className="text-xs text-slate-500">Mark class rosters at once</p>
+                    </div>
+                  </div>
+                  <ArrowRight className="w-4 h-4 text-slate-400 group-hover:text-sky-600 transition-smooth" />
+                </Link>
+
+                <Link
+                  to="/marks/entry"
+                  className="p-4 bg-white hover:bg-sky-50/50 rounded-2xl border border-slate-200/80 flex items-center justify-between group transition-smooth"
+                >
+                  <div className="flex items-center space-x-3.5">
+                    <div className="w-10 h-10 rounded-xl bg-purple-100 text-purple-700 flex items-center justify-center group-hover:bg-purple-600 group-hover:text-white transition-smooth">
+                      <Award className="w-5 h-5" />
+                    </div>
+                    <div>
+                      <h4 className="text-sm font-semibold text-slate-800">Evaluation & Grades</h4>
+                      <p className="text-xs text-slate-500">Enter CT, quiz, exam marks</p>
+                    </div>
+                  </div>
+                  <ArrowRight className="w-4 h-4 text-slate-400 group-hover:text-purple-600 transition-smooth" />
+                </Link>
+              </>
+            )}
+
+            <Link
+              to="/faculty"
+              className="p-4 bg-white hover:bg-sky-50/50 rounded-2xl border border-slate-200/80 flex items-center justify-between group transition-smooth"
+            >
+              <div className="flex items-center space-x-3.5">
+                <div className="w-10 h-10 rounded-xl bg-slate-100 text-slate-700 flex items-center justify-center group-hover:bg-slate-700 group-hover:text-white transition-smooth">
+                  <Users className="w-5 h-5" />
+                </div>
+                <div>
+                  <h4 className="text-sm font-semibold text-slate-800">Faculty Directory</h4>
+                  <p className="text-xs text-slate-500">Search teachers, offices, contact info</p>
+                </div>
+              </div>
+              <ArrowRight className="w-4 h-4 text-slate-400 group-hover:text-slate-700 transition-smooth" />
+            </Link>
+          </div>
+        </div>
+
+        {/* Notices Board */}
+        <div className="lg:col-span-1 space-y-4">
+          <div className="flex items-center justify-between">
+            <h2 className="text-lg font-bold text-slate-800 flex items-center space-x-2">
+              <Bell className="w-5 h-5 text-sky-600" />
+              <span>Campus Notices & Circulars</span>
+            </h2>
+            <Link
+              to="/notices"
+              className="text-xs font-semibold text-sky-600 hover:text-sky-700 inline-flex items-center"
+            >
+              View all <ArrowRight className="w-3.5 h-3.5 ml-1" />
+            </Link>
+          </div>
+
+          <div className="space-y-3">
+            {notices.length === 0 ? (
+              <div className="p-8 bg-white rounded-2xl border border-slate-200 text-center text-slate-500">
+                No active announcements published.
+              </div>
+            ) : (
+              notices.map((notice) => (
+                <div
+                  key={notice._id}
+                  className="p-5 bg-white rounded-2xl border border-slate-200/80 hover:border-sky-300 shadow-xs hover:shadow-sm transition-smooth"
+                >
+                  <div className="flex items-start justify-between gap-3">
+                    <div>
+                      <span className="text-[11px] font-semibold text-slate-400 block mb-1">
+                        {formatDate(notice.createdAt)} • Posted by {notice.postedBy?.name || "Administration"}
+                      </span>
+                      <h3 className="text-base font-semibold text-slate-800">{notice.title}</h3>
+                      <p className="text-sm text-slate-600 mt-1 line-clamp-2">{notice.body}</p>
+                    </div>
+
+                    {notice.attachmentUrl && (
+                      <span className="shrink-0 px-2.5 py-1 bg-sky-50 text-sky-700 text-xs font-medium rounded-lg border border-sky-100">
+                        Attachment
+                      </span>
+                    )}
+                  </div>
+                </div>
+              ))
+            )}
+          </div>
+        </div>
+      </div>
+      </div>
+        </div>
+
+        {/* Right Sidebar Area (Stacked Metrics) */}
+        <div className="w-full xl:w-[320px] shrink-0 flex flex-col space-y-6">
+          <div className="bg-white/40 dark:bg-slate-900/40 backdrop-blur-md rounded-3xl p-5 border border-slate-200/50 dark:border-slate-800/50">
+            <h3 className="text-sm font-bold text-slate-800 dark:text-slate-200 uppercase tracking-wider mb-4 flex items-center gap-2">
+              <span className="w-2 h-2 rounded-full bg-sky-500"></span>
+              My Overview
+            </h3>
+            
+            <div className="space-y-6">
+              {/* STUDENT DASHBOARD METRICS */}
       {user?.role === "student" && (
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-1 gap-4">
           {/* Assigned Courses with Chart */}
-          <motion.div variants={itemVariants} className="p-5 bg-white/80 dark:bg-slate-900/80 backdrop-blur-xl rounded-2xl border border-slate-200/80 dark:border-slate-800 shadow-xs hover:shadow-md transition-smooth flex flex-col">
+          <motion.div variants={itemVariants} className="p-4 bg-white/80 dark:bg-slate-900/80 backdrop-blur-xl rounded-2xl border border-slate-200/80 dark:border-slate-800 shadow-xs hover:shadow-md transition-smooth flex flex-col">
             <div className="flex items-center justify-between">
               <span className="text-xs font-semibold uppercase tracking-wider text-slate-500 dark:text-slate-400">
                 Course Credits
@@ -284,7 +465,7 @@ export function Dashboard() {
           </motion.div>
 
           {/* Registration Status */}
-          <motion.div variants={itemVariants} className="p-5 bg-white/80 dark:bg-slate-900/80 backdrop-blur-xl rounded-2xl border border-slate-200/80 dark:border-slate-800 shadow-xs hover:shadow-md transition-smooth">
+          <motion.div variants={itemVariants} className="p-4 bg-white/80 dark:bg-slate-900/80 backdrop-blur-xl rounded-2xl border border-slate-200/80 dark:border-slate-800 shadow-xs hover:shadow-md transition-smooth">
             <div className="flex items-center justify-between">
               <span className="text-xs font-semibold uppercase tracking-wider text-slate-500">
                 Registration
@@ -315,7 +496,7 @@ export function Dashboard() {
           </motion.div>
 
           {/* Fee Dues */}
-          <motion.div variants={itemVariants} className="p-5 bg-white/80 dark:bg-slate-900/80 backdrop-blur-xl rounded-2xl border border-slate-200/80 dark:border-slate-800 shadow-xs hover:shadow-md transition-smooth">
+          <motion.div variants={itemVariants} className="p-4 bg-white/80 dark:bg-slate-900/80 backdrop-blur-xl rounded-2xl border border-slate-200/80 dark:border-slate-800 shadow-xs hover:shadow-md transition-smooth">
             <div className="flex items-center justify-between">
               <span className="text-xs font-semibold uppercase tracking-wider text-slate-500 dark:text-slate-400">
                 Fee Dues
@@ -340,7 +521,7 @@ export function Dashboard() {
           </motion.div>
 
           {/* Quick Hall / Profile */}
-          <motion.div variants={itemVariants} className="p-5 bg-white/80 dark:bg-slate-900/80 backdrop-blur-xl rounded-2xl border border-slate-200/80 dark:border-slate-800 shadow-xs hover:shadow-md transition-smooth">
+          <motion.div variants={itemVariants} className="p-4 bg-white/80 dark:bg-slate-900/80 backdrop-blur-xl rounded-2xl border border-slate-200/80 dark:border-slate-800 shadow-xs hover:shadow-md transition-smooth">
             <div className="flex items-center justify-between">
               <span className="text-xs font-semibold uppercase tracking-wider text-slate-500 dark:text-slate-400">
                 Hall Portal
@@ -365,11 +546,10 @@ export function Dashboard() {
           </motion.div>
         </div>
       )}
-
-      {/* FACULTY / ADMIN DASHBOARD METRICS */}
+              {/* FACULTY / ADMIN DASHBOARD METRICS */}
       {(user?.role === "faculty" || user?.role === "admin" || user?.role === "hall_admin") && (
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6">
-          <div className="p-5 bg-white rounded-2xl border border-slate-200/80 shadow-xs">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-1 gap-4">
+          <div className="p-4 bg-white rounded-2xl border border-slate-200/80 shadow-xs">
             <div className="flex items-center justify-between">
               <span className="text-xs font-semibold uppercase tracking-wider text-slate-500">
                 Pending Registrations
@@ -391,7 +571,7 @@ export function Dashboard() {
             </div>
           </div>
 
-          <div className="p-5 bg-white rounded-2xl border border-slate-200/80 shadow-xs">
+          <div className="p-4 bg-white rounded-2xl border border-slate-200/80 shadow-xs">
             <div className="flex items-center justify-between">
               <span className="text-xs font-semibold uppercase tracking-wider text-slate-500">
                 Active Courses
@@ -414,7 +594,7 @@ export function Dashboard() {
           </div>
 
           {(user?.role === "admin" || user?.role === "hall_admin") && (
-            <div className="p-5 bg-white rounded-2xl border border-slate-200/80 shadow-xs">
+            <div className="p-4 bg-white rounded-2xl border border-slate-200/80 shadow-xs">
               <div className="flex items-center justify-between">
                 <span className="text-xs font-semibold uppercase tracking-wider text-slate-500">
                   Hall Applications
@@ -438,7 +618,7 @@ export function Dashboard() {
           )}
 
           {user?.role === "admin" && facultyStats && (
-            <div className="p-5 bg-white rounded-2xl border border-slate-200/80 shadow-xs">
+            <div className="p-4 bg-white rounded-2xl border border-slate-200/80 shadow-xs">
               <div className="flex items-center justify-between">
                 <span className="text-xs font-semibold uppercase tracking-wider text-slate-500">
                   Faculty Stats
@@ -655,7 +835,7 @@ export function Dashboard() {
               notices.map((notice) => (
                 <div
                   key={notice._id}
-                  className="p-5 bg-white rounded-2xl border border-slate-200/80 hover:border-sky-300 shadow-xs hover:shadow-sm transition-smooth"
+                  className="p-4 bg-white rounded-2xl border border-slate-200/80 hover:border-sky-300 shadow-xs hover:shadow-sm transition-smooth"
                 >
                   <div className="flex items-start justify-between gap-3">
                     <div>
@@ -687,6 +867,17 @@ export function Dashboard() {
 
       </div>
       
+    </motion.div>
+  );
+}
+
+export default Dashboard;
+              
+            </div>
+          </div>
+        </div>
+
+      </div>
     </motion.div>
   );
 }

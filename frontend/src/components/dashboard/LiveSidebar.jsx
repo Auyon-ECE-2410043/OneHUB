@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { AlertCircle, Award, Bell, Activity, Trash2 } from "lucide-react";
+import { AlertCircle, Award, Bell, Activity, Trash2, Zap, Sparkles } from "lucide-react";
 import livefeedService from "../../services/livefeedService";
 import { useAuth } from "../../context/AuthContext";
 import { formatDate } from "../../utils/helpers";
@@ -23,7 +23,6 @@ export function LiveSidebar() {
 
   useEffect(() => {
     fetchFeeds();
-    // Poll every 2 minutes
     const interval = setInterval(fetchFeeds, 120000);
     return () => clearInterval(interval);
   }, []);
@@ -39,45 +38,66 @@ export function LiveSidebar() {
   };
 
   if (loading) {
-    return <div className="h-full bg-white dark:bg-slate-900 rounded-3xl p-6 border border-slate-100 dark:border-slate-800 animate-pulse min-h-[400px]"></div>;
+    return <div className="h-full bg-white/50 dark:bg-slate-900/50 rounded-3xl p-6 border border-slate-100 dark:border-slate-800 animate-pulse min-h-[400px]"></div>;
   }
 
   const emergencies = feeds.filter(f => f.type === "emergency_blood");
   const others = feeds.filter(f => f.type !== "emergency_blood");
 
   return (
-    <div className="bg-white/80 dark:bg-slate-900/80 backdrop-blur-xl rounded-3xl p-6 border border-slate-200/80 dark:border-slate-800 shadow-xs h-full flex flex-col space-y-6 overflow-hidden relative">
-      <div className="flex items-center space-x-3 pb-2 border-b border-slate-100 dark:border-slate-800">
-        <Activity className="w-5 h-5 text-sky-500" />
-        <h2 className="text-lg font-bold text-slate-800 dark:text-slate-100">Live Campus Feed</h2>
+    <motion.div 
+      initial={{ opacity: 0, scale: 0.98 }}
+      animate={{ opacity: 1, scale: 1 }}
+      className="relative overflow-hidden bg-gradient-to-br from-slate-900 via-slate-800 to-indigo-950 rounded-3xl p-6 sm:p-8 border border-indigo-500/30 shadow-2xl shadow-indigo-900/40 h-full flex flex-col space-y-6"
+    >
+      {/* Background Animated Elements */}
+      <div className="absolute top-0 right-0 -mt-20 -mr-20 w-72 h-72 bg-sky-500/10 rounded-full blur-3xl animate-pulse"></div>
+      <div className="absolute bottom-0 left-0 -mb-20 -ml-20 w-64 h-64 bg-indigo-500/20 rounded-full blur-3xl animate-pulse" style={{ animationDelay: "2s" }}></div>
+
+      <div className="relative z-10 flex items-center justify-between pb-4 border-b border-white/10">
+        <div className="flex items-center space-x-3">
+          <div className="p-2.5 bg-indigo-500/20 rounded-xl backdrop-blur-md border border-indigo-400/30">
+            <Activity className="w-6 h-6 text-indigo-400" />
+          </div>
+          <h2 className="text-xl font-bold text-white flex items-center gap-2">
+            Live Campus Feed
+            <Sparkles className="w-4 h-4 text-sky-400 animate-bounce" />
+          </h2>
+        </div>
+        <div className="flex items-center gap-2">
+          <span className="relative flex h-3 w-3">
+            <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
+            <span className="relative inline-flex rounded-full h-3 w-3 bg-emerald-500"></span>
+          </span>
+          <span className="text-xs font-semibold text-emerald-400 tracking-wider uppercase">Live</span>
+        </div>
       </div>
 
-      <div className="flex-1 overflow-y-auto space-y-4 pr-1 custom-scrollbar">
+      <div className="relative z-10 flex-1 overflow-y-auto space-y-5 pr-2 custom-scrollbar">
         <AnimatePresence>
           {emergencies.map((feed) => (
             <motion.div
               key={feed._id}
-              initial={{ opacity: 0, y: -20 }}
-              animate={{ opacity: 1, y: 0 }}
+              initial={{ opacity: 0, x: -20 }}
+              animate={{ opacity: 1, x: 0 }}
               exit={{ opacity: 0, scale: 0.9 }}
-              className="relative p-4 rounded-2xl bg-rose-50 dark:bg-rose-950/30 border border-rose-200 dark:border-rose-900"
+              className="relative p-5 rounded-2xl bg-gradient-to-r from-rose-950/80 to-red-900/40 backdrop-blur-md border border-rose-500/50 hover:border-rose-400 transition-colors shadow-lg shadow-rose-900/20 group"
             >
-              <div className="absolute top-0 right-0 -mt-2 -mr-2 flex h-4 w-4">
-                <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-rose-400 opacity-75"></span>
-                <span className="relative inline-flex rounded-full h-4 w-4 bg-rose-500"></span>
+              <div className="absolute top-0 right-0 p-4 opacity-10">
+                <AlertCircle className="w-24 h-24 text-rose-500" />
               </div>
-              <div className="flex items-start space-x-3">
-                <div className="p-2 bg-rose-100 dark:bg-rose-900 rounded-full text-rose-600 dark:text-rose-300">
-                  <AlertCircle className="w-5 h-5" />
+              <div className="relative z-10 flex items-start space-x-4">
+                <div className="p-3 bg-rose-500/20 rounded-2xl text-rose-400 border border-rose-500/30">
+                  <AlertCircle className="w-6 h-6 animate-pulse" />
                 </div>
                 <div className="flex-1">
-                  <h3 className="font-bold text-rose-800 dark:text-rose-300 text-sm mb-1">{feed.title}</h3>
-                  <p className="text-xs text-rose-700 dark:text-rose-400 leading-relaxed mb-2">{feed.content}</p>
-                  <p className="text-[10px] text-rose-500/80 dark:text-rose-500 font-medium uppercase tracking-wider">{formatDate(feed.createdAt)}</p>
+                  <h3 className="font-bold text-rose-100 text-lg mb-1">{feed.title}</h3>
+                  <p className="text-sm text-rose-200/90 leading-relaxed mb-3">{feed.content}</p>
+                  <p className="text-xs text-rose-400 font-semibold uppercase tracking-widest">{formatDate(feed.createdAt)}</p>
                 </div>
               </div>
               {user?.role === "admin" && (
-                <button onClick={() => handleDelete(feed._id)} className="absolute bottom-2 right-2 p-1 text-rose-400 hover:text-rose-600">
+                <button onClick={() => handleDelete(feed._id)} className="absolute bottom-3 right-3 p-2 bg-rose-900/50 rounded-lg text-rose-300 opacity-0 group-hover:opacity-100 hover:bg-rose-800 transition-all">
                   <Trash2 className="w-4 h-4" />
                 </button>
               )}
@@ -87,22 +107,30 @@ export function LiveSidebar() {
           {others.map((feed) => (
             <motion.div
               key={feed._id}
-              initial={{ opacity: 0, x: 20 }}
-              animate={{ opacity: 1, x: 0 }}
-              className={`relative p-4 rounded-2xl border ${feed.type === 'achievement' ? 'bg-gradient-to-br from-amber-50 to-orange-50 dark:from-amber-950/20 dark:to-orange-950/20 border-amber-200/50 dark:border-amber-900/50' : 'bg-slate-50 dark:bg-slate-800/50 border-slate-200 dark:border-slate-700'}`}
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              className={`relative p-5 rounded-2xl backdrop-blur-md border hover:shadow-xl transition-all group ${
+                feed.type === 'achievement' 
+                  ? 'bg-gradient-to-br from-amber-900/30 to-orange-900/10 border-amber-500/30 hover:border-amber-400/50' 
+                  : 'bg-white/5 border-white/10 hover:border-sky-400/30'
+              }`}
             >
-              <div className="flex items-start space-x-3">
-                <div className={`p-2 rounded-full ${feed.type === 'achievement' ? 'bg-amber-100 dark:bg-amber-900/50 text-amber-600 dark:text-amber-400' : 'bg-sky-100 dark:bg-sky-900/50 text-sky-600 dark:text-sky-400'}`}>
-                  {feed.type === 'achievement' ? <Award className="w-5 h-5" /> : <Bell className="w-5 h-5" />}
+              <div className="flex items-start space-x-4">
+                <div className={`p-3 rounded-2xl border ${
+                  feed.type === 'achievement' 
+                    ? 'bg-amber-500/20 text-amber-400 border-amber-500/30' 
+                    : 'bg-sky-500/20 text-sky-400 border-sky-500/30'
+                }`}>
+                  {feed.type === 'achievement' ? <Award className="w-6 h-6" /> : <Bell className="w-6 h-6" />}
                 </div>
                 <div className="flex-1">
-                  <h3 className={`font-bold text-sm mb-1 ${feed.type === 'achievement' ? 'text-amber-900 dark:text-amber-200' : 'text-slate-800 dark:text-slate-200'}`}>{feed.title}</h3>
-                  <p className={`text-xs leading-relaxed mb-2 ${feed.type === 'achievement' ? 'text-amber-800/80 dark:text-amber-300/80' : 'text-slate-600 dark:text-slate-400'}`}>{feed.content}</p>
-                  <p className="text-[10px] text-slate-400 font-medium uppercase tracking-wider">{formatDate(feed.createdAt)}</p>
+                  <h3 className={`font-bold text-base mb-1 ${feed.type === 'achievement' ? 'text-amber-300' : 'text-slate-100'}`}>{feed.title}</h3>
+                  <p className="text-sm text-slate-300/80 leading-relaxed mb-3">{feed.content}</p>
+                  <p className="text-xs text-slate-500 font-semibold uppercase tracking-widest">{formatDate(feed.createdAt)}</p>
                 </div>
               </div>
               {user?.role === "admin" && (
-                <button onClick={() => handleDelete(feed._id)} className="absolute bottom-2 right-2 p-1 text-slate-400 hover:text-slate-600">
+                <button onClick={() => handleDelete(feed._id)} className="absolute bottom-3 right-3 p-2 bg-white/5 rounded-lg text-slate-400 opacity-0 group-hover:opacity-100 hover:bg-white/10 hover:text-white transition-all">
                   <Trash2 className="w-4 h-4" />
                 </button>
               )}
@@ -110,15 +138,16 @@ export function LiveSidebar() {
           ))}
           
           {feeds.length === 0 && (
-            <div className="flex flex-col items-center justify-center h-40 text-center px-4">
-              <div className="w-12 h-12 bg-slate-100 dark:bg-slate-800 rounded-full flex items-center justify-center mb-3">
-                <Bell className="w-5 h-5 text-slate-400" />
+            <div className="flex flex-col items-center justify-center py-12 text-center">
+              <div className="w-16 h-16 bg-white/5 rounded-full flex items-center justify-center mb-4 border border-white/10">
+                <Zap className="w-8 h-8 text-slate-500" />
               </div>
-              <p className="text-sm font-medium text-slate-500">No active campus updates right now.</p>
+              <h3 className="text-slate-300 font-medium text-lg">All caught up</h3>
+              <p className="text-sm text-slate-500 mt-1">No active campus updates at the moment.</p>
             </div>
           )}
         </AnimatePresence>
       </div>
-    </div>
+    </motion.div>
   );
 }
