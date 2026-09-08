@@ -39,6 +39,7 @@ const FacultyDirectory = lazy(() => import("../pages/faculty/FacultyDirectory"))
 const Profile = lazy(() => import("../pages/profile/Profile"));
 const MedicalCenter = lazy(() => import("../pages/medical/MedicalCenter").then(module => ({ default: module.MedicalCenter })));
 const ClearanceStatus = lazy(() => import("../pages/clearance/ClearanceStatus").then(module => ({ default: module.ClearanceStatus })));
+const ClearanceAdmin = lazy(() => import("../pages/clearance/ClearanceAdmin").then(module => ({ default: module.ClearanceAdmin })));
 const AcademicCalendar = lazy(() => import("../pages/calendar/AcademicCalendar"));
 const Maintenance = lazy(() => import("../pages/auth/Maintenance"));
 
@@ -190,6 +191,7 @@ export function AppRoutes() {
         {/* Medical & Clearance */}
         <Route path="/medical" element={<FeatureGuard featureKey="medical" title="Medical Center"><MedicalCenter /></FeatureGuard>} />
         <Route path="/clearance" element={<FeatureGuard featureKey="clearance" title="Clearance Status"><ClearanceStatus /></FeatureGuard>} />
+        <Route path="/admin/clearance" element={<FeatureGuard featureKey="clearance" title="Manage Clearances"><ProtectedRoute allowedRoles={["admin", "faculty", "hall_admin"]}><ClearanceAdmin /></ProtectedRoute></FeatureGuard>} />
         
         {/* Calendar */}
         <Route path="/calendar" element={<FeatureGuard featureKey="calendar" title="Academic Calendar"><AcademicCalendar /></FeatureGuard>} />

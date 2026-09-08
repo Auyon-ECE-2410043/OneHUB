@@ -33,7 +33,7 @@ export function Sidebar({ isOpen, onClose }) {
   // Define navigation items based on user role
   const getNavItems = () => {
     switch (role) {
-      case "faculty":
+            case "faculty":
         return [
           { label: "Dashboard", path: "/dashboard", icon: LayoutDashboard },
           { label: "Academic Calendar", path: "/calendar", icon: CalendarDays },
@@ -42,12 +42,13 @@ export function Sidebar({ isOpen, onClose }) {
           ...(user?.isAdviser || user?.role === 'admin' ? [{ label: "Pending Registrations", path: "/registration", icon: CheckSquare }] : []),
           { label: "Mark Attendance", path: "/attendance/mark", icon: CalendarCheck },
           { label: "Enter Marks & Grades", path: "/marks/entry", icon: Award },
+          { label: "Manage Clearances", path: "/admin/clearance", icon: ShieldCheck },
           { label: "Notice Board", path: "/notices", icon: Bell },
           { label: "Faculty Directory", path: "/faculty", icon: Users },
           { label: "My Profile", path: "/profile", icon: User },
         ];
 
-      case "admin":
+            case "admin":
         return [
           { label: "Dashboard", path: "/dashboard", icon: LayoutDashboard },
           { label: "Manage Routine", path: "/manage-routine", icon: CalendarClock },
@@ -56,16 +57,18 @@ export function Sidebar({ isOpen, onClose }) {
           { label: "Registration Approvals", path: "/registration", icon: CheckSquare },
           { label: "Hall Applications", path: "/hall/review", icon: Building },
           { label: "Mark Entry", path: "/marks/entry", icon: Award },
-            { label: "Fee Management", path: "/fees", icon: CreditCard },
-            { label: "Notice Board", path: "/notices", icon: Bell },
-            { label: "Faculty Management", path: "/faculty", icon: Users },
+          { label: "Fee Management", path: "/fees", icon: CreditCard },
+          { label: "Manage Clearances", path: "/admin/clearance", icon: ShieldCheck },
+          { label: "Notice Board", path: "/notices", icon: Bell },
+          { label: "Faculty Management", path: "/faculty", icon: Users },
           { label: "My Profile", path: "/profile", icon: User },
         ];
 
-      case "hall_admin":
+            case "hall_admin":
         return [
           { label: "Dashboard", path: "/dashboard", icon: LayoutDashboard },
           { label: "Hall Applications", path: "/hall/review", icon: Building },
+          { label: "Manage Clearances", path: "/admin/clearance", icon: ShieldCheck },
           { label: "Notice Board", path: "/notices", icon: Bell },
           { label: "Faculty Directory", path: "/faculty", icon: Users },
           { label: "My Profile", path: "/profile", icon: User },
