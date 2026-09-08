@@ -252,7 +252,8 @@ export function Dashboard() {
         </div>
       </motion.div>
 
-            <div className="flex flex-col xl:flex-row gap-8 items-start">
+      <div className="flex flex-col lg:flex-row gap-8 items-stretch">
+      <div className="flex flex-col xl:flex-row gap-8 items-start">
         
         {/* Main Content Area (Middle) */}
         <div className="flex-1 flex flex-col space-y-8 min-w-0">
@@ -262,8 +263,8 @@ export function Dashboard() {
             <LiveSidebar />
           </div>
 
-          {/* Two Column Section: Quick Shortcuts & Recent Notices */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+          {/* Quick Shortcuts & Notices */}
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
         {/* Quick Actions List */}
         <div className="lg:col-span-1 space-y-4">
           <h2 className="text-lg font-bold text-slate-800 flex items-center space-x-2">
@@ -423,8 +424,7 @@ export function Dashboard() {
             )}
           </div>
         </div>
-      </div>
-      </div>
+      
         </div>
 
         {/* Right Sidebar Area (Stacked Metrics) */}
@@ -437,7 +437,7 @@ export function Dashboard() {
             
             <div className="space-y-6">
               {/* STUDENT DASHBOARD METRICS */}
-      {user?.role === "student" && (
+{user?.role === "student" && (
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-1 gap-4">
           {/* Assigned Courses with Chart */}
           <motion.div variants={itemVariants} className="p-4 bg-white/80 dark:bg-slate-900/80 backdrop-blur-xl rounded-2xl border border-slate-200/80 dark:border-slate-800 shadow-xs hover:shadow-md transition-smooth flex flex-col">
@@ -546,332 +546,7 @@ export function Dashboard() {
           </motion.div>
         </div>
       )}
-              {/* FACULTY / ADMIN DASHBOARD METRICS */}
-      {(user?.role === "faculty" || user?.role === "admin" || user?.role === "hall_admin") && (
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-1 gap-4">
-          <div className="p-4 bg-white rounded-2xl border border-slate-200/80 shadow-xs">
-            <div className="flex items-center justify-between">
-              <span className="text-xs font-semibold uppercase tracking-wider text-slate-500">
-                Pending Registrations
-              </span>
-              <div className="w-10 h-10 rounded-xl bg-amber-50 text-amber-600 flex items-center justify-center">
-                <Clock className="w-5 h-5" />
-              </div>
-            </div>
-            <div className="mt-3">
-              <div className="text-2xl font-bold text-slate-800">
-                {pendingRegistrations.length}
-              </div>
-              <p className="text-xs text-slate-500 mt-1">Awaiting advisor review</p>
-            </div>
-            <div className="mt-4 pt-3 border-t border-slate-100">
-              <Link to="/registration" className="text-xs font-semibold text-sky-600 hover:text-sky-700 inline-flex items-center">
-                Review submissions <ArrowRight className="w-3 h-3 ml-1" />
-              </Link>
-            </div>
-          </div>
-
-          <div className="p-4 bg-white rounded-2xl border border-slate-200/80 shadow-xs">
-            <div className="flex items-center justify-between">
-              <span className="text-xs font-semibold uppercase tracking-wider text-slate-500">
-                Active Courses
-              </span>
-              <div className="w-10 h-10 rounded-xl bg-sky-50 text-sky-600 flex items-center justify-center">
-                <BookOpen className="w-5 h-5" />
-              </div>
-            </div>
-            <div className="mt-3">
-              <div className="text-2xl font-bold text-slate-800">
-                {allCourses.length}
-              </div>
-              <p className="text-xs text-slate-500 mt-1">Available in syllabus</p>
-            </div>
-            <div className="mt-4 pt-3 border-t border-slate-100">
-              <Link to="/courses" className="text-xs font-semibold text-sky-600 hover:text-sky-700 inline-flex items-center">
-                View catalog <ArrowRight className="w-3 h-3 ml-1" />
-              </Link>
-            </div>
-          </div>
-
-          {(user?.role === "admin" || user?.role === "hall_admin") && (
-            <div className="p-4 bg-white rounded-2xl border border-slate-200/80 shadow-xs">
-              <div className="flex items-center justify-between">
-                <span className="text-xs font-semibold uppercase tracking-wider text-slate-500">
-                  Hall Applications
-                </span>
-                <div className="w-10 h-10 rounded-xl bg-indigo-50 text-indigo-600 flex items-center justify-center">
-                  <Building className="w-5 h-5" />
-                </div>
-              </div>
-              <div className="mt-3">
-                <div className="text-2xl font-bold text-slate-800">
-                  {hallApplications.length}
-                </div>
-                <p className="text-xs text-slate-500 mt-1">Submitted student applications</p>
-              </div>
-              <div className="mt-4 pt-3 border-t border-slate-100">
-                <Link to="/hall/review" className="text-xs font-semibold text-sky-600 hover:text-sky-700 inline-flex items-center">
-                  Process applications <ArrowRight className="w-3 h-3 ml-1" />
-                </Link>
-              </div>
-            </div>
-          )}
-
-          {user?.role === "admin" && facultyStats && (
-            <div className="p-4 bg-white rounded-2xl border border-slate-200/80 shadow-xs">
-              <div className="flex items-center justify-between">
-                <span className="text-xs font-semibold uppercase tracking-wider text-slate-500">
-                  Faculty Stats
-                </span>
-                <div className="w-10 h-10 rounded-xl bg-purple-50 text-purple-600 flex items-center justify-center">
-                  <Users className="w-5 h-5" />
-                </div>
-              </div>
-              <div className="mt-3">
-                <div className="text-2xl font-bold text-slate-800">
-                  {facultyStats.professor + facultyStats.associateProfessor + facultyStats.assistantProfessor + facultyStats.lecturer}
-                </div>
-                <p className="text-xs text-slate-500 mt-1">
-                  {facultyStats.phdHolder} PhD Holders
-                </p>
-              </div>
-              <div className="mt-4 pt-3 border-t border-slate-100">
-                <Link to="/faculty" className="text-xs font-semibold text-sky-600 hover:text-sky-700 inline-flex items-center">
-                  Faculty Directory <ArrowRight className="w-3 h-3 ml-1" />
-                </Link>
-              </div>
-            </div>
-          )}
-        </div>
-      )}
-
-      
-      {user?.role === "admin" && (
-        <div className="mb-6 bg-white/80 dark:bg-slate-900/80 backdrop-blur-xl p-6 rounded-3xl border border-slate-200/80 dark:border-slate-800 shadow-sm">
-          <div className="mb-5">
-            <h2 className="text-xl font-bold text-slate-800 dark:text-slate-100">Module Access Control</h2>
-            <p className="text-sm text-slate-500 dark:text-slate-400 mt-1">Enable or disable specific features across the portal. Disabled modules will show an "Under Maintenance" screen to students and faculty.</p>
-          </div>
-          <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-6 gap-3">
-            {[
-              { key: 'routine', label: 'Weekly Routine' },
-              { key: 'courses', label: 'Courses' },
-              { key: 'registration', label: 'Registration' },
-              { key: 'attendance', label: 'Attendance' },
-              { key: 'marks', label: 'Marks' },
-              { key: 'cgpa', label: 'CGPA Analytics' },
-              { key: 'fees', label: 'Fees & Payment' },
-              { key: 'hall', label: 'Hall App' },
-              { key: 'medical', label: 'Medical Center' },
-              { key: 'notices', label: 'Notice Board' },
-              { key: 'faculty', label: 'Faculty Dir' },
-              { key: 'calendar', label: 'Calendar' },
-              { key: 'clearance', label: 'Clearance' }
-            ].map(f => {
-              const isEnabled = features[f.key] !== false;
-              const isToggling = togglingFeature === f.key;
               
-              return (
-                <button
-                  key={f.key}
-                  onClick={() => handleToggleFeature(f.key)}
-                  disabled={isToggling}
-                  className={`p-3.5 rounded-2xl border text-left transition-all relative overflow-hidden ${isEnabled ? 'bg-white dark:bg-slate-800 border-slate-200 dark:border-slate-700 hover:border-sky-300 shadow-sm' : 'bg-slate-50 dark:bg-slate-900/50 border-rose-200 dark:border-rose-900/30'}`}
-                >
-                  <div className="flex justify-between items-start mb-2.5">
-                    <span className={`text-xs font-bold uppercase tracking-wider ${isEnabled ? 'text-slate-500 dark:text-slate-400' : 'text-rose-500 dark:text-rose-400'}`}>
-                      {f.label}
-                    </span>
-                    <div className={`w-8 h-4 rounded-full flex items-center p-0.5 transition-colors ${isEnabled ? 'bg-emerald-500' : 'bg-slate-300 dark:bg-slate-600'}`}>
-                      <div className={`w-3 h-3 bg-white rounded-full shadow-sm transform transition-transform ${isEnabled ? 'translate-x-4' : 'translate-x-0'}`} />
-                    </div>
-                  </div>
-                  <div className={`text-xs font-semibold ${isEnabled ? 'text-emerald-600 dark:text-emerald-400' : 'text-slate-500 dark:text-slate-500'}`}>
-                    {isToggling ? 'Updating...' : isEnabled ? 'Active' : 'Disabled'}
-                  </div>
-                </button>
-              );
-            })}
-          </div>
-        </div>
-      )}
-
-      {/* Two Column Section: Quick Shortcuts & Recent Notices */}
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-        {/* Quick Actions List */}
-        <div className="lg:col-span-1 space-y-4">
-          <h2 className="text-lg font-bold text-slate-800 flex items-center space-x-2">
-            <span>Quick Services</span>
-          </h2>
-
-          <div className="grid grid-cols-1 gap-3">
-            {user?.role === "student" && (
-              <>
-                <Link
-                  to="/attendance"
-                  className="p-4 bg-white hover:bg-sky-50/50 rounded-2xl border border-slate-200/80 flex items-center justify-between group transition-smooth"
-                >
-                  <div className="flex items-center space-x-3.5">
-                    <div className="w-10 h-10 rounded-xl bg-sky-100 text-sky-700 flex items-center justify-center group-hover:bg-sky-600 group-hover:text-white transition-smooth">
-                      <CalendarCheck className="w-5 h-5" />
-                    </div>
-                    <div>
-                      <h4 className="text-sm font-semibold text-slate-800">Attendance Tracker</h4>
-                      <p className="text-xs text-slate-500">Day-by-day class attendance %</p>
-                    </div>
-                  </div>
-                  <ArrowRight className="w-4 h-4 text-slate-400 group-hover:text-sky-600 group-hover:translate-x-1 transition-smooth" />
-                </Link>
-
-                <Link
-                  to="/marks"
-                  className="p-4 bg-white hover:bg-sky-50/50 rounded-2xl border border-slate-200/80 flex items-center justify-between group transition-smooth"
-                >
-                  <div className="flex items-center space-x-3.5">
-                    <div className="w-10 h-10 rounded-xl bg-amber-100 text-amber-700 flex items-center justify-center group-hover:bg-amber-600 group-hover:text-white transition-smooth">
-                      <Award className="w-5 h-5" />
-                    </div>
-                    <div>
-                      <h4 className="text-sm font-semibold text-slate-800">Marks & Grade Sheets</h4>
-                      <p className="text-xs text-slate-500">CTs, Quizzes, Assignments, Finals</p>
-                    </div>
-                  </div>
-                  <ArrowRight className="w-4 h-4 text-slate-400 group-hover:text-amber-600 group-hover:translate-x-1 transition-smooth" />
-                </Link>
-
-                <Link
-                  to="/fees"
-                  className="p-4 bg-white hover:bg-sky-50/50 rounded-2xl border border-slate-200/80 flex items-center justify-between group transition-smooth"
-                >
-                  <div className="flex items-center space-x-3.5">
-                    <div className="w-10 h-10 rounded-xl bg-emerald-100 text-emerald-700 flex items-center justify-center group-hover:bg-emerald-600 group-hover:text-white transition-smooth">
-                      <CreditCard className="w-5 h-5" />
-                    </div>
-                    <div>
-                      <h4 className="text-sm font-semibold text-slate-800">Fee Payment Gateway</h4>
-                      <p className="text-xs text-slate-500">Pay tuition, exam, hall dues</p>
-                    </div>
-                  </div>
-                  <ArrowRight className="w-4 h-4 text-slate-400 group-hover:text-emerald-600 group-hover:translate-x-1 transition-smooth" />
-                </Link>
-              </>
-            )}
-
-            {(user?.role === "faculty" || user?.role === "admin") && (
-              <>
-                <Link
-                  to="/attendance/mark"
-                  className="p-4 bg-white hover:bg-sky-50/50 rounded-2xl border border-slate-200/80 flex items-center justify-between group transition-smooth"
-                >
-                  <div className="flex items-center space-x-3.5">
-                    <div className="w-10 h-10 rounded-xl bg-sky-100 text-sky-700 flex items-center justify-center group-hover:bg-sky-600 group-hover:text-white transition-smooth">
-                      <CalendarCheck className="w-5 h-5" />
-                    </div>
-                    <div>
-                      <h4 className="text-sm font-semibold text-slate-800">Bulk Attendance Entry</h4>
-                      <p className="text-xs text-slate-500">Mark class rosters at once</p>
-                    </div>
-                  </div>
-                  <ArrowRight className="w-4 h-4 text-slate-400 group-hover:text-sky-600 transition-smooth" />
-                </Link>
-
-                <Link
-                  to="/marks/entry"
-                  className="p-4 bg-white hover:bg-sky-50/50 rounded-2xl border border-slate-200/80 flex items-center justify-between group transition-smooth"
-                >
-                  <div className="flex items-center space-x-3.5">
-                    <div className="w-10 h-10 rounded-xl bg-purple-100 text-purple-700 flex items-center justify-center group-hover:bg-purple-600 group-hover:text-white transition-smooth">
-                      <Award className="w-5 h-5" />
-                    </div>
-                    <div>
-                      <h4 className="text-sm font-semibold text-slate-800">Evaluation & Grades</h4>
-                      <p className="text-xs text-slate-500">Enter CT, quiz, exam marks</p>
-                    </div>
-                  </div>
-                  <ArrowRight className="w-4 h-4 text-slate-400 group-hover:text-purple-600 transition-smooth" />
-                </Link>
-              </>
-            )}
-
-            <Link
-              to="/faculty"
-              className="p-4 bg-white hover:bg-sky-50/50 rounded-2xl border border-slate-200/80 flex items-center justify-between group transition-smooth"
-            >
-              <div className="flex items-center space-x-3.5">
-                <div className="w-10 h-10 rounded-xl bg-slate-100 text-slate-700 flex items-center justify-center group-hover:bg-slate-700 group-hover:text-white transition-smooth">
-                  <Users className="w-5 h-5" />
-                </div>
-                <div>
-                  <h4 className="text-sm font-semibold text-slate-800">Faculty Directory</h4>
-                  <p className="text-xs text-slate-500">Search teachers, offices, contact info</p>
-                </div>
-              </div>
-              <ArrowRight className="w-4 h-4 text-slate-400 group-hover:text-slate-700 transition-smooth" />
-            </Link>
-          </div>
-        </div>
-
-        {/* Notices Board */}
-        <div className="lg:col-span-2 space-y-4">
-          <div className="flex items-center justify-between">
-            <h2 className="text-lg font-bold text-slate-800 flex items-center space-x-2">
-              <Bell className="w-5 h-5 text-sky-600" />
-              <span>Campus Notices & Circulars</span>
-            </h2>
-            <Link
-              to="/notices"
-              className="text-xs font-semibold text-sky-600 hover:text-sky-700 inline-flex items-center"
-            >
-              View all <ArrowRight className="w-3.5 h-3.5 ml-1" />
-            </Link>
-          </div>
-
-          <div className="space-y-3">
-            {notices.length === 0 ? (
-              <div className="p-8 bg-white rounded-2xl border border-slate-200 text-center text-slate-500">
-                No active announcements published.
-              </div>
-            ) : (
-              notices.map((notice) => (
-                <div
-                  key={notice._id}
-                  className="p-4 bg-white rounded-2xl border border-slate-200/80 hover:border-sky-300 shadow-xs hover:shadow-sm transition-smooth"
-                >
-                  <div className="flex items-start justify-between gap-3">
-                    <div>
-                      <span className="text-[11px] font-semibold text-slate-400 block mb-1">
-                        {formatDate(notice.createdAt)} • Posted by {notice.postedBy?.name || "Administration"}
-                      </span>
-                      <h3 className="text-base font-semibold text-slate-800">{notice.title}</h3>
-                      <p className="text-sm text-slate-600 mt-1 line-clamp-2">{notice.body}</p>
-                    </div>
-
-                    {notice.attachmentUrl && (
-                      <span className="shrink-0 px-2.5 py-1 bg-sky-50 text-sky-700 text-xs font-medium rounded-lg border border-sky-100">
-                        Attachment
-                      </span>
-                    )}
-                  </div>
-                </div>
-              ))
-            )}
-          </div>
-        </div>
-      </div>
-      </div>
-
-        {/* Right Live Sidebar */}
-        <div className="w-full lg:w-[360px] shrink-0">
-          <LiveSidebar />
-        </div>
-
-      </div>
-      
-    </motion.div>
-  );
-}
-
-export default Dashboard;
               
             </div>
           </div>
