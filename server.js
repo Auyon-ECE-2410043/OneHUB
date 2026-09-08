@@ -72,6 +72,7 @@ app.use("/api/medical", medicalRoutes);
 app.use("/api/calendar", calendarRoutes);
 app.use("/api/cron", cronRoutes);
 app.use("/api/settings", require("./routes/settings"));
+app.use("/api/livefeed", require("./routes/livefeed"));
 
 // Global 404 handler
 app.use((req, res) => {

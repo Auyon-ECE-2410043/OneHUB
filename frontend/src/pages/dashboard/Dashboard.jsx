@@ -18,6 +18,7 @@ import userService from "../../services/userService";
 import hallApplicationService from "../../services/hallApplicationService";
 import { formatCurrency, formatDate, getStatusBadge, getStatusLabel } from "../../utils/helpers";
 import { PageLoader } from "../../components/common/Loader";
+import { LiveSidebar } from "../../components/dashboard/LiveSidebar";
 import {
   BookOpen,
   CalendarCheck,
@@ -250,6 +251,9 @@ export function Dashboard() {
           </div>
         </div>
       </motion.div>
+
+      <div className="flex flex-col lg:flex-row gap-8 items-stretch">
+        <div className="flex-1 flex flex-col space-y-8 min-w-0">
 
       {/* STUDENT DASHBOARD METRICS */}
       {user?.role === "student" && (
@@ -674,6 +678,15 @@ export function Dashboard() {
           </div>
         </div>
       </div>
+      </div>
+
+        {/* Right Live Sidebar */}
+        <div className="w-full lg:w-[360px] shrink-0">
+          <LiveSidebar />
+        </div>
+
+      </div>
+      
     </motion.div>
   );
 }
