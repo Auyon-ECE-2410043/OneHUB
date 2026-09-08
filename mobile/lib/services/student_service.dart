@@ -42,4 +42,14 @@ class StudentService {
     final res = await _api.get('/medical/appointments');
     return res['appointments'] ?? [];
   }
+
+  Future<Map<String, dynamic>> bookMedicalAppointment(Map<String, dynamic> data) async {
+    return await _api.post('/medical/appointments', body: data);
+  }
+
+  Future<List<dynamic>> getBloodDirectory([String? group]) async {
+    final query = group != null && group.isNotEmpty ? '?group=${Uri.encodeComponent(group)}' : '';
+    final res = await _api.get('/medical/blood-directory$query');
+    return res['donors'] ?? [];
+  }
 }

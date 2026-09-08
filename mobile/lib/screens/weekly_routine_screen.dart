@@ -6,6 +6,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import '../services/student_service.dart';
+import '../widgets/up_next_class_widget.dart';
 
 class WeeklyRoutineScreen extends StatefulWidget {
   const WeeklyRoutineScreen({super.key});
@@ -18,6 +19,7 @@ class _WeeklyRoutineScreenState extends State<WeeklyRoutineScreen> {
   final StudentService _studentService = StudentService();
   bool _isLoading = true;
   List<dynamic> _routine = [];
+  final ScrollController _horizontalScrollController = ScrollController();
 
   final List<String> days = [
     "Saturday", "Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday"
@@ -45,6 +47,31 @@ class _WeeklyRoutineScreenState extends State<WeeklyRoutineScreen> {
   void initState() {
     super.initState();
     _fetchRoutine();
+    
+    // Auto-scroll to today
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (_horizontalScrollController.hasClients) {
+        final now = DateTime.now();
+        final weekdayMap = {6: "Saturday", 7: "Sunday", 1: "Monday", 2: "Tuesday", 3: "Wednesday", 4: "Thursday", 5: "Friday"};
+        final todayStr = weekdayMap[now.weekday] ?? "Saturday";
+        int dayIndex = days.indexOf(todayStr);
+        if (dayIndex != -1) {
+          // Calculate offset: time column width + previous days width
+          double offset = (dayIndex * dayWidth);
+          _horizontalScrollController.animateTo(
+            offset,
+            duration: const Duration(milliseconds: 500),
+            curve: Curves.easeInOut,
+          );
+        }
+      }
+    });
+  }
+
+  @override
+  void dispose() {
+    _horizontalScrollController.dispose();
+    super.dispose();
   }
 
   Future<void> _fetchRoutine() async {
@@ -80,18 +107,31 @@ class _WeeklyRoutineScreenState extends State<WeeklyRoutineScreen> {
   Widget build(BuildContext context) {
     double totalHeight = (9 * hourHeight); // 8am to 5pm
 
+    final now = DateTime.now();
+    final weekdayMap = {6: "Saturday", 7: "Sunday", 1: "Monday", 2: "Tuesday", 3: "Wednesday", 4: "Thursday", 5: "Friday"};
+    final todayStr = weekdayMap[now.weekday];
+
     return Scaffold(
       appBar: AppBar(title: const Text('Weekly Routine')),
       body: _isLoading
           ? const Center(child: CircularProgressIndicator())
-          : SingleChildScrollView(
-              scrollDirection: Axis.vertical,
-              child: SingleChildScrollView(
-                scrollDirection: Axis.horizontal,
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    // Header Row
+          : Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                const Padding(
+                  padding: EdgeInsets.all(12.0),
+                  child: UpNextClassWidget(),
+                ),
+                Expanded(
+                  child: SingleChildScrollView(
+                    scrollDirection: Axis.vertical,
+                    child: SingleChildScrollView(
+                      controller: _horizontalScrollController,
+                      scrollDirection: Axis.horizontal,
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          // Header Row
                     Row(
                       children: [
                         Container(
@@ -101,15 +141,28 @@ class _WeeklyRoutineScreenState extends State<WeeklyRoutineScreen> {
                             border: Border(right: BorderSide(color: Colors.grey, width: 0.5), bottom: BorderSide(color: Colors.grey, width: 0.5))
                           ),
                         ),
-                        ...days.map((day) => Container(
-                              width: dayWidth,
-                              height: 50,
-                              alignment: Alignment.center,
-                              decoration: const BoxDecoration(
-                                border: Border(right: BorderSide(color: Colors.grey, width: 0.5), bottom: BorderSide(color: Colors.grey, width: 0.5))
-                              ),
-                              child: Text(day, style: const TextStyle(fontWeight: FontWeight.bold, color: Colors.blueGrey)),
-                            ))
+                        ...days.map((day) {
+                          bool isToday = day == todayStr;
+                          return Container(
+                            width: dayWidth,
+                            height: 50,
+                            alignment: Alignment.center,
+                            decoration: BoxDecoration(
+                              color: isToday ? Colors.blue.withOpacity(0.1) : Colors.transparent,
+                              border: const Border(
+                                right: BorderSide(color: Colors.grey, width: 0.5), 
+                                bottom: BorderSide(color: Colors.grey, width: 0.5)
+                              )
+                            ),
+                            child: Text(
+                              day, 
+                              style: TextStyle(
+                                fontWeight: FontWeight.bold, 
+                                color: isToday ? Colors.blue.shade900 : Colors.blueGrey
+                              )
+                            ),
+                          );
+                        })
                       ],
                     ),
                     // Grid Body
@@ -240,7 +293,10 @@ class _WeeklyRoutineScreenState extends State<WeeklyRoutineScreen> {
                   ],
                 ),
               ),
-            ).animate().fade(duration: 500.ms).slideY(begin: 0.05, end: 0),
+            ),
+          ),
+        ],
+      ).animate().fade(duration: 500.ms).slideY(begin: 0.05, end: 0),
     );
   }
 }

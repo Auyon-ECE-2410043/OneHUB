@@ -7,6 +7,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import '../providers/auth_provider.dart';
+import '../widgets/up_next_class_widget.dart';
 
 import 'notice_board_screen.dart';
 import 'faculty_directory_screen.dart';
@@ -150,7 +151,12 @@ class HomeScreen extends StatelessWidget {
                   color: Colors.grey,
                 ),
               ),
-              const SizedBox(height: 24),
+              const SizedBox(height: 16),
+              
+              if (user['role'] == 'student' || user['role'] == 'faculty') ...[
+                const UpNextClassWidget(),
+                const SizedBox(height: 16),
+              ],
               
               if (user['role'] == 'admin' || user['role'] == 'student' || user['role'] == 'faculty') ...[
                 const Text(

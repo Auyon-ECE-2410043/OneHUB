@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { AlertCircle, Award, Bell, Activity, Trash2, Zap, Sparkles } from "lucide-react";
+import { AlertCircle, Award, Bell, Activity, Trash2, Zap, Sparkles, Plus } from "lucide-react";
+import LiveFeedPostModal from "./LiveFeedPostModal";
 import livefeedService from "../../services/livefeedService";
 import { useAuth } from "../../context/AuthContext";
 import { formatDate } from "../../utils/helpers";
@@ -9,6 +10,7 @@ export function LiveSidebar() {
   const { user } = useAuth();
   const [feeds, setFeeds] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [isModalOpen, setIsModalOpen] = useState(false);
 
   const fetchFeeds = async () => {
     try {
@@ -59,10 +61,21 @@ export function LiveSidebar() {
           <div className="p-2.5 bg-indigo-500/20 rounded-xl backdrop-blur-md border border-indigo-400/30">
             <Activity className="w-6 h-6 text-indigo-400" />
           </div>
-          <h2 className="text-xl font-bold text-white flex items-center gap-2">
-            Live Campus Feed
-            <Sparkles className="w-4 h-4 text-sky-400 animate-bounce" />
-          </h2>
+          <div className="flex items-center gap-4">
+            <h2 className="text-xl font-bold text-white flex items-center gap-2">
+              Live Campus Feed
+              <Sparkles className="w-4 h-4 text-sky-400 animate-bounce" />
+            </h2>
+            {(user?.role === "admin" || user?.role === "faculty") && (
+              <button
+                onClick={() => setIsModalOpen(true)}
+                className="flex items-center gap-1.5 px-3 py-1.5 bg-white/10 hover:bg-white/20 text-white rounded-lg text-xs font-bold transition-colors backdrop-blur-sm border border-white/10"
+              >
+                <Plus className="w-3.5 h-3.5" />
+                Post
+              </button>
+            )}
+          </div>
         </div>
         <div className="flex items-center gap-2">
           <span className="relative flex h-3 w-3">
@@ -101,7 +114,13 @@ export function LiveSidebar() {
                   <Trash2 className="w-4 h-4" />
                 </button>
               )}
-            </motion.div>
+        
+      <LiveFeedPostModal 
+        isOpen={isModalOpen} 
+        onClose={() => setIsModalOpen(false)} 
+        onSuccess={() => fetchFeeds()} 
+      />
+    </motion.div>
           ))}
           
           {others.map((feed) => (
