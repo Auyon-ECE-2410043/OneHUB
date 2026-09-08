@@ -8,7 +8,7 @@
 import { useState, useEffect } from "react";
 import { useAuth } from "../../context/AuthContext";
 import hallApplicationService from "../../services/hallApplicationService";
-import { MALE_HALLS, FEMALE_HALLS, SEMESTERS } from "../../utils/constants";
+import { MALE_HALLS, FEMALE_HALLS, SEMESTERS, HALL_NAMES } from "../../utils/constants";
 import { formatDate, getStatusBadge, getStatusLabel } from "../../utils/helpers";
 import { PageLoader } from "../../components/common/Loader";
 import {
@@ -41,6 +41,7 @@ export function HallApplicationForm() {
   const [incomeDocumentFile, setIncomeDocumentFile] = useState(null);
   const [submitting, setSubmitting] = useState(false);
   const [errorMsg, setErrorMsg] = useState("");
+  const allowedHalls = currentUser?.gender === "female" ? FEMALE_HALLS : MALE_HALLS;
   const [successMsg, setSuccessMsg] = useState("");
 
   const fetchApplication = async () => {
