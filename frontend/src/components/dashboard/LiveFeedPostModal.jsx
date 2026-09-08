@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { createPortal } from "react-dom";
 import { motion, AnimatePresence } from "framer-motion";
 import { X, Send, AlertTriangle, Trophy, Bell, Loader2 } from "lucide-react";
 import livefeedService from "../../services/livefeedService";
@@ -30,8 +31,9 @@ export default function LiveFeedPostModal({ isOpen, onClose, onSuccess }) {
 
   if (!isOpen) return null;
 
-  return (
+  return createPortal(
     <AnimatePresence>
+      
       <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-sm">
         <motion.div
           initial={{ opacity: 0, scale: 0.95, y: 20 }}
@@ -143,6 +145,8 @@ export default function LiveFeedPostModal({ isOpen, onClose, onSuccess }) {
           </form>
         </motion.div>
       </div>
-    </AnimatePresence>
+    
+    </AnimatePresence>,
+    document.body
   );
 }
