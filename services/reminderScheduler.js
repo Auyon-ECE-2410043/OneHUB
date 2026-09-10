@@ -113,7 +113,6 @@ async function checkAndSendClassReminders() {
       // -------------------------------------------------------------
       const facultyMembers = await User.find({
         role: "faculty",
-        department: slot.department,
         teacherAcronym: { $in: slot.teacherInitials },
       });
 
