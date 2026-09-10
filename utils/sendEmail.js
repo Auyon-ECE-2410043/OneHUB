@@ -5,6 +5,9 @@ const sendEmail = async (options) => {
   const emailPass = process.env.EMAIL_PASS;
   const emailHost = process.env.EMAIL_HOST || "smtp.gmail.com";
   const emailPort = process.env.EMAIL_PORT || 587;
+  
+  // Use EMAIL_FROM if provided, otherwise fallback to EMAIL_USER (works for Gmail)
+  const emailFrom = process.env.EMAIL_FROM || emailUser || "noreply@onehub.edu";
 
   let transporter;
   if (emailUser && emailPass) {
@@ -24,6 +27,7 @@ const sendEmail = async (options) => {
         console.log("==========================================");
         console.log("MOCK EMAIL SENT:");
         console.log("To:", mailOptions.to);
+        console.log("From:", mailOptions.from);
         console.log("Subject:", mailOptions.subject);
         console.log("Text:", mailOptions.text);
         console.log("==========================================");
@@ -33,7 +37,7 @@ const sendEmail = async (options) => {
   }
 
   const mailOptions = {
-    from: `"RUET OneHUB Verification" <${emailUser || "noreply@onehub.edu"}>`,
+    from: `"RUET OneHUB Verification" <${emailFrom}>`,
     to: options.to,
     subject: options.subject,
     text: options.text,
