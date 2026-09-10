@@ -7,8 +7,9 @@
 
 import { useState, useEffect } from "react";
 import routineService from "../../services/routineService";
+import userService from "../../services/userService";
 import { PageLoader } from "../../components/common/Loader";
-import { Plus, Edit2, Trash2 } from "lucide-react";
+import { Plus, Edit2, Trash2, Filter } from "lucide-react";
 
 const eceCourseMapping = {
   "1-1": ["HUM 1117", "PHY 1117", "ECE 1103", "MATH 1117", "ECE 1101", "HUM 1118", "ECE 1104", "PHY 1118"],
@@ -27,6 +28,8 @@ const timeOptions = ["08:00", "08:50", "09:40", "10:30", "10:50", "11:40", "12:3
 export default function ManageRoutine() {
   const [loading, setLoading] = useState(true);
   const [slots, setSlots] = useState([]);
+  const [facultyList, setFacultyList] = useState([]);
+  const [selectedTeacherFilter, setSelectedTeacherFilter] = useState("");
   
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [currentSlot, setCurrentSlot] = useState(null);
@@ -50,8 +53,12 @@ export default function ManageRoutine() {
   const fetchRoutine = async () => {
     setLoading(true);
     try {
-      const data = await routineService.getAllRoutine();
+      const [data, facultyData] = await Promise.all([
+        routineService.getAllRoutine(),
+        userService.getFacultyDirectory()
+      ]);
       setSlots(data.routine || []);
+      setFacultyList(facultyData || []);
     } catch (err) {
       console.error(err);
     } finally {
@@ -81,25 +88,25 @@ export default function ManageRoutine() {
         assessmentType: slot.assessmentType || "None",
         assessmentInfo: slot.assessmentInfo || "",
       });
-    } else {
-      setCurrentSlot(null);
-      setFormData({
-        courseCode: "",
-        department: "ECE",
-        semester: "1-1",
-        series: "2025 Series",
-        dayOfWeek: "Monday",
-        startTime: "08:00",
-        endTime: "08:50",
-        roomOrLab: "",
-        teacherInitials: "",
-        type: "theory",
-        targetGroup: "All",
-        assessmentType: "None",
-        assessmentInfo: "",
-      });
-    }
-    setIsModalOpen(true);
+      } else {
+        setCurrentSlot(null);
+        setFormData({
+          courseCode: "",
+          department: "ECE",
+          semester: "1-1",
+          series: "2025 Series",
+          dayOfWeek: "Monday",
+          startTime: "08:00",
+          endTime: "08:50",
+          roomOrLab: "",
+          teacherInitials: selectedTeacherFilter || "",
+          type: "theory",
+          targetGroup: "All",
+          assessmentType: "None",
+          assessmentInfo: "",
+        });
+      }
+      setIsModalOpen(true);
   };
 
   const handleDelete = async (id) => {
@@ -134,18 +141,39 @@ export default function ManageRoutine() {
     }
   };
 
+  const filteredSlots = selectedTeacherFilter 
+    ? slots.filter(s => s.teacherInitials?.includes(selectedTeacherFilter)) 
+    : slots;
+
   if (loading) return <PageLoader />;
 
   return (
     <div className="p-6">
-      <div className="flex justify-between items-center mb-6">
+      <div className="flex flex-col md:flex-row justify-between md:items-center gap-4 mb-6">
         <h1 className="text-2xl font-bold text-gray-800">Manage Class Routine</h1>
-        <button
-          onClick={() => handleOpenModal()}
-          className="flex items-center gap-2 bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition"
-        >
-          <Plus className="w-4 h-4" /> Add Slot
-        </button>
+        <div className="flex items-center gap-3">
+          <div className="flex items-center gap-2 bg-white border rounded-lg px-3 py-2 shadow-sm">
+            <Filter className="w-4 h-4 text-gray-500" />
+            <select
+              value={selectedTeacherFilter}
+              onChange={(e) => setSelectedTeacherFilter(e.target.value)}
+              className="outline-none bg-transparent text-sm text-gray-700"
+            >
+              <option value="">All Teachers</option>
+              {facultyList.map(faculty => (
+                <option key={faculty._id} value={faculty.teacherAcronym || faculty.name}>
+                  {faculty.name} ({faculty.teacherAcronym || "N/A"})
+                </option>
+              ))}
+            </select>
+          </div>
+          <button
+            onClick={() => handleOpenModal()}
+            className="flex items-center gap-2 bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition"
+          >
+            <Plus className="w-4 h-4" /> Add Slot
+          </button>
+        </div>
       </div>
 
       <div className="bg-white rounded-xl shadow overflow-hidden">
@@ -157,13 +185,20 @@ export default function ManageRoutine() {
                 <th className="p-4 text-sm font-semibold text-gray-600">Series & Sem</th>
                 <th className="p-4 text-sm font-semibold text-gray-600">Day & Time</th>
                 <th className="p-4 text-sm font-semibold text-gray-600">Room</th>
-                <th className="p-4 text-sm font-semibold text-gray-600">Teacher(s)</th>
+                <th className="p-4 text-sm font-semibold text-gray-600">Teachers</th>
                 <th className="p-4 text-sm font-semibold text-gray-600 text-right">Actions</th>
               </tr>
             </thead>
             <tbody>
-              {slots.map(slot => (
-                <tr key={slot._id} className="border-b hover:bg-gray-50">
+              {filteredSlots.length === 0 ? (
+                <tr>
+                  <td colSpan="6" className="p-6 text-center text-gray-500">
+                    No classes found for the selected teacher.
+                  </td>
+                </tr>
+              ) : (
+                filteredSlots.map(slot => (
+                  <tr key={slot._id} className="border-b hover:bg-gray-50">
                   <td className="p-4 font-medium text-gray-800">
                     <div className="flex items-center gap-2">
                       <span>{slot.courseCode}</span>
