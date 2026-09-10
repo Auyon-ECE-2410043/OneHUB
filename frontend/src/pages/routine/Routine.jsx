@@ -5,7 +5,7 @@
  * This file is part of the RUET OneHub Project.
  */
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import { useAuth } from "../../context/AuthContext";
 import routineService from "../../services/routineService";
 import { calendarService } from "../../services/calendarService";
@@ -16,6 +16,23 @@ const DAYS = ["Saturday", "Sunday", "Monday", "Tuesday", "Wednesday", "Thursday"
 const START_HOUR = 8; // 08:00
 const END_HOUR = 17; // 17:00
 const HOUR_HEIGHT = 110; // px per hour
+
+const parseTime = (timeStr) => {
+  if (!timeStr) return 0;
+  // Handle "08:00 AM" format if it exists
+  if (timeStr.includes(" ")) {
+    const [time, period] = timeStr.split(" ");
+    let [hours, minutes] = time.split(":").map(Number);
+    if (period === "PM" && hours !== 12) hours += 12;
+    if (period === "AM" && hours === 12) hours = 0;
+    return hours + minutes / 60;
+  }
+  
+  // Handle "08:00" format (auto-convert 1 PM - 7 PM to 24-hour)
+  let [h, m] = timeStr.split(":").map(Number);
+  if (h >= 1 && h <= 7) h += 12;
+  return h + m / 60;
+};
 
 export function Routine() {
   const { user } = useAuth();
@@ -45,6 +62,48 @@ export function Routine() {
     const interval = setInterval(() => setCurrentTime(new Date()), 60000);
     return () => clearInterval(interval);
   }, []);
+
+  const classLayouts = useMemo(() => {
+    const layouts = {};
+    DAYS.forEach(day => {
+      const dayClasses = classes.filter(c => c.dayOfWeek === day);
+      dayClasses.sort((a, b) => parseTime(a.startTime) - parseTime(b.startTime));
+
+      const columns = [];
+      dayClasses.forEach(c => {
+        const start = parseTime(c.startTime);
+        const end = parseTime(c.endTime);
+        let placed = false;
+        
+        for (let i = 0; i < columns.length; i++) {
+          const col = columns[i];
+          const lastClass = col[col.length - 1];
+          const lastEnd = parseTime(lastClass.endTime);
+          
+          if (start >= lastEnd) {
+            col.push(c);
+            placed = true;
+            c._col = i;
+            break;
+          }
+        }
+        
+        if (!placed) {
+          columns.push([c]);
+          c._col = columns.length - 1;
+        }
+      });
+      
+      const numCols = columns.length;
+      dayClasses.forEach(c => {
+        layouts[c._id] = {
+          width: `calc(${100 / numCols}% - 4px)`,
+          left: `calc(${(100 / numCols) * c._col}% + 2px)`
+        };
+      });
+    });
+    return layouts;
+  }, [classes]);
 
   const getWeekDates = () => {
     const today = new Date();
@@ -79,23 +138,6 @@ export function Routine() {
   };
 
   const getStyleForSlot = (startTime, endTime) => {
-    const parseTime = (timeStr) => {
-      if (!timeStr) return 0;
-      // Handle "08:00 AM" format if it exists
-      if (timeStr.includes(" ")) {
-        const [time, period] = timeStr.split(" ");
-        let [hours, minutes] = time.split(":").map(Number);
-        if (period === "PM" && hours !== 12) hours += 12;
-        if (period === "AM" && hours === 12) hours = 0;
-        return hours + minutes / 60;
-      }
-      
-      // Handle "08:00" format (auto-convert 1 PM - 7 PM to 24-hour)
-      let [h, m] = timeStr.split(":").map(Number);
-      if (h >= 1 && h <= 7) h += 12;
-      return h + m / 60;
-    };
-
     const start = parseTime(startTime);
     const end = parseTime(endTime);
     
@@ -188,20 +230,6 @@ export function Routine() {
     
     // Only check today's classes
     const todayClasses = classes.filter(c => c.dayOfWeek === currentDayStr);
-    
-    const parseTime = (timeStr) => {
-      if (!timeStr) return 0;
-      if (timeStr.includes(" ")) {
-        const [time, period] = timeStr.split(" ");
-        let [hStr, mStr] = time.split(":").map(Number);
-        if (period === "PM" && hStr !== 12) hStr += 12;
-        if (period === "AM" && hStr === 12) hStr = 0;
-        return hStr + mStr / 60;
-      }
-      let [h, m] = timeStr.split(":").map(Number);
-      if (h >= 1 && h <= 7) h += 12;
-      return h + m / 60;
-    };
     
     // Sort by start time
     todayClasses.sort((a, b) => parseTime(a.startTime) - parseTime(b.startTime));
@@ -327,13 +355,15 @@ export function Routine() {
                     classes
                       .filter((c) => c.dayOfWeek === day)
                       .map((c) => {
-                        const style = getStyleForSlot(c.startTime, c.endTime);
+                        const baseStyle = getStyleForSlot(c.startTime, c.endTime);
+                        const layoutStyle = classLayouts[c._id] || { width: 'calc(100% - 4px)', left: '2px' };
+                        const style = { ...baseStyle, ...layoutStyle };
                         const isSessional = c.type === "sessional" || c.type === "project";
                         
                         return (
                           <div
                             key={c._id}
-                            className={`absolute left-1 right-1 sm:left-2 sm:right-2 rounded-xl p-1.5 sm:p-2 overflow-hidden shadow-sm transition-all hover:-translate-y-0.5 hover:shadow-md cursor-pointer border-l-4 group ${
+                            className={`absolute rounded-xl p-1.5 sm:p-2 overflow-hidden shadow-sm transition-all hover:-translate-y-0.5 hover:shadow-md cursor-pointer border-l-4 group ${
                               isSessional
                                 ? "bg-indigo-50 border-indigo-500 hover:bg-indigo-100"
                                 : "bg-sky-50 border-sky-500 hover:bg-sky-100"
