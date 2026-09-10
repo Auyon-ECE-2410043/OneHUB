@@ -122,7 +122,7 @@ router.post("/register", async (req, res) => {
     res.status(201).json({ 
       requiresOtp: true, 
       userId: user._id, 
-      message: "Account created! A verification code has been sent to your email." 
+      message: "Account created! A verification code has been sent to your email (Please check your Spam/Junk folder)." 
     });
   } catch (err) {
     res.status(500).json({ error: err.message });
@@ -166,7 +166,7 @@ router.post("/login", async (req, res) => {
       return res.json({ 
         requiresOtp: true, 
         userId: user._id, 
-        message: "A verification code has been sent to your email. Please verify to continue." 
+        message: "A verification code has been sent to your email (Please check your Spam/Junk folder). Please verify to continue." 
       });
     }
 
@@ -370,7 +370,7 @@ router.post("/send-otp", async (req, res) => {
       html: generateOTPTemplate(otpCode, 'login') // Reuse the auth template
     });
 
-    res.json({ message: "A password reset code has been sent to your email." });
+    res.json({ message: "A password reset code has been sent to your email (Please check your Spam folder)." });
   } catch (err) {
     res.status(500).json({ error: err.message });
   }
