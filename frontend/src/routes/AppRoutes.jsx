@@ -110,7 +110,7 @@ export function AppRoutes() {
       <Route
         element={
           <ProtectedRoute>
-            <DashboardLayout />
+            <DashboardLayout key={user?._id || "guest"} />
           </ProtectedRoute>
         }
       >
