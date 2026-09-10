@@ -137,7 +137,7 @@ router.get("/my-week", requireAuth, async (req, res) => {
         { targetGroup: { $exists: false } }
       ];
     } else if (user.role === "faculty") {
-      filter.department = user.department;
+      // Do not filter by department for faculty, as they may teach courses in other departments.
       if (user.teacherAcronym) {
         filter.teacherInitials = user.teacherAcronym;
       }
@@ -174,7 +174,7 @@ router.get("/today", requireAuth, async (req, res) => {
         { targetGroup: { $exists: false } }
       ];
     } else if (user.role === "faculty") {
-      filter.department = user.department;
+      // Do not filter by department for faculty, as they may teach courses in other departments.
       if (user.teacherAcronym) {
         filter.teacherInitials = user.teacherAcronym;
       }
@@ -221,7 +221,7 @@ router.get("/weekly", requireAuth, async (req, res) => {
         { targetGroup: { $exists: false } }
       ];
     } else if (user.role === "faculty") {
-      filter.department = user.department;
+      // Do not filter by department for faculty, as they may teach courses in other departments.
       if (user.teacherAcronym) {
         filter.teacherInitials = user.teacherAcronym;
       }
