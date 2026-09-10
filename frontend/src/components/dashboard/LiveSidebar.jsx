@@ -6,11 +6,11 @@ import livefeedService from "../../services/livefeedService";
 import { useAuth } from "../../context/AuthContext";
 import { formatDate } from "../../utils/helpers";
 
-export function LiveSidebar() {
+export function LiveSidebar({ onOpenPostModal }) {
   const { user } = useAuth();
   const [feeds, setFeeds] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [isModalOpen, setIsModalOpen] = useState(false);
+  
 
   const fetchFeeds = async () => {
     try {
@@ -68,7 +68,7 @@ export function LiveSidebar() {
             </h2>
             {(user?.role === "admin" || user?.role === "faculty") && (
               <button
-                onClick={() => setIsModalOpen(true)}
+                onClick={onOpenPostModal}
                 className="flex items-center gap-1.5 px-3 py-1.5 bg-white/10 hover:bg-white/20 text-white rounded-lg text-xs font-bold transition-colors backdrop-blur-sm border border-white/10"
               >
                 <Plus className="w-3.5 h-3.5" />
@@ -115,11 +115,7 @@ export function LiveSidebar() {
                 </button>
               )}
         
-      <LiveFeedPostModal 
-        isOpen={isModalOpen} 
-        onClose={() => setIsModalOpen(false)} 
-        onSuccess={() => fetchFeeds()} 
-      />
+      
     </motion.div>
           ))}
           

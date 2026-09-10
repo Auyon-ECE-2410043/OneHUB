@@ -9,6 +9,7 @@ const express = require("express");
 const Registration = require("../models/Registration");
 const CourseAssignment = require("../models/CourseAssignment");
 const Fee = require("../models/Fee");
+const Notification = require("../models/Notification");
 const User = require("../models/User");
 const { requireAuth, requireRole } = require("../middleware/auth");
 

@@ -8,6 +8,7 @@
 import { useState, useEffect } from "react";
 import courseService from "../../services/courseService";
 import { DEPARTMENTS, SEMESTERS, BATCHES } from "../../utils/constants";
+import { toast } from "sonner";
 import { PageLoader } from "../../components/common/Loader";
 import {
   Layers,
@@ -33,14 +34,18 @@ export function CourseAssignmentList() {
 
   useEffect(() => {
     const fetchCatalog = async () => {
-      setLoading(true);
-      try {
-        const catalog = await courseService.getAllCourses(1, 100); 
-        setCourses(catalog);
-      } finally {
-        setLoading(false);
-      }
-    };
+        setLoading(true);
+        try {
+          const catalog = await courseService.getAllCourses(1, 100); 
+          setCourses(catalog);
+          if (catalog.length === 0) toast.error("Catalog fetched but is empty!");
+        } catch (err) {
+          toast.error("Error fetching courses: " + err.message);
+          console.error(err);
+        } finally {
+          setLoading(false);
+        }
+      };
     fetchCatalog();
   }, []);
 

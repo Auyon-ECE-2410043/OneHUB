@@ -10,6 +10,7 @@ import { Link } from "react-router-dom";
 import { motion } from "framer-motion";
 import { useAuth } from "../../context/AuthContext";
 import { CourseDistributionChart } from "../../components/dashboard/CourseDistributionChart";
+import LiveFeedPostModal from "../../components/dashboard/LiveFeedPostModal";
 import courseService from "../../services/courseService";
 import registrationService from "../../services/registrationService";
 import feeService from "../../services/feeService";
@@ -38,6 +39,7 @@ export function Dashboard() {
   const [features, setFeatures] = useState({});
   const [togglingFeature, setTogglingFeature] = useState(null);
   const [maintenanceLoading, setMaintenanceLoading] = useState(false);
+  const [isLiveFeedModalOpen, setIsLiveFeedModalOpen] = useState(false);
 
   
   const handleToggleFeature = async (featureKey) => {
@@ -246,11 +248,16 @@ export function Dashboard() {
             )}
           </div>
         </div>
-      </motion.div>
+        <LiveFeedPostModal 
+        isOpen={isLiveFeedModalOpen} 
+        onClose={() => setIsLiveFeedModalOpen(false)} 
+        onSuccess={() => window.location.reload()} 
+      />
+    </motion.div>
           
           {/* HUGE LIVE FEED */}
           <div className="w-full">
-            <LiveSidebar />
+            <LiveSidebar onOpenPostModal={() => setIsLiveFeedModalOpen(true)} />
           </div>
 
           {/* Quick Shortcuts & Notices */}

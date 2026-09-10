@@ -6,6 +6,7 @@
  */
 
 import { useState, useEffect, useRef } from "react";
+import { toast } from "sonner";
 import { Bell, Check, Clock } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import api from "../../services/api";
@@ -15,6 +16,7 @@ export function NotificationBell() {
   const navigate = useNavigate();
   const [notifications, setNotifications] = useState([]);
   const [unreadCount, setUnreadCount] = useState(0);
+  const [prevNotifIds, setPrevNotifIds] = useState(new Set());
   const containerRef = useRef(null);
 
   const formatNotifDate = (dateString) => {
@@ -31,22 +33,36 @@ export function NotificationBell() {
   };
 
   const fetchNotifications = async () => {
-    try {
-      const { data } = await api.get("/notifications");
-      setNotifications(data.notifications || []);
-      // Only update unread count if the dropdown isn't currently open
-      // (to prevent the badge from returning if they are actively reading)
-      if (!isOpen) {
-        setUnreadCount(data.unreadCount || 0);
+      try {
+        const { data } = await api.get("/notifications");
+        const newNotifications = data.notifications || [];
+        setNotifications(newNotifications);
+        
+        if (!isOpen) {
+          setUnreadCount(data.unreadCount || 0);
+        }
+
+        // Check for newly arrived notifications and toast them
+        setPrevNotifIds((prev) => {
+          const currentIds = new Set(newNotifications.map(n => n._id));
+          if (prev.size > 0) { // Don't toast on initial load
+            newNotifications.forEach(notif => {
+              if (!prev.has(notif._id) && !notif.isRead) {
+                toast(notif.title, { description: notif.message, icon: "🔔" });
+              }
+            });
+          }
+          return currentIds;
+        });
+
+      } catch (err) {
+        console.error("Failed to fetch notifications", err);
       }
-    } catch (err) {
-      console.error("Failed to fetch notifications", err);
-    }
-  };
+    };
 
   useEffect(() => {
     fetchNotifications();
-    const interval = setInterval(fetchNotifications, 60000); // every minute
+    const interval = setInterval(fetchNotifications, 15000); // every minute
     return () => clearInterval(interval);
   }, [isOpen]);
 
