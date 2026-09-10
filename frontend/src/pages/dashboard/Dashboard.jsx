@@ -547,7 +547,56 @@ export function Dashboard() {
       )}
               
 
-              {/* ADMIN MODULE ACCESS CONTROL */}
+              {/* FACULTY DASHBOARD METRICS */}
+                {user?.role === "faculty" && (
+                  <div className="grid grid-cols-1 gap-4">
+                    <motion.div variants={itemVariants} className="p-4 bg-white/80 dark:bg-slate-900/80 backdrop-blur-xl rounded-2xl border border-slate-200/80 dark:border-slate-800 shadow-xs hover:shadow-md transition-smooth">
+                      <div className="flex items-center justify-between">
+                        <span className="text-xs font-semibold uppercase tracking-wider text-slate-500">
+                          Course Catalog
+                        </span>
+                        <div className="w-10 h-10 rounded-xl bg-sky-50 text-sky-600 flex items-center justify-center">
+                          <BookOpen className="w-5 h-5" />
+                        </div>
+                      </div>
+                      <div className="mt-3">
+                        <div className="text-2xl font-bold text-slate-800 dark:text-slate-100">
+                          {allCourses?.length || 0}
+                        </div>
+                        <p className="text-xs text-slate-500 mt-1">Total courses available</p>
+                      </div>
+                      <div className="mt-4 pt-3 border-t border-slate-100 dark:border-slate-800">
+                        <Link to="/courses" className="text-xs font-semibold text-sky-600 hover:text-sky-700 inline-flex items-center">
+                          View catalog <ArrowRight className="w-3 h-3 ml-1" />
+                        </Link>
+                      </div>
+                    </motion.div>
+  
+                    <motion.div variants={itemVariants} className="p-4 bg-white/80 dark:bg-slate-900/80 backdrop-blur-xl rounded-2xl border border-slate-200/80 dark:border-slate-800 shadow-xs hover:shadow-md transition-smooth">
+                      <div className="flex items-center justify-between">
+                        <span className="text-xs font-semibold uppercase tracking-wider text-slate-500">
+                          Pending Approvals
+                        </span>
+                        <div className="w-10 h-10 rounded-xl bg-amber-50 text-amber-600 flex items-center justify-center">
+                          <Clock className="w-5 h-5" />
+                        </div>
+                      </div>
+                      <div className="mt-3">
+                        <div className="text-2xl font-bold text-slate-800 dark:text-slate-100">
+                          {pendingRegistrations?.length || 0}
+                        </div>
+                        <p className="text-xs text-slate-500 mt-1">Registrations awaiting approval</p>
+                      </div>
+                      <div className="mt-4 pt-3 border-t border-slate-100 dark:border-slate-800">
+                        <Link to="/registration" className="text-xs font-semibold text-amber-600 hover:text-amber-700 inline-flex items-center">
+                          Review now <ArrowRight className="w-3 h-3 ml-1" />
+                        </Link>
+                      </div>
+                    </motion.div>
+                  </div>
+                )}
+  
+                {/* ADMIN MODULE ACCESS CONTROL */}
               {user?.role === "admin" && (
                 <div className="bg-slate-50 dark:bg-slate-800/50 rounded-2xl p-4 border border-slate-100 dark:border-slate-800">
                   <div className="mb-4">
