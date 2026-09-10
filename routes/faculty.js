@@ -62,7 +62,7 @@ router.get("/", requireAuth, async (req, res) => {
     const query = { role: "faculty" };
 
     const faculty = await User.find(query)
-      .select("name nameBengali designation department email phone officeLocation isPhdHolder isHeadOfDept isOnLeave photoUrl website firstJoined fieldOfResearch education positionHistory")
+      .select("name nameBengali teacherAcronym designation department email phone officeLocation isPhdHolder isHeadOfDept isOnLeave photoUrl website firstJoined fieldOfResearch education positionHistory")
       .sort({ seniorityOrder: 1, _id: 1 })
       .skip(skip)
       .limit(limit);
