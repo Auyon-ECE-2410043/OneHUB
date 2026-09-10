@@ -29,6 +29,7 @@ export default function ManageRoutine() {
   const [loading, setLoading] = useState(true);
   const [slots, setSlots] = useState([]);
   const [facultyList, setFacultyList] = useState([]);
+  const [selectedDeptFilter, setSelectedDeptFilter] = useState("ECE");
   const [selectedTeacherFilter, setSelectedTeacherFilter] = useState("");
   
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -141,6 +142,8 @@ export default function ManageRoutine() {
     }
   };
 
+  const departments = [...new Set(facultyList.map(f => f.department).filter(Boolean))].sort();
+
   const filteredSlots = selectedTeacherFilter 
     ? slots.filter(s => s.teacherInitials?.includes(selectedTeacherFilter)) 
     : slots;
@@ -152,18 +155,33 @@ export default function ManageRoutine() {
       <div className="flex flex-col md:flex-row justify-between md:items-center gap-4 mb-6">
         <h1 className="text-2xl font-bold text-gray-800">Manage Class Routine</h1>
         <div className="flex items-center gap-3">
-          <div className="flex items-center gap-2 bg-white border rounded-lg px-3 py-2 shadow-sm">
-            <Filter className="w-4 h-4 text-gray-500" />
+          <div className="flex items-center bg-white border rounded-lg px-2 py-1 shadow-sm overflow-hidden">
+            <Filter className="w-4 h-4 text-gray-500 ml-2" />
+            <select
+              value={selectedDeptFilter}
+              onChange={(e) => {
+                setSelectedDeptFilter(e.target.value);
+                setSelectedTeacherFilter("");
+              }}
+              className="outline-none bg-transparent text-sm text-gray-700 p-1 border-r border-gray-200"
+            >
+              <option value="">All Depts</option>
+              {departments.map(d => (
+                <option key={d} value={d}>{d}</option>
+              ))}
+            </select>
             <select
               value={selectedTeacherFilter}
               onChange={(e) => setSelectedTeacherFilter(e.target.value)}
-              className="outline-none bg-transparent text-sm text-gray-700"
+              className="outline-none bg-transparent text-sm text-gray-700 p-1 ml-1"
             >
               <option value="">All Teachers</option>
-              {facultyList.map(faculty => (
-                <option key={faculty._id} value={faculty.teacherAcronym || faculty.name}>
-                  {faculty.name} ({faculty.teacherAcronym || "N/A"})
-                </option>
+              {facultyList
+                .filter(f => !selectedDeptFilter || f.department === selectedDeptFilter)
+                .map(faculty => (
+                  <option key={faculty._id} value={faculty.teacherAcronym || faculty.name}>
+                    {faculty.name} ({faculty.teacherAcronym || "N/A"})
+                  </option>
               ))}
             </select>
           </div>
