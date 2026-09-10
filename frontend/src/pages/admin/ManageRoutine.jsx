@@ -190,15 +190,15 @@ export default function ManageRoutine() {
               </tr>
             </thead>
             <tbody>
-              {filteredSlots.length === 0 ? (
+              {filteredSlots.length === 0 && (
                 <tr>
                   <td colSpan="6" className="p-6 text-center text-gray-500">
                     No classes found for the selected teacher.
                   </td>
                 </tr>
-              ) : (
-                filteredSlots.map(slot => (
-                  <tr key={slot._id} className="border-b hover:bg-gray-50">
+              )}
+              {filteredSlots.map(slot => (
+                <tr key={slot._id} className="border-b hover:bg-gray-50">
                   <td className="p-4 font-medium text-gray-800">
                     <div className="flex items-center gap-2">
                       <span>{slot.courseCode}</span>
