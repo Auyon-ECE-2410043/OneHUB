@@ -10,6 +10,8 @@ import '../providers/auth_provider.dart';
 import '../widgets/up_next_class_widget.dart';
 
 import 'notice_board_screen.dart';
+import 'manage_routine_screen.dart';
+import 'manage_calendar_screen.dart';
 import 'faculty_directory_screen.dart';
 import 'manage_users_screen.dart';
 import 'course_management_screen.dart';
@@ -351,7 +353,27 @@ class HomeScreen extends StatelessWidget {
                   if (user['role'] == 'admin') ...[
                     _buildModuleCard(
                       context, 
-                      'Course Management', 
+                      'Manage Routine', 
+                      Icons.calendar_month, 
+                      Colors.blue,
+                      onTap: () => Navigator.push(
+                        context,
+                        MaterialPageRoute(builder: (_) => const ManageRoutineScreen()),
+                      ),
+                    ),
+                    _buildModuleCard(
+                      context, 
+                      'Manage Calendar', 
+                      Icons.event_note, 
+                      Colors.deepPurple,
+                      onTap: () => Navigator.push(
+                        context,
+                        MaterialPageRoute(builder: (_) => const ManageCalendarScreen()),
+                      ),
+                    ),
+                    _buildModuleCard(
+                      context, 
+                      'Course Management',  
                       Icons.book, 
                       Colors.teal,
                       onTap: () => Navigator.push(
