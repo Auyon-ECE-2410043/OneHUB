@@ -52,6 +52,7 @@ class _ManageUsersScreenState extends State<ManageUsersScreen> {
     final departmentController = TextEditingController();
     final batchController = TextEditingController();
     String role = 'student';
+    String gender = 'Male';
 
     showModalBottomSheet(
       context: context,
@@ -121,6 +122,17 @@ class _ManageUsersScreenState extends State<ManageUsersScreen> {
                     keyboardType: TextInputType.number,
                   ),
                 ],
+                const SizedBox(height: 16),
+                DropdownButtonFormField<String>(
+                  initialValue: gender,
+                  decoration: const InputDecoration(labelText: 'Gender'),
+                  items: const [
+                    DropdownMenuItem(value: 'Male', child: Text('Male')),
+                    DropdownMenuItem(value: 'Female', child: Text('Female')),
+                    DropdownMenuItem(value: 'Other', child: Text('Other')),
+                  ],
+                  onChanged: (val) => setModalState(() => gender = val!),
+                ),
                 const SizedBox(height: 24),
                 ElevatedButton(
                   onPressed: () async {
@@ -131,6 +143,7 @@ class _ManageUsersScreenState extends State<ManageUsersScreen> {
                         'email': emailController.text,
                         'password': passwordController.text,
                         'role': role,
+                        'gender': gender,
                       };
                       if (role == 'student') {
                         body['rollNo'] = rollNoController.text;
