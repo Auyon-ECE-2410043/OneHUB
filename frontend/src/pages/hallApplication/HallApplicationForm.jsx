@@ -42,7 +42,11 @@ export function HallApplicationForm() {
   const [submitting, setSubmitting] = useState(false);
   const [errorMsg, setErrorMsg] = useState("");
   const [successMsg, setSuccessMsg] = useState("");
-  const allowedHalls = currentUser?.gender?.toLowerCase() === "female" ? FEMALE_HALLS : MALE_HALLS;
+  const allowedHalls = currentUser?.gender?.toLowerCase() === "female" 
+    ? FEMALE_HALLS 
+    : currentUser?.gender?.toLowerCase() === "male"
+      ? MALE_HALLS
+      : HALL_NAMES;
 
   const fetchApplication = async () => {
     setLoading(true);
