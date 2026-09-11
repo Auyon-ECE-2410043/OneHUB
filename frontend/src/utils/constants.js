@@ -44,8 +44,8 @@ export const MALE_HALLS = [
 ];
 
 export const FEMALE_HALLS = [
-  "Deshratna Sheikh Hasina Hall",
-  "Taposhi Rabeya Hall"
+  "Female Hall 1",
+  "Female Hall 2"
 ];
 
 export const HALL_NAMES = [...MALE_HALLS, ...FEMALE_HALLS];
