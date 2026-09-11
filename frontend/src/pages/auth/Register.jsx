@@ -40,6 +40,7 @@ export function Register() {
     registrationNo: "",
     department: "ECE",
     batch: "21",
+    gender: "Male",
   });
   
   const [otp, setOtp] = useState("");
@@ -313,6 +314,27 @@ export function Register() {
                         </select>
                       </div>
                     </div>
+                </div>
+
+                <div>
+                  <label className="block text-xs font-semibold uppercase tracking-wider text-slate-300 mb-1.5">
+                    Gender
+                  </label>
+                  <div className="relative rounded-xl shadow-xs">
+                    <div className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-slate-500">
+                      <User className="h-5 w-5" />
+                    </div>
+                    <select
+                      name="gender"
+                      value={formData.gender}
+                      onChange={handleChange}
+                      className="block w-full pl-10 pr-4 py-3 bg-slate-800/80 border border-slate-700 rounded-xl text-white focus:outline-none focus:ring-2 focus:ring-sky-500 text-sm transition-smooth"
+                    >
+                      <option value="Male" className="bg-slate-800">Male</option>
+                      <option value="Female" className="bg-slate-800">Female</option>
+                      <option value="Other" className="bg-slate-800">Other</option>
+                    </select>
+                  </div>
                 </div>
 
                 <div className="pt-4">

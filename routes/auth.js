@@ -64,7 +64,7 @@ const JWT_SECRET = process.env.JWT_SECRET || "ruet_onehub_super_secret_key_2026"
 // POST /api/auth/register
 router.post("/register", async (req, res) => {
   try {
-    const { name, email, password, role, rollNo, registrationNo, department, batch, phone, bloodGroup } = req.body;
+    const { name, email, password, role, rollNo, registrationNo, department, batch, phone, bloodGroup, gender } = req.body;
 
     if (!password || password.length < 6) {
       return res.status(400).json({ error: "Password must be at least 6 characters." });
@@ -103,6 +103,7 @@ router.post("/register", async (req, res) => {
       batch,
       phone,
       bloodGroup,
+      gender,
       isFirstLogin: true
     });
     await user.save();
