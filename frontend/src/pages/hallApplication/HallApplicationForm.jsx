@@ -41,8 +41,8 @@ export function HallApplicationForm() {
   const [incomeDocumentFile, setIncomeDocumentFile] = useState(null);
   const [submitting, setSubmitting] = useState(false);
   const [errorMsg, setErrorMsg] = useState("");
-  const allowedHalls = currentUser?.gender === "female" ? FEMALE_HALLS : MALE_HALLS;
   const [successMsg, setSuccessMsg] = useState("");
+  const allowedHalls = currentUser?.gender?.toLowerCase() === "female" ? FEMALE_HALLS : MALE_HALLS;
 
   const fetchApplication = async () => {
     setLoading(true);
