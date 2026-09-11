@@ -12,4 +12,16 @@ export const calendarService = {
     const res = await api.get("/calendar/holidays");
     return res.data.holidays || [];
   },
+  createHoliday: async (data) => {
+    const res = await api.post("/calendar/holidays", data);
+    return res.data;
+  },
+  updateHoliday: async (id, data) => {
+    const res = await api.put(`/calendar/holidays/${id}`, data);
+    return res.data;
+  },
+  deleteHoliday: async (id) => {
+    const res = await api.delete(`/calendar/holidays/${id}`);
+    return res.data;
+  },
 };

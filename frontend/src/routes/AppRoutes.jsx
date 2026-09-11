@@ -24,6 +24,7 @@ const CourseDetails = lazy(() => import("../pages/courses/CourseDetails"));
 const CourseAssignmentList = lazy(() => import("../pages/courseAssignment/CourseAssignmentList"));
 const Routine = lazy(() => import("../pages/routine/Routine"));
 const ManageRoutine = lazy(() => import("../pages/admin/ManageRoutine"));
+const ManageCalendar = lazy(() => import("../pages/admin/ManageCalendar"));
 const RegistrationForm = lazy(() => import("../pages/registration/RegistrationForm"));
 const FeeList = lazy(() => import("../pages/fees/FeeList"));
 const FeePayment = lazy(() => import("../pages/fees/FeePayment"));
@@ -195,6 +196,7 @@ export function AppRoutes() {
         
         {/* Calendar */}
         <Route path="/calendar" element={<FeatureGuard featureKey="calendar" title="Academic Calendar"><AcademicCalendar /></FeatureGuard>} />
+        <Route path="/manage-calendar" element={<ProtectedRoute allowedRoles={["admin"]}><ManageCalendar /></ProtectedRoute>} />
       </Route>
 
       {/* Fallback */}
