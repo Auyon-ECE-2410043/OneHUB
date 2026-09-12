@@ -28,6 +28,7 @@ import 'weekly_routine_screen.dart';
 import 'attendance_record_screen.dart';
 import 'student_hall_screen.dart';
 import 'clearance_status_screen.dart';
+import 'clearance_admin_screen.dart';
 import 'medical_center_screen.dart';
 import 'faculty_attendance_screen.dart';
 import 'academic_calendar_screen.dart';
@@ -431,6 +432,26 @@ class HomeScreen extends StatelessWidget {
                         MaterialPageRoute(builder: (_) => const ManageUsersScreen()),
                       ),
                     ),
+                    _buildModuleCard(
+                      context, 
+                      'Fee Management', 
+                      Icons.account_balance_wallet, 
+                      Colors.teal,
+                      onTap: () => Navigator.push(
+                        context,
+                        MaterialPageRoute(builder: (_) => const FeePaymentScreen()),
+                      ),
+                    ),
+                    _buildModuleCard(
+                      context, 
+                      'Manage Clearances', 
+                      Icons.verified_user, 
+                      Colors.green,
+                      onTap: () => Navigator.push(
+                        context,
+                        MaterialPageRoute(builder: (_) => const ClearanceAdminScreen()),
+                      ),
+                    ),
                   ],
 
                   // Faculty specific modules
@@ -477,6 +498,40 @@ class HomeScreen extends StatelessWidget {
                       onTap: () => Navigator.push(
                         context,
                         MaterialPageRoute(builder: (_) => const MarkEntryScreen()),
+                      ),
+                    ),
+                    _buildModuleCard(
+                      context, 
+                      'Manage Clearances', 
+                      Icons.verified_user, 
+                      Colors.green,
+                      onTap: () => Navigator.push(
+                        context,
+                        MaterialPageRoute(builder: (_) => const ClearanceAdminScreen()),
+                      ),
+                    ),
+                  ],
+
+                  // Hall Admin specific modules
+                  if (user['role'] == 'hall_admin') ...[
+                    _buildModuleCard(
+                      context, 
+                      'Hall Applications', 
+                      Icons.business, 
+                      Colors.orange,
+                      onTap: () => Navigator.push(
+                        context,
+                        MaterialPageRoute(builder: (_) => const HallApplicationsScreen()),
+                      ),
+                    ),
+                    _buildModuleCard(
+                      context, 
+                      'Manage Clearances', 
+                      Icons.verified_user, 
+                      Colors.green,
+                      onTap: () => Navigator.push(
+                        context,
+                        MaterialPageRoute(builder: (_) => const ClearanceAdminScreen()),
                       ),
                     ),
                   ],
