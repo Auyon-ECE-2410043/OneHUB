@@ -26,7 +26,7 @@ class _ManageCalendarScreenState extends State<ManageCalendarScreen> {
       final res = await _calendar.getHolidays();
       setState(() => _holidays = res);
     } catch (e) {
-      if (mounted) ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text("Failed to load: \$e")));
+      if (mounted) ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text("Failed to load: $e")));
     } finally {
       setState(() => _isLoading = false);
     }
@@ -80,7 +80,7 @@ class _ManageCalendarScreenState extends State<ManageCalendarScreen> {
                     Expanded(
                       child: ElevatedButton.icon(
                         icon: const Icon(Icons.date_range),
-                        label: Text(startDate != null ? "\${startDate!.toLocal()}".split(" ")[0] : "Start Date"),
+                        label: Text(startDate != null ? "${startDate!.toLocal()}".split(" ")[0] : "Start Date"),
                         onPressed: () async {
                           final d = await showDatePicker(context: context, initialDate: startDate ?? DateTime.now(), firstDate: DateTime(2020), lastDate: DateTime(2030));
                           if (d != null) setModalState(() => startDate = d);
@@ -91,7 +91,7 @@ class _ManageCalendarScreenState extends State<ManageCalendarScreen> {
                     Expanded(
                       child: ElevatedButton.icon(
                         icon: const Icon(Icons.date_range),
-                        label: Text(endDate != null ? "\${endDate!.toLocal()}".split(" ")[0] : "End Date"),
+                        label: Text(endDate != null ? "${endDate!.toLocal()}".split(" ")[0] : "End Date"),
                         onPressed: () async {
                           final d = await showDatePicker(context: context, initialDate: endDate ?? startDate ?? DateTime.now(), firstDate: DateTime(2020), lastDate: DateTime(2030));
                           if (d != null) setModalState(() => endDate = d);
@@ -115,12 +115,12 @@ class _ManageCalendarScreenState extends State<ManageCalendarScreen> {
                       if (holiday == null) {
                         await _api.post("/calendar/holidays", body: body);
                       } else {
-                        await _api.put("/calendar/holidays/\${holiday["_id"]}", body: body);
+                        await _api.put("/calendar/holidays/${holiday['_id']}", body: body);
                       }
                       if (context.mounted) Navigator.pop(context);
                       _fetchHolidays();
                     } catch (e) {
-                      if (context.mounted) ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text("Error: \$e")));
+                      if (context.mounted) ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text("Error: $e")));
                     }
                   },
                   child: const Text("Save"),
@@ -136,7 +136,7 @@ class _ManageCalendarScreenState extends State<ManageCalendarScreen> {
 
   Future<void> _deleteHoliday(String id) async {
     try {
-      await _api.delete("/calendar/holidays/\$id");
+      await _api.delete("/calendar/holidays/$id");
       _fetchHolidays();
     } catch(e) {
       if (mounted) ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text("Failed to delete")));
@@ -161,7 +161,7 @@ class _ManageCalendarScreenState extends State<ManageCalendarScreen> {
               return Card(
                 child: ListTile(
                   title: Text(h["title"]),
-                  subtitle: Text("\${h["startDate"].split("T")[0]} - \${h["endDate"].split("T")[0]}\n\${h["type"]} | Classes Suspended: \${h["classesSuspended"]}"),
+                  subtitle: Text("${h['startDate'].split('T')[0]} - ${h['endDate'].split('T')[0]}\n${h['type']} | Classes Suspended: ${h['classesSuspended']}"),
                   isThreeLine: true,
                   trailing: Row(
                     mainAxisSize: MainAxisSize.min,

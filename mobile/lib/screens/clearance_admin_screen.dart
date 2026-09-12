@@ -54,10 +54,10 @@ class _ClearanceAdminScreenState extends State<ClearanceAdminScreen> with Single
   Future<void> _fetchClearances() async {
     setState(() => _isLoading = true);
     try {
-      final res = await _api.get("/clearance/pending/\$_activeTab");
+      final res = await _api.get("/clearance/pending/$_activeTab");
       setState(() => _clearances = res["clearances"] ?? []);
     } catch (e) {
-      if (mounted) ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text("Failed to load: \$e")));
+      if (mounted) ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text("Failed to load: $e")));
     } finally {
       if (mounted) setState(() => _isLoading = false);
     }
@@ -68,7 +68,7 @@ class _ClearanceAdminScreenState extends State<ClearanceAdminScreen> with Single
       context: context,
       builder: (context) => AlertDialog(
         title: const Text("Approve Clearance"),
-        content: Text("Are you sure you want to approve clearance for \$name?"),
+        content: Text("Are you sure you want to approve clearance for $name?"),
         actions: [
           TextButton(onPressed: () => Navigator.pop(context, false), child: const Text("Cancel")),
           ElevatedButton(onPressed: () => Navigator.pop(context, true), child: const Text("Approve")),
@@ -79,11 +79,11 @@ class _ClearanceAdminScreenState extends State<ClearanceAdminScreen> with Single
     if (confirm != true) return;
 
     try {
-      await _api.put("/clearance/\$id/\$_activeTab/approve", body: {"remarks": "Approved via Mobile App"});
+      await _api.put("/clearance/$id/$_activeTab/approve", body: {"remarks": "Approved via Mobile App"});
       setState(() => _clearances.removeWhere((c) => c["_id"] == id));
-      if (mounted) ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text("Approved \$name")));
+      if (mounted) ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text("Approved $name")));
     } catch(e) {
-      if (mounted) ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text("Failed: \$e")));
+      if (mounted) ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text("Failed: $e")));
     }
   }
 
@@ -131,7 +131,7 @@ class _ClearanceAdminScreenState extends State<ClearanceAdminScreen> with Single
                       return Card(
                         child: ListTile(
                           title: Text(student["name"] ?? "Unknown Student"),
-                          subtitle: Text("Roll: \${student["rollNo"] ?? "N/A"} | Dept: \${student["department"] ?? "N/A"}"),
+                          subtitle: Text("Roll: ${student['rollNo'] ?? 'N/A'} | Dept: ${student['department'] ?? 'N/A'}"),
                           trailing: ElevatedButton.icon(
                             icon: const Icon(Icons.check_circle, size: 18),
                             label: const Text("Approve"),
