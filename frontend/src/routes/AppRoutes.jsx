@@ -111,7 +111,7 @@ export function AppRoutes() {
       <Route
         element={
           <ProtectedRoute>
-            <DashboardLayout key={user?._id || "guest"} />
+            <DashboardLayout key={user?._id || "guest"} features={features} />
           </ProtectedRoute>
         }
       >

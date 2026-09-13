@@ -12,7 +12,7 @@ import Sidebar from "./Sidebar";
 import Footer from "./Footer";
 import ErrorBoundary from "../common/ErrorBoundary";
 
-export function DashboardLayout() {
+export function DashboardLayout({ features = {} }) {
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
 
   return (
@@ -26,6 +26,7 @@ export function DashboardLayout() {
         <Sidebar
           isOpen={isSidebarOpen}
           onClose={() => setIsSidebarOpen(false)}
+          features={features}
         />
 
         {/* Main Content Area (with left margin on desktop to clear fixed sidebar) */}

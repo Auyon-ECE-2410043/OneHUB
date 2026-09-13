@@ -111,6 +111,51 @@ class _WeeklyRoutineScreenState extends State<WeeklyRoutineScreen> {
     final weekdayMap = {6: "Saturday", 7: "Sunday", 1: "Monday", 2: "Tuesday", 3: "Wednesday", 4: "Thursday", 5: "Friday"};
     final todayStr = weekdayMap[now.weekday];
 
+    // Compute overlapping class layouts
+    Map<String, Map<String, double>> classLayouts = {};
+    for (String day in days) {
+      List<dynamic> dayClasses = _routine.where((c) => c['dayOfWeek'] == day).toList();
+      dayClasses.sort((a, b) => timeToMinutes(a['startTime']).compareTo(timeToMinutes(b['startTime'])));
+      
+      List<List<dynamic>> columns = [];
+      for (var c in dayClasses) {
+        int start = timeToMinutes(c['startTime']);
+        bool placed = false;
+        
+        for (int i = 0; i < columns.length; i++) {
+          var col = columns[i];
+          var lastClass = col.last;
+          int lastEnd = timeToMinutes(lastClass['endTime']);
+          
+          if (start >= lastEnd) {
+            col.add(c);
+            placed = true;
+            c['_col'] = i;
+            break;
+          }
+        }
+        
+        if (!placed) {
+          columns.add([c]);
+          c['_col'] = columns.length - 1;
+        }
+      }
+      
+      int numCols = columns.length;
+      if (numCols == 0) numCols = 1;
+      
+      for (var c in dayClasses) {
+        String id = c['_id'] ?? c.hashCode.toString();
+        c['_uniqueId'] = id; 
+        double width = (dayWidth - 8) / numCols;
+        double left = timeColumnWidth + (days.indexOf(day) * dayWidth) + 4 + (width * (c['_col'] ?? 0));
+        classLayouts[id] = {
+          "width": width,
+          "left": left
+        };
+      }
+    }
+
     return Scaffold(
       appBar: AppBar(title: const Text('Weekly Routine')),
       body: _isLoading
@@ -238,11 +283,14 @@ class _WeeklyRoutineScreenState extends State<WeeklyRoutineScreen> {
 
                             final style = getSlotStyle(c['startTime'], c['endTime']);
                             bool isSessional = c['type']?.toLowerCase() == 'sessional';
+                            String id = c['_uniqueId'];
+                            double customLeft = classLayouts[id]?['left'] ?? (timeColumnWidth + (dayIndex * dayWidth) + 4);
+                            double customWidth = classLayouts[id]?['width'] ?? (dayWidth - 8);
 
                             return Positioned(
                               top: style['top'],
-                              left: timeColumnWidth + (dayIndex * dayWidth) + 4,
-                              width: dayWidth - 8,
+                              left: customLeft,
+                              width: customWidth,
                               height: style['height']! - 2,
                               child: Card(
                                 color: isSessional ? Colors.indigo.shade50 : Colors.lightBlue.shade50,

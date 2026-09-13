@@ -205,13 +205,13 @@ export function Dashboard() {
           <div className="flex items-center space-x-3">
             
             {user?.role === "faculty" && (
-              <Link
+              <>{features.attendance !== false && ( <Link
                 to="/attendance/mark"
                 className="px-4 py-2.5 bg-white text-sky-700 hover:bg-sky-50 font-semibold rounded-xl text-sm transition-smooth shadow-sm inline-flex items-center space-x-2"
               >
                 <span>Take Attendance</span>
                 <ArrowRight className="w-4 h-4" />
-              </Link>
+              </Link> )}</>
             )}
             {user?.role === "admin" && (
               <>
@@ -271,7 +271,7 @@ export function Dashboard() {
           <div className="grid grid-cols-1 gap-3">
             {user?.role === "student" && (
               <>
-                <Link
+                <>{features.attendance !== false && ( <Link
                   to="/attendance"
                   className="p-4 bg-white hover:bg-sky-50/50 rounded-2xl border border-slate-200/80 flex items-center justify-between group transition-smooth"
                 >
@@ -285,9 +285,9 @@ export function Dashboard() {
                     </div>
                   </div>
                   <ArrowRight className="w-4 h-4 text-slate-400 group-hover:text-sky-600 group-hover:translate-x-1 transition-smooth" />
-                </Link>
+                </Link> )}</>
 
-                <Link
+                <>{features.marks !== false && ( <Link
                   to="/marks"
                   className="p-4 bg-white hover:bg-sky-50/50 rounded-2xl border border-slate-200/80 flex items-center justify-between group transition-smooth"
                 >
@@ -301,9 +301,9 @@ export function Dashboard() {
                     </div>
                   </div>
                   <ArrowRight className="w-4 h-4 text-slate-400 group-hover:text-amber-600 group-hover:translate-x-1 transition-smooth" />
-                </Link>
+                </Link> )}</>
 
-                <Link
+                <>{features.fees !== false && ( <Link
                   to="/fees"
                   className="p-4 bg-white hover:bg-sky-50/50 rounded-2xl border border-slate-200/80 flex items-center justify-between group transition-smooth"
                 >
@@ -317,7 +317,7 @@ export function Dashboard() {
                     </div>
                   </div>
                   <ArrowRight className="w-4 h-4 text-slate-400 group-hover:text-emerald-600 group-hover:translate-x-1 transition-smooth" />
-                </Link>
+                </Link> )}</>
               </>
             )}
 
@@ -339,7 +339,7 @@ export function Dashboard() {
                   <ArrowRight className="w-4 h-4 text-slate-400 group-hover:text-sky-600 transition-smooth" />
                 </Link>
 
-                <Link
+                <>{features.marks !== false && ( <Link
                   to="/marks/entry"
                   className="p-4 bg-white hover:bg-sky-50/50 rounded-2xl border border-slate-200/80 flex items-center justify-between group transition-smooth"
                 >
@@ -353,7 +353,7 @@ export function Dashboard() {
                     </div>
                   </div>
                   <ArrowRight className="w-4 h-4 text-slate-400 group-hover:text-purple-600 transition-smooth" />
-                </Link>
+                </Link> )}</>
               </>
             )}
 

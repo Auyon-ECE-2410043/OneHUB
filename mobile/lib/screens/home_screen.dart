@@ -114,12 +114,51 @@ class _NotificationBellState extends State<NotificationBell> {
   }
 }
 
-class HomeScreen extends StatelessWidget {
+class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
+
+  @override
+  State<HomeScreen> createState() => _HomeScreenState();
+}
+
+class _HomeScreenState extends State<HomeScreen> {
+  Map<String, dynamic> features = {};
+  bool isLoading = true;
+
+  @override
+  void initState() {
+    super.initState();
+    _fetchFeatures();
+  }
+
+  Future<void> _fetchFeatures() async {
+    try {
+      final res = await ApiService().get("/settings");
+      if (mounted) {
+        setState(() {
+          features = res["features"] ?? {};
+          isLoading = false;
+        });
+      }
+    } catch (e) {
+      if (mounted) {
+        setState(() {
+          isLoading = false;
+        });
+      }
+    }
+  }
+
+  bool _isFeatureEnabled(String key, String? role) {
+    if (role == "admin") return true;
+    if (features[key] == false) return false;
+    return true;
+  }
 
   @override
   Widget build(BuildContext context) {
     final user = context.watch<AuthProvider>().user;
+    final role = user?["role"];
 
     return Scaffold(
       appBar: AppBar(
@@ -243,39 +282,43 @@ class HomeScreen extends StatelessWidget {
                 crossAxisSpacing: 16,
                 children: [
                   // Everyone sees Calendar, Notices, Faculty
-                  _buildModuleCard(
-                    context, 
-                    'Academic Calendar', 
-                    Icons.calendar_month, 
-                    Colors.indigo,
-                    onTap: () => Navigator.push(
-                      context,
-                      MaterialPageRoute(builder: (_) => const AcademicCalendarScreen()),
+                  if (_isFeatureEnabled('calendar', role))
+                    _buildModuleCard(
+                      context, 
+                      'Academic Calendar', 
+                      Icons.calendar_month, 
+                      Colors.indigo,
+                      onTap: () => Navigator.push(
+                        context,
+                        MaterialPageRoute(builder: (_) => const AcademicCalendarScreen()),
+                      ),
                     ),
-                  ),
-                  _buildModuleCard(
-                    context, 
-                    'Notice Board', 
-                    Icons.campaign, 
-                    Colors.blue,
-                    onTap: () => Navigator.push(
-                      context,
-                      MaterialPageRoute(builder: (_) => const NoticeBoardScreen()),
+                  if (_isFeatureEnabled('notices', role))
+                    _buildModuleCard(
+                      context, 
+                      'Notice Board', 
+                      Icons.campaign, 
+                      Colors.blue,
+                      onTap: () => Navigator.push(
+                        context,
+                        MaterialPageRoute(builder: (_) => const NoticeBoardScreen()),
+                      ),
                     ),
-                  ),
-                  _buildModuleCard(
-                    context, 
-                    'Faculty Directory', 
-                    Icons.people, 
-                    Colors.purple,
-                    onTap: () => Navigator.push(
-                      context,
-                      MaterialPageRoute(builder: (_) => const FacultyDirectoryScreen()),
+                  if (_isFeatureEnabled('faculty', role))
+                    _buildModuleCard(
+                      context, 
+                      'Faculty Directory', 
+                      Icons.people, 
+                      Colors.purple,
+                      onTap: () => Navigator.push(
+                        context,
+                        MaterialPageRoute(builder: (_) => const FacultyDirectoryScreen()),
+                      ),
                     ),
-                  ),
 
                   // Student specific modules
                   if (user['role'] == 'student') ...[
+                    if (_isFeatureEnabled('routine', role)) 
                     _buildModuleCard(
                       context, 
                       'Weekly Routine', 
@@ -283,6 +326,7 @@ class HomeScreen extends StatelessWidget {
                       Colors.blue,
                       onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const WeeklyRoutineScreen())),
                     ),
+                    if (_isFeatureEnabled('courses', role)) 
                     _buildModuleCard(
                       context, 
                       'My Courses', 
@@ -300,6 +344,7 @@ class HomeScreen extends StatelessWidget {
                         MaterialPageRoute(builder: (_) => const StudentRegistrationScreen()),
                       ),
                     ),
+                    if (_isFeatureEnabled('attendance', role)) 
                     _buildModuleCard(
                       context, 
                       'Attendance Record', 
@@ -307,6 +352,7 @@ class HomeScreen extends StatelessWidget {
                       Colors.teal,
                       onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const AttendanceRecordScreen())),
                     ),
+                    if (_isFeatureEnabled('marks', role)) 
                     _buildModuleCard(
                       context, 
                       'Marks & Grades', 
@@ -327,6 +373,7 @@ class HomeScreen extends StatelessWidget {
                         MaterialPageRoute(builder: (_) => const FeePaymentScreen()),
                       ),
                     ),
+                    if (_isFeatureEnabled('hall', role)) 
                     _buildModuleCard(
                       context, 
                       'Hall Application', 
@@ -334,6 +381,7 @@ class HomeScreen extends StatelessWidget {
                       Colors.orange,
                       onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const StudentHallScreen())),
                     ),
+                    if (_isFeatureEnabled('clearance', role)) 
                     _buildModuleCard(
                       context, 
                       'Clearance Status', 
@@ -341,6 +389,7 @@ class HomeScreen extends StatelessWidget {
                       Colors.green,
                       onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const ClearanceStatusScreen())),
                     ),
+                    if (_isFeatureEnabled('medical', role)) 
                     _buildModuleCard(
                       context, 
                       'Medical Center', 
@@ -352,6 +401,7 @@ class HomeScreen extends StatelessWidget {
 
                   // Admin specific modules
                   if (user['role'] == 'admin') ...[
+                    if (_isFeatureEnabled('routine', role)) 
                     _buildModuleCard(
                       context, 
                       'Manage Routine', 
@@ -362,6 +412,7 @@ class HomeScreen extends StatelessWidget {
                         MaterialPageRoute(builder: (_) => const ManageRoutineScreen()),
                       ),
                     ),
+                    if (_isFeatureEnabled('calendar', role)) 
                     _buildModuleCard(
                       context, 
                       'Manage Calendar', 
@@ -382,6 +433,7 @@ class HomeScreen extends StatelessWidget {
                         MaterialPageRoute(builder: (_) => const CourseManagementScreen()),
                       ),
                     ),
+                    if (_isFeatureEnabled('courses', role)) 
                     _buildModuleCard(
                       context, 
                       'Course Assignments', 
@@ -402,6 +454,7 @@ class HomeScreen extends StatelessWidget {
                         MaterialPageRoute(builder: (_) => const RegistrationApprovalsScreen()),
                       ),
                     ),
+                    if (_isFeatureEnabled('hall', role)) 
                     _buildModuleCard(
                       context, 
                       'Hall Applications', 
@@ -432,6 +485,7 @@ class HomeScreen extends StatelessWidget {
                         MaterialPageRoute(builder: (_) => const ManageUsersScreen()),
                       ),
                     ),
+                    if (_isFeatureEnabled('fees', role)) 
                     _buildModuleCard(
                       context, 
                       'Fee Management', 
@@ -442,6 +496,7 @@ class HomeScreen extends StatelessWidget {
                         MaterialPageRoute(builder: (_) => const FeePaymentScreen()),
                       ),
                     ),
+                    if (_isFeatureEnabled('clearance', role)) 
                     _buildModuleCard(
                       context, 
                       'Manage Clearances', 
@@ -456,6 +511,7 @@ class HomeScreen extends StatelessWidget {
 
                   // Faculty specific modules
                   if (user['role'] == 'faculty') ...[
+                    if (_isFeatureEnabled('routine', role)) 
                     _buildModuleCard(
                       context, 
                       'Weekly Routine', 
@@ -463,6 +519,7 @@ class HomeScreen extends StatelessWidget {
                       Colors.blue,
                       onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const WeeklyRoutineScreen())),
                     ),
+                    if (_isFeatureEnabled('courses', role)) 
                     _buildModuleCard(
                       context, 
                       'Course Catalog', 
@@ -480,6 +537,7 @@ class HomeScreen extends StatelessWidget {
                         MaterialPageRoute(builder: (_) => const RegistrationApprovalsScreen()),
                       ),
                     ),
+                    if (_isFeatureEnabled('attendance', role)) 
                     _buildModuleCard(
                       context, 
                       'Mark Attendance', 
@@ -500,6 +558,7 @@ class HomeScreen extends StatelessWidget {
                         MaterialPageRoute(builder: (_) => const MarkEntryScreen()),
                       ),
                     ),
+                    if (_isFeatureEnabled('clearance', role)) 
                     _buildModuleCard(
                       context, 
                       'Manage Clearances', 
@@ -514,6 +573,7 @@ class HomeScreen extends StatelessWidget {
 
                   // Hall Admin specific modules
                   if (user['role'] == 'hall_admin') ...[
+                    if (_isFeatureEnabled('hall', role)) 
                     _buildModuleCard(
                       context, 
                       'Hall Applications', 
@@ -524,6 +584,7 @@ class HomeScreen extends StatelessWidget {
                         MaterialPageRoute(builder: (_) => const HallApplicationsScreen()),
                       ),
                     ),
+                    if (_isFeatureEnabled('clearance', role)) 
                     _buildModuleCard(
                       context, 
                       'Manage Clearances', 
