@@ -56,8 +56,8 @@ export function AuthProvider({ children }) {
     return data;
   };
 
-  const forcePasswordChange = async (userId, newPassword) => {
-    const data = await authService.forcePasswordChange(userId, newPassword);
+  const forcePasswordChange = async (userId, currentPassword, newPassword) => {
+    const data = await authService.forcePasswordChange(userId, currentPassword, newPassword);
     setToken(data.token);
     setUser(data.user);
     return data;

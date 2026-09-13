@@ -93,7 +93,7 @@ export function Login() {
     }
     setLoading(true);
     try {
-      await forcePasswordChange(userId, verifyData.newPassword);
+      await forcePasswordChange(userId, formData.password, verifyData.newPassword);
       toast.success("Password updated successfully!");
       navigate(from, { replace: true });
     } catch (err) {

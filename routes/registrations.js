@@ -11,7 +11,6 @@ const CourseAssignment = require("../models/CourseAssignment");
 const Fee = require("../models/Fee");
 const Notification = require("../models/Notification");
 const User = require("../models/User");
-const Notification = require("../models/Notification");
 const { requireAuth, requireRole } = require("../middleware/auth");
 
 const router = express.Router();

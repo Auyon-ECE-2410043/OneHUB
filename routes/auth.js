@@ -209,8 +209,12 @@ router.post("/login", async (req, res) => {
 // POST /api/auth/force-password-change
 router.post("/force-password-change", async (req, res) => {
   try {
-    const { userId, newPassword } = req.body;
-    const user = await User.findById(userId);
+    const { userId, newPassword, currentPassword } = req.body;
+      const user = await User.findById(userId);
+      if (!user) return res.status(404).json({ error: "User not found" });
+
+      const isMatch = await bcrypt.compare(currentPassword, user.passwordHash);
+      if (!isMatch) return res.status(401).json({ error: "Invalid current password" });
     if (!user) return res.status(404).json({ error: "User not found" });
 
     if (user.isFirstLogin === false) {
