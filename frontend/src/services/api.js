@@ -56,3 +56,31 @@ api.interceptors.response.use(
 );
 
 export default api;
+
+const cache = new Map();
+
+const originalGet = api.get;
+api.get = async (url, config = {}) => {
+  const cacheKey = url + JSON.stringify(config.params || {});
+  
+  if (cache.has(cacheKey)) {
+    // Background revalidate
+    originalGet.call(api, url, config).then(res => {
+       cache.set(cacheKey, res);
+    }).catch(() => {});
+    return Promise.resolve(cache.get(cacheKey));
+  }
+
+  const res = await originalGet.call(api, url, config);
+  cache.set(cacheKey, res);
+  return res;
+};
+
+const clearCache = () => cache.clear();
+["post", "put", "delete", "patch"].forEach(method => {
+  const original = api[method];
+  api[method] = async (...args) => {
+    clearCache();
+    return original.apply(api, args);
+  };
+});

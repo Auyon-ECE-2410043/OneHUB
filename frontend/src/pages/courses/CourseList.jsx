@@ -9,6 +9,7 @@ import { useState, useEffect, useCallback } from "react";
 import { Link } from "react-router-dom";
 import { useAuth } from "../../context/AuthContext";
 import courseService from "../../services/courseService";
+import registrationService from "../../services/registrationService";
 import { DEPARTMENTS, SEMESTERS } from "../../utils/constants";
 import { PageLoader } from "../../components/common/Loader";
 import Modal from "../../components/common/Modal";
@@ -57,7 +58,7 @@ export function CourseList() {
         try {
           // Import registrationService inside useEffect or component to avoid cyclic dependencies if any,
           // but we can just import it at the top
-          const { default: registrationService } = await import("../../services/registrationService");
+          
           const res = await registrationService.getMyRegistration();
           setRegistration(res);
         } catch (e) {
