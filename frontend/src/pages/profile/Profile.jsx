@@ -148,7 +148,7 @@ export function Profile() {
                       updateUser(res.user);
                       setMsg({ text: "Profile picture updated successfully", type: "success" });
                     } catch (err) {
-                      setMsg({ text: "Failed to update profile picture", type: "error" });
+                      setMsg({ text: "Failed: " + err.message, type: "error" });
                     }
                   }
                 }}

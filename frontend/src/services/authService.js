@@ -74,11 +74,7 @@ export const authService = {
   uploadProfilePicture: async (file) => {
     const formData = new FormData();
     formData.append("picture", file);
-    const res = await api.post("/auth/profile/picture", formData, {
-      headers: {
-        "Content-Type": "multipart/form-data",
-      },
-    });
+    const res = await api.post("/auth/profile/picture", formData);
     if (res.data.user) {
       const stored = JSON.parse(localStorage.getItem("user") || "{}");
       localStorage.setItem("user", JSON.stringify({ ...stored, ...res.data.user }));
