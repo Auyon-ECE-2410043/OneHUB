@@ -296,17 +296,9 @@ export function HallApplicationForm() {
               <label className="block text-xs font-semibold uppercase text-slate-600 mb-1">
                 Current CGPA
               </label>
-              <input
-                type="number"
-                step="0.01"
-                min="2.00"
-                max="4.00"
-                required
-                name="cgpa"
-                value={formData.cgpa}
-                onChange={handleChange}
-                className="w-full px-3.5 py-2 border border-slate-300 rounded-xl text-sm focus:ring-2 focus:ring-sky-500 focus:outline-none"
-              />
+              <div className="w-full px-3.5 py-2 border border-slate-200 bg-slate-50 rounded-xl text-sm text-slate-500 italic">
+                  Auto-calculated from database
+                </div>
             </div>
           </div>
 

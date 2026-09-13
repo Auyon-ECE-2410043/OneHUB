@@ -33,6 +33,24 @@ router.post("/apply", requireAuth, requireRole("student"), upload.single("income
 
     const student = await User.findById(req.user.id);
 
+    // Calculate real CGPA securely from the database
+    const Mark = require("../models/Mark");
+    const { GRADE_POINTS } = require("../utils/ruetOrdinance");
+    const finalMarks = await Mark.find({ studentId: req.user.id, type: "final" }).populate("courseId");
+    
+    let cumulativeCredits = 0;
+    let cumulativeEarnedPoints = 0;
+    for (const mark of finalMarks) {
+      if (!mark.courseId || !mark.grade) continue;
+      const point = GRADE_POINTS[mark.grade];
+      if (point !== undefined && mark.courseId.credit > 0) {
+        cumulativeCredits += mark.courseId.credit;
+        cumulativeEarnedPoints += mark.courseId.credit * point;
+      }
+    }
+    const realCgpa = cumulativeCredits > 0 ? parseFloat((cumulativeEarnedPoints / cumulativeCredits).toFixed(2)) : 0.0;
+
+
     let incomeDocumentUrl = null;
     if (req.file) {
       const isPdf = req.file.mimetype === "application/pdf";
@@ -62,7 +80,7 @@ router.post("/apply", requireAuth, requireRole("student"), upload.single("income
       motherContactNo,
       nidNumber,
       hometownInsideRajshahi: isInsideRajshahi,
-      cgpa: parseFloat(cgpa),
+      cgpa: realCgpa,
       preferredHall,
       status: isInsideRajshahi ? "flagged_ineligible" : "pending_review",
       flaggedReason: isInsideRajshahi ? "Hometown reported as inside Rajshahi — requires NID verification" : "",
