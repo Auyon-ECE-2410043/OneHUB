@@ -25,6 +25,7 @@ import CourseAssignmentList from "../pages/courseAssignment/CourseAssignmentList
 import Routine from "../pages/routine/Routine";
 import ManageRoutine from "../pages/admin/ManageRoutine";
 import ManageCalendar from "../pages/admin/ManageCalendar";
+import UserManagement from "../pages/admin/UserManagement";
 import RegistrationForm from "../pages/registration/RegistrationForm";
 import FeeList from "../pages/fees/FeeList";
 import FeePayment from "../pages/fees/FeePayment";
@@ -196,6 +197,7 @@ export function AppRoutes() {
         
         {/* Calendar */}
         <Route path="/calendar" element={<FeatureGuard featureKey="calendar" title="Academic Calendar"><AcademicCalendar /></FeatureGuard>} />
+        <Route path="/manage-users" element={<ProtectedRoute allowedRoles={["admin"]}><UserManagement /></ProtectedRoute>} />
         <Route path="/manage-calendar" element={<ProtectedRoute allowedRoles={["admin"]}><ManageCalendar /></ProtectedRoute>} />
       </Route>
 

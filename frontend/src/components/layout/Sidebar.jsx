@@ -76,6 +76,7 @@ export function Sidebar({ isOpen, onClose, features = {} }) {
           { label: "Dashboard", path: "/dashboard", icon: LayoutDashboard },
           { label: "Manage Routine", path: "/manage-routine", icon: CalendarClock },
           { label: "Manage Calendar", path: "/manage-calendar", icon: CalendarDays },
+          { label: "User Management", path: "/manage-users", icon: Users },
           { label: "Course Management", path: "/courses", icon: BookOpen },
           { label: "Course Assignments", path: "/course-assignments", icon: Layers },
           { label: "Registration Approvals", path: "/registration", icon: CheckSquare },
