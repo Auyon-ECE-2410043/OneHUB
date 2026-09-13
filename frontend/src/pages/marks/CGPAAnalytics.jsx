@@ -58,7 +58,7 @@ export default function CGPAAnalytics() {
 
   if (loading) return <PageLoader />;
 
-  const hasData = data && data.cgpa;
+  const hasData = data && data.semesterResults && data.semesterResults.length > 0;
   const hasOfficial = officialResults && officialResults.length > 0;
 
   if (!hasData && !hasOfficial) {
