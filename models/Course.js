@@ -15,6 +15,12 @@ const courseSchema = new mongoose.Schema(
     department: { type: String, required: true },
     semester: { type: String, required: true },
     courseType: { type: String, enum: ["theory", "sessional"], required: true },
+    syllabus: [
+      {
+        topic: { type: String, required: true },
+        details: { type: String, default: "" },
+      }
+    ]
   },
   { timestamps: true }
 );

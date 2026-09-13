@@ -33,6 +33,10 @@ export function CourseList() {
   const [selectedDept, setSelectedDept] = useState("all");
   const [selectedSemester, setSelectedSemester] = useState("all");
 
+  // Modal for syllabus
+  const [isSyllabusModalOpen, setIsSyllabusModalOpen] = useState(false);
+  const [selectedCourse, setSelectedCourse] = useState(null);
+
   // Modal for adding course (Admin)
   const [isAddModalOpen, setIsAddModalOpen] = useState(false);
   const [submitting, setSubmitting] = useState(false);
@@ -238,6 +242,16 @@ export function CourseList() {
                     </div>
 
                     <div className="mt-6 pt-4 border-t border-slate-100 flex items-center justify-between text-xs">
+                      <button
+                        onClick={() => {
+                          setSelectedCourse(course);
+                          setIsSyllabusModalOpen(true);
+                        }}
+                        className="font-medium text-slate-600 hover:text-indigo-600 inline-flex items-center"
+                      >
+                        <BookOpen className="w-3.5 h-3.5 mr-1" />
+                        Syllabus
+                      </button>
                       <Link
                         to={`/attendance?courseId=${course._id}`}
                         className="font-medium text-slate-600 hover:text-sky-600 inline-flex items-center"
@@ -366,6 +380,16 @@ export function CourseList() {
                           </span>
                         </td>
                         <td className="py-3.5 px-4 text-right space-x-2">
+                          <button
+                            onClick={() => {
+                              setSelectedCourse(course);
+                              setIsSyllabusModalOpen(true);
+                            }}
+                            className="px-3 py-1.5 bg-indigo-50 text-indigo-700 hover:bg-indigo-100 rounded-lg text-xs font-medium transition-smooth inline-flex items-center space-x-1"
+                          >
+                            <BookOpen className="w-3.5 h-3.5" />
+                            <span>Syllabus</span>
+                          </button>
                           <Link
                             to={`/courses/${course._id}`}
                             className="px-3 py-1.5 bg-sky-50 text-sky-700 hover:bg-sky-100 rounded-lg text-xs font-medium transition-smooth inline-flex items-center space-x-1"
@@ -508,6 +532,36 @@ export function CourseList() {
             </button>
           </div>
         </form>
+      </Modal>
+
+      {/* Syllabus Modal */}
+      <Modal isOpen={isSyllabusModalOpen} onClose={() => setIsSyllabusModalOpen(false)} title={`Syllabus: ${selectedCourse?.courseCode || ''}`}>
+        <div className="space-y-4 max-h-[60vh] overflow-y-auto pr-2">
+          {selectedCourse?.syllabus?.length > 0 ? (
+            <div className="space-y-3">
+              {selectedCourse.syllabus.map((item, index) => (
+                <div key={index} className="p-3 bg-slate-50 border border-slate-200 rounded-xl">
+                  <h4 className="font-semibold text-slate-800 text-sm">{item.topic}</h4>
+                  {item.details && <p className="text-slate-600 text-xs mt-1 leading-relaxed">{item.details}</p>}
+                </div>
+              ))}
+            </div>
+          ) : (
+            <div className="text-center py-8">
+              <BookOpen className="w-8 h-8 text-slate-300 mx-auto mb-3" />
+              <p className="text-slate-500 text-sm font-medium">No syllabus available for this course.</p>
+            </div>
+          )}
+          
+          <div className="pt-2 flex justify-end">
+            <button
+              onClick={() => setIsSyllabusModalOpen(false)}
+              className="px-4 py-2 border border-slate-300 text-slate-700 font-medium rounded-xl text-sm hover:bg-slate-50 transition-smooth"
+            >
+              Close
+            </button>
+          </div>
+        </div>
       </Modal>
     </div>
   );
