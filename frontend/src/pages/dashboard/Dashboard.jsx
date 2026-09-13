@@ -6,7 +6,7 @@
  */
 
 import { useState, useEffect } from "react";
-import { Link } from "react-router-dom";
+import { Link, useOutletContext } from "react-router-dom";
 import { motion } from "framer-motion";
 import { useAuth } from "../../context/AuthContext";
 import { CourseDistributionChart } from "../../components/dashboard/CourseDistributionChart";
@@ -34,9 +34,17 @@ import {
 
 export function Dashboard() {
   const { user } = useAuth();
+  const outletContext = useOutletContext() || {};
+  const { features: contextFeatures = {} } = outletContext;
+
   const [loading, setLoading] = useState(true);
   const [maintenance, setMaintenance] = useState(false);
-  const [features, setFeatures] = useState({});
+  const [features, setFeatures] = useState(contextFeatures);
+
+  useEffect(() => {
+    setFeatures(contextFeatures);
+  }, [contextFeatures]);
+
   const [togglingFeature, setTogglingFeature] = useState(null);
   const [maintenanceLoading, setMaintenanceLoading] = useState(false);
   const [isLiveFeedModalOpen, setIsLiveFeedModalOpen] = useState(false);
@@ -130,17 +138,7 @@ export function Dashboard() {
           } catch (e) {
             console.warn("Admin data fetch error", e);
           }
-
-          // Fetch features for everyone (controls overview cards)
-          try {
-            const { default: api } = await import("../../services/api");
-            const res = await api.get("/settings");
-            setMaintenance(res.data.maintenanceMode);
-            setFeatures(res.data.features || {});
-          } catch (e) {
-            console.warn("Could not load settings", e);
-          }
-        }
+        } // End of admin-specific block
       } finally {
         setLoading(false);
       }
