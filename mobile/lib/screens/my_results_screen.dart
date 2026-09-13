@@ -53,56 +53,65 @@ class _MyResultsScreenState extends State<MyResultsScreen> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: [
-                  Card(
-                    color: Theme.of(context).primaryColor,
-                    child: Padding(
-                      padding: const EdgeInsets.all(24.0),
-                      child: Column(
-                        children: [
-                          const Text('Cumulative GPA (CGPA)', style: TextStyle(color: Colors.white70, fontSize: 16)),
-                          const SizedBox(height: 8),
-                          Text(
-                            _cgpa.toStringAsFixed(2),
-                            style: const TextStyle(color: Colors.white, fontSize: 40, fontWeight: FontWeight.bold),
-                          ),
-                        ],
+                  if (_semesters.isEmpty)
+                    const Center(
+                      child: Padding(
+                        padding: EdgeInsets.all(32.0),
+                        child: Text("No academic results found.", style: TextStyle(fontSize: 16, color: Colors.grey)),
+                      )
+                    )
+                  else ...[
+                    Card(
+                      color: Theme.of(context).primaryColor,
+                      child: Padding(
+                        padding: const EdgeInsets.all(24.0),
+                        child: Column(
+                          children: [
+                            const Text("Cumulative GPA (CGPA)", style: TextStyle(color: Colors.white70, fontSize: 16)),
+                            const SizedBox(height: 8),
+                            Text(
+                              _cgpa.toStringAsFixed(2),
+                              style: const TextStyle(color: Colors.white, fontSize: 40, fontWeight: FontWeight.bold),
+                            ),
+                          ],
+                        ),
                       ),
                     ),
-                  ),
-                  const SizedBox(height: 24),
-                  const Text('Semester Breakdown', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
-                  const SizedBox(height: 16),
-                  Expanded(
-                    child: ListView.builder(
-                      itemCount: _semesters.length,
-                      itemBuilder: (context, index) {
-                        final sem = _semesters[index];
-                        final courses = sem['courses'] as List<dynamic>;
+                    const SizedBox(height: 24),
+                    const Text("Semester Breakdown", style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
+                    const SizedBox(height: 16),
+                    Expanded(
+                      child: ListView.builder(
+                        itemCount: _semesters.length,
+                        itemBuilder: (context, index) {
+                          final sem = _semesters[index];
+                          final courses = sem['courses'] as List<dynamic>;
 
-                        return Card(
-                          margin: const EdgeInsets.only(bottom: 16),
-                          child: ExpansionTile(
-                            title: Text('Semester ${sem['semester']}', style: const TextStyle(fontWeight: FontWeight.bold)),
-                            subtitle: Text('GPA: ${sem['gpa'].toStringAsFixed(2)}'),
-                            children: courses.map((c) {
-                              return ListTile(
-                                title: Text(c['courseCode']),
-                                subtitle: Text(c['courseName']),
-                                trailing: Text(
-                                  c['grade'] ?? 'N/A',
-                                  style: TextStyle(
-                                    fontWeight: FontWeight.bold,
-                                    fontSize: 16,
-                                    color: c['grade'] == 'F' ? Colors.red : Colors.green,
+                          return Card(
+                            margin: const EdgeInsets.only(bottom: 16),
+                            child: ExpansionTile(
+                              title: Text('Semester ${sem['semester']}', style: const TextStyle(fontWeight: FontWeight.bold)),
+                              subtitle: Text('GPA: ${sem['gpa'].toStringAsFixed(2)}'),
+                              children: courses.map((c) {
+                                return ListTile(
+                                  title: Text(c['courseCode']),
+                                  subtitle: Text(c['courseName']),
+                                  trailing: Text(
+                                    c['grade'] ?? 'N/A',
+                                    style: TextStyle(
+                                      fontWeight: FontWeight.bold,
+                                      fontSize: 16,
+                                      color: c['grade'] == 'F' ? Colors.red : Colors.green,
+                                    ),
                                   ),
-                                ),
-                              );
-                            }).toList(),
-                          ),
-                        );
-                      },
+                                );
+                              }).toList(),
+                            ),
+                          );
+                        },
+                      ),
                     ),
-                  )
+                  ],
                 ],
               ),
             ),

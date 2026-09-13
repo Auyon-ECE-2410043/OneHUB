@@ -39,9 +39,22 @@ class ApiService {
     );
   }
 
+  static final Map<String, dynamic> _cache = {};
+
   Future<dynamic> get(String endpoint, {Map<String, dynamic>? queryParameters}) async {
+    final cacheKey = endpoint + (queryParameters?.toString() ?? "");
+    
+    // If cached, return immediately and background update
+    if (_cache.containsKey(cacheKey)) {
+      _dio.get(endpoint, queryParameters: queryParameters).then((response) {
+        _cache[cacheKey] = response.data;
+      }).catchError((_) {}); // ignore background errors
+      return _cache[cacheKey];
+    }
+
     try {
       final response = await _dio.get(endpoint, queryParameters: queryParameters);
+      _cache[cacheKey] = response.data;
       return response.data;
     } on DioException catch (e) {
       _handleError(e);
@@ -51,6 +64,7 @@ class ApiService {
   Future<dynamic> post(String endpoint, {dynamic body}) async {
     try {
       final response = await _dio.post(endpoint, data: body);
+      _cache.clear();
       return response.data;
     } on DioException catch (e) {
       _handleError(e);
@@ -60,6 +74,7 @@ class ApiService {
   Future<dynamic> put(String endpoint, {dynamic body}) async {
     try {
       final response = await _dio.put(endpoint, data: body);
+      _cache.clear();
       return response.data;
     } on DioException catch (e) {
       _handleError(e);
@@ -69,6 +84,7 @@ class ApiService {
   Future<dynamic> delete(String endpoint) async {
     try {
       final response = await _dio.delete(endpoint);
+      _cache.clear();
       return response.data;
     } on DioException catch (e) {
       _handleError(e);

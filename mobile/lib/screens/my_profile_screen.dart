@@ -26,11 +26,17 @@ class MyProfileScreen extends StatelessWidget {
             CircleAvatar(
               radius: 50,
               backgroundColor: Theme.of(context).primaryColor,
-              child: Text(
-                user['name'][0].toUpperCase(),
-                style: const TextStyle(fontSize: 40, color: Colors.white),
-              ),
+              backgroundImage: user["profilePicture"] != null && user["profilePicture"].toString().isNotEmpty 
+                  ? NetworkImage(user["profilePicture"]) 
+                  : null,
+              child: user["profilePicture"] != null && user["profilePicture"].toString().isNotEmpty
+                  ? null
+                  : Text(
+                      user["name"][0].toUpperCase(),
+                      style: const TextStyle(fontSize: 40, color: Colors.white),
+                    ),
             ),
+
             const SizedBox(height: 16),
             Text(user['name'], style: const TextStyle(fontSize: 24, fontWeight: FontWeight.bold)),
             Text(user['role'].toString().toUpperCase(), style: TextStyle(fontSize: 14, color: Colors.grey.shade600)),
