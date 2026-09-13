@@ -12,7 +12,7 @@ import Sidebar from "./Sidebar";
 import Footer from "./Footer";
 import ErrorBoundary from "../common/ErrorBoundary";
 
-export function DashboardLayout({ features = {} }) {
+export function DashboardLayout({ features = {}, setFeatures }) {
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
 
   return (
@@ -33,7 +33,7 @@ export function DashboardLayout({ features = {} }) {
         <main className="flex-1 flex flex-col lg:pl-64 min-w-0">
           <div className="flex-1 p-4 sm:p-6 lg:p-8 max-w-7xl w-full mx-auto">
             <ErrorBoundary>
-              <Outlet context={{ features }} />
+              <Outlet context={{ features, setFeatures }} />
             </ErrorBoundary>
           </div>
           <Footer />

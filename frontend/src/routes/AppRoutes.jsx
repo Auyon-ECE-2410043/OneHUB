@@ -70,7 +70,7 @@ export function AppRoutes() {
       }
     };
     checkMaintenance();
-  }, []);
+  }, [user]);
 
   
   const FeatureGuard = ({ featureKey, title, children }) => {
@@ -111,7 +111,7 @@ export function AppRoutes() {
       <Route
         element={
           <ProtectedRoute>
-            <DashboardLayout key={user?._id || "guest"} features={features} />
+            <DashboardLayout key={user?._id || "guest"} features={features} setFeatures={setFeatures} />
           </ProtectedRoute>
         }
       >

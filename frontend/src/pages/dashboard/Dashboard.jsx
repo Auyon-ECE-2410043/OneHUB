@@ -35,16 +35,10 @@ import {
 export function Dashboard() {
   const { user } = useAuth();
   const outletContext = useOutletContext() || {};
-  const { features: contextFeatures = {} } = outletContext;
+  const { features = {}, setFeatures = () => {} } = outletContext;
 
   const [loading, setLoading] = useState(true);
   const [maintenance, setMaintenance] = useState(false);
-  const [features, setFeatures] = useState(contextFeatures);
-
-  useEffect(() => {
-    setFeatures(contextFeatures);
-  }, [contextFeatures]);
-
   const [togglingFeature, setTogglingFeature] = useState(null);
   const [maintenanceLoading, setMaintenanceLoading] = useState(false);
   const [isLiveFeedModalOpen, setIsLiveFeedModalOpen] = useState(false);
