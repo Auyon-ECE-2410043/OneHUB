@@ -224,38 +224,7 @@ export function Login() {
                 </div>
               </form>
 
-              {/* Quick Demo Logins Helper */}
-              <div className="mt-6 pt-6 border-t border-slate-800">
-                <p className="text-xs font-semibold text-slate-400 uppercase tracking-wider text-center mb-3">
-                  Fast Demo Autofill
-                </p>
-                <div className="grid grid-cols-3 gap-2">
-                  <button
-                    type="button"
-                    onClick={() => fillCredentials("student@ruet.ac.bd", "password123")}
-                    className="p-2 bg-slate-800/60 hover:bg-slate-800 border border-slate-700/60 rounded-xl text-center transition-smooth text-xs text-slate-300 hover:text-white"
-                  >
-                    <UserCheck className="w-3.5 h-3.5 mx-auto mb-1 text-sky-400" />
-                    <span>Student</span>
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => fillCredentials("faculty@ruet.ac.bd", "password123")}
-                    className="p-2 bg-slate-800/60 hover:bg-slate-800 border border-slate-700/60 rounded-xl text-center transition-smooth text-xs text-slate-300 hover:text-white"
-                  >
-                    <BookOpen className="w-3.5 h-3.5 mx-auto mb-1 text-emerald-400" />
-                    <span>Faculty</span>
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => fillCredentials("admin@ruet.ac.bd", "password123")}
-                    className="p-2 bg-slate-800/60 hover:bg-slate-800 border border-slate-700/60 rounded-xl text-center transition-smooth text-xs text-slate-300 hover:text-white"
-                  >
-                    <ShieldCheck className="w-3.5 h-3.5 mx-auto mb-1 text-purple-400" />
-                    <span>Admin</span>
-                  </button>
-                </div>
-              </div>
+              
             </>
 
           ) : step === "force_password_change" ? (
@@ -393,7 +362,7 @@ export function Login() {
           <div className="mt-6 text-center text-xs text-slate-400">
             Don't have an account?{" "}
             <Link to="/register" className="font-semibold text-sky-400 hover:text-sky-300 transition-smooth">
-              Create student / faculty account
+              Create a student account
             </Link>
           </div>
         </div>
