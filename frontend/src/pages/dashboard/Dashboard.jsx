@@ -438,7 +438,9 @@ export function Dashboard() {
               {/* STUDENT DASHBOARD METRICS */}
 {user?.role === "student" && (
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-1 gap-4">
-          {/* Assigned Courses with Chart */}
+          <>{features.courses !== false && ( 
+ <>
+{/* Assigned Courses with Chart */}
           <motion.div variants={itemVariants} className="p-4 bg-white/80 dark:bg-slate-900/80 backdrop-blur-xl rounded-2xl border border-slate-200/80 dark:border-slate-800 shadow-xs hover:shadow-md transition-smooth flex flex-col">
             <div className="flex items-center justify-between">
               <span className="text-xs font-semibold uppercase tracking-wider text-slate-500 dark:text-slate-400">
@@ -462,8 +464,12 @@ export function Dashboard() {
               </Link>
             </div>
           </motion.div>
+</> 
+ )}</>
 
-          {/* Registration Status */}
+          <>{features.registration !== false && ( 
+ <>
+{/* Registration Status */}
           <motion.div variants={itemVariants} className="p-4 bg-white/80 dark:bg-slate-900/80 backdrop-blur-xl rounded-2xl border border-slate-200/80 dark:border-slate-800 shadow-xs hover:shadow-md transition-smooth">
             <div className="flex items-center justify-between">
               <span className="text-xs font-semibold uppercase tracking-wider text-slate-500">
@@ -493,8 +499,12 @@ export function Dashboard() {
               </Link>
             </div>
           </motion.div>
+</> 
+ )}</>
 
-          {/* Fee Dues */}
+          <>{features.fees !== false && ( 
+ <>
+{/* Fee Dues */}
           <motion.div variants={itemVariants} className="p-4 bg-white/80 dark:bg-slate-900/80 backdrop-blur-xl rounded-2xl border border-slate-200/80 dark:border-slate-800 shadow-xs hover:shadow-md transition-smooth">
             <div className="flex items-center justify-between">
               <span className="text-xs font-semibold uppercase tracking-wider text-slate-500 dark:text-slate-400">
@@ -518,8 +528,12 @@ export function Dashboard() {
               </Link>
             </div>
           </motion.div>
+</> 
+ )}</>
 
-          {/* Quick Hall / Profile */}
+          <>{features.hall !== false && ( 
+ <>
+{/* Quick Hall / Profile */}
           <motion.div variants={itemVariants} className="p-4 bg-white/80 dark:bg-slate-900/80 backdrop-blur-xl rounded-2xl border border-slate-200/80 dark:border-slate-800 shadow-xs hover:shadow-md transition-smooth">
             <div className="flex items-center justify-between">
               <span className="text-xs font-semibold uppercase tracking-wider text-slate-500 dark:text-slate-400">
@@ -543,6 +557,8 @@ export function Dashboard() {
               </Link>
             </div>
           </motion.div>
+</> 
+ )}</>
         </div>
       )}
               
@@ -550,7 +566,8 @@ export function Dashboard() {
               {/* FACULTY DASHBOARD METRICS */}
                 {user?.role === "faculty" && (
                   <div className="grid grid-cols-1 gap-4">
-                    <motion.div variants={itemVariants} className="p-4 bg-white/80 dark:bg-slate-900/80 backdrop-blur-xl rounded-2xl border border-slate-200/80 dark:border-slate-800 shadow-xs hover:shadow-md transition-smooth">
+                    <>{features.courses !== false && (
+<><motion.div variants={itemVariants} className="p-4 bg-white/80 dark:bg-slate-900/80 backdrop-blur-xl rounded-2xl border border-slate-200/80 dark:border-slate-800 shadow-xs hover:shadow-md transition-smooth">
                       <div className="flex items-center justify-between">
                         <span className="text-xs font-semibold uppercase tracking-wider text-slate-500">
                           Course Catalog
@@ -571,6 +588,7 @@ export function Dashboard() {
                         </Link>
                       </div>
                     </motion.div>
+</>)}</>
   
                     <motion.div variants={itemVariants} className="p-4 bg-white/80 dark:bg-slate-900/80 backdrop-blur-xl rounded-2xl border border-slate-200/80 dark:border-slate-800 shadow-xs hover:shadow-md transition-smooth">
                       <div className="flex items-center justify-between">
