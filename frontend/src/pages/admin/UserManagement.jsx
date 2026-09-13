@@ -30,8 +30,7 @@ export default function UserManagement() {
   }, []);
 
   const handleDelete = async (userId, name) => {
-    const confirmText = prompt(`WARNING: This will permanently delete ${name} and ALL their associated data (marks, registrations, etc).\n\nType "DELETE" to confirm.`);
-    if (confirmText !== "DELETE") return;
+    // No confirmation required per user request
     
     setDeleting(userId);
     try {
