@@ -38,6 +38,39 @@ export function CourseList() {
   const [isSyllabusModalOpen, setIsSyllabusModalOpen] = useState(false);
   const [selectedCourse, setSelectedCourse] = useState(null);
 
+  const [isEditingSyllabus, setIsEditingSyllabus] = useState(false);
+  const [editableSyllabus, setEditableSyllabus] = useState([]);
+  const [savingSyllabus, setSavingSyllabus] = useState(false);
+
+  const handleAddTopic = () => {
+    setEditableSyllabus([...editableSyllabus, { topic: "", details: "" }]);
+  };
+
+  const handleRemoveTopic = (index) => {
+    setEditableSyllabus(editableSyllabus.filter((_, i) => i !== index));
+  };
+
+  const handleTopicChange = (index, field, value) => {
+    const updated = [...editableSyllabus];
+    updated[index][field] = value;
+    setEditableSyllabus(updated);
+  };
+
+  const handleSaveSyllabus = async () => {
+    setSavingSyllabus(true);
+    try {
+      await courseService.updateCourse(selectedCourse._id, { syllabus: editableSyllabus });
+      setSelectedCourse({ ...selectedCourse, syllabus: editableSyllabus });
+      setCatalog(catalog.map(c => c._id === selectedCourse._id ? { ...c, syllabus: editableSyllabus } : c));
+      setIsEditingSyllabus(false);
+    } catch (err) {
+      alert("Failed to save syllabus: " + err.message);
+    } finally {
+      setSavingSyllabus(false);
+    }
+  };
+
+
   // Modal for adding course (Admin)
   const [isAddModalOpen, setIsAddModalOpen] = useState(false);
   const [submitting, setSubmitting] = useState(false);
@@ -535,35 +568,73 @@ export function CourseList() {
         </form>
       </Modal>
 
+      
       {/* Syllabus Modal */}
-      <Modal isOpen={isSyllabusModalOpen} onClose={() => setIsSyllabusModalOpen(false)} title={`Syllabus: ${selectedCourse?.courseCode || ''}`}>
+      <Modal isOpen={isSyllabusModalOpen} onClose={() => { setIsSyllabusModalOpen(false); setIsEditingSyllabus(false); }} title={"Syllabus: " + (selectedCourse?.courseCode || "")}>
         <div className="space-y-4 max-h-[60vh] overflow-y-auto pr-2">
-          {selectedCourse?.syllabus?.length > 0 ? (
-            <div className="space-y-3">
-              {selectedCourse.syllabus.map((item, index) => (
-                <div key={index} className="p-3 bg-slate-50 border border-slate-200 rounded-xl">
-                  <h4 className="font-semibold text-slate-800 text-sm">{item.topic}</h4>
-                  {item.details && <p className="text-slate-600 text-xs mt-1 leading-relaxed">{item.details}</p>}
+          {isEditingSyllabus ? (
+            <div className="space-y-4">
+              {editableSyllabus.map((item, index) => (
+                <div key={index} className="p-3 bg-slate-50 border border-slate-200 rounded-xl relative">
+                  <button type="button" onClick={() => handleRemoveTopic(index)} className="absolute top-2 right-2 text-rose-500 hover:text-rose-700">
+                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 18L18 6M6 6l12 12"></path></svg>
+                  </button>
+                  <input type="text" placeholder="Topic Title" value={item.topic} onChange={(e) => handleTopicChange(index, "topic", e.target.value)} className="w-full mb-2 p-2 border border-slate-300 rounded text-sm font-semibold" />
+                  <textarea placeholder="Topic Details" value={item.details} onChange={(e) => handleTopicChange(index, "details", e.target.value)} className="w-full p-2 border border-slate-300 rounded text-xs min-h-[60px]" />
                 </div>
               ))}
+              <button type="button" onClick={handleAddTopic} className="w-full py-2 border-2 border-dashed border-sky-300 text-sky-600 rounded-xl text-sm font-medium hover:bg-sky-50 transition-smooth">
+                + Add Topic
+              </button>
             </div>
           ) : (
-            <div className="text-center py-8">
-              <BookOpen className="w-8 h-8 text-slate-300 mx-auto mb-3" />
-              <p className="text-slate-500 text-sm font-medium">No syllabus available for this course.</p>
-            </div>
+            selectedCourse?.syllabus?.length > 0 ? (
+              <div className="space-y-3">
+                {selectedCourse.syllabus.map((item, index) => (
+                  <div key={index} className="p-3 bg-slate-50 border border-slate-200 rounded-xl">
+                    <h4 className="font-semibold text-slate-800 text-sm">{item.topic}</h4>
+                    {item.details && <p className="text-slate-600 text-xs mt-1 leading-relaxed">{item.details}</p>}
+                  </div>
+                ))}
+              </div>
+            ) : (
+              <div className="text-center py-8">
+                <BookOpen className="w-8 h-8 text-slate-300 mx-auto mb-3" />
+                <p className="text-slate-500 text-sm font-medium">No syllabus available for this course.</p>
+              </div>
+            )
           )}
           
-          <div className="pt-2 flex justify-end">
-            <button
-              onClick={() => setIsSyllabusModalOpen(false)}
-              className="px-4 py-2 border border-slate-300 text-slate-700 font-medium rounded-xl text-sm hover:bg-slate-50 transition-smooth"
-            >
-              Close
-            </button>
+          <div className="pt-2 flex justify-between items-center border-t border-slate-100 mt-4 pt-4">
+            {user?.role === "admin" ? (
+              isEditingSyllabus ? (
+                <div className="flex space-x-2">
+                  <button onClick={() => setIsEditingSyllabus(false)} className="px-4 py-2 border border-slate-300 text-slate-700 font-medium rounded-xl text-sm hover:bg-slate-50 transition-smooth">
+                    Cancel
+                  </button>
+                  <button onClick={handleSaveSyllabus} disabled={savingSyllabus} className="px-4 py-2 bg-emerald-600 hover:bg-emerald-700 text-white font-medium rounded-xl text-sm transition-smooth disabled:opacity-50">
+                    {savingSyllabus ? "Saving..." : "Save Changes"}
+                  </button>
+                </div>
+              ) : (
+                <button onClick={() => { setEditableSyllabus(JSON.parse(JSON.stringify(selectedCourse?.syllabus || []))); setIsEditingSyllabus(true); }} className="px-4 py-2 bg-indigo-50 text-indigo-600 hover:bg-indigo-100 font-medium rounded-xl text-sm transition-smooth">
+                  Edit Syllabus
+                </button>
+              )
+            ) : <div />}
+            
+            {!isEditingSyllabus && (
+              <button
+                onClick={() => setIsSyllabusModalOpen(false)}
+                className="px-4 py-2 border border-slate-300 text-slate-700 font-medium rounded-xl text-sm hover:bg-slate-50 transition-smooth"
+              >
+                Close
+              </button>
+            )}
           </div>
         </div>
       </Modal>
+
     </div>
   );
 }
