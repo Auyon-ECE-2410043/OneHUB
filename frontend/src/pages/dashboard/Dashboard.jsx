@@ -71,6 +71,26 @@ export function Dashboard() {
     }
   };
 
+  const handleDownloadAttachment = async (e, url, title) => {
+    e.preventDefault();
+    e.stopPropagation();
+    try {
+      const response = await fetch(url);
+      const blob = await response.blob();
+      const objectUrl = window.URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = objectUrl;
+      const hasExt = url.split('/').pop().includes('.');
+      a.download = hasExt ? title : `${title}.pdf`;
+      document.body.appendChild(a);
+      a.click();
+      window.URL.revokeObjectURL(objectUrl);
+      document.body.removeChild(a);
+    } catch (err) {
+      window.open(url, "_blank");
+    }
+  };
+
   // Data states
   const [coursesData, setCoursesData] = useState(null);
   const [allCourses, setAllCourses] = useState([]);
@@ -407,7 +427,7 @@ export function Dashboard() {
                     </div>
 
                     {notice.attachmentUrl && (
-                      <a href={notice.attachmentUrl} target="_blank" rel="noopener noreferrer" className="shrink-0 px-2.5 py-1 bg-sky-50 dark:bg-sky-500/10 text-sky-700 dark:text-sky-400 text-xs font-medium rounded-lg border border-sky-100 dark:border-sky-800 hover:bg-sky-100 dark:hover:bg-sky-500/20 transition-colors z-10" onClick={(e) => e.stopPropagation()}>
+                      <a href={notice.attachmentUrl} target="_blank" rel="noopener noreferrer" className="shrink-0 px-2.5 py-1 bg-sky-50 dark:bg-sky-500/10 text-sky-700 dark:text-sky-400 text-xs font-medium rounded-lg border border-sky-100 dark:border-sky-800 hover:bg-sky-100 dark:hover:bg-sky-500/20 transition-colors z-10" onClick={(e) => handleDownloadAttachment(e, notice.attachmentUrl, notice.title)}>
                         Attachment
                       </a>
                     )}

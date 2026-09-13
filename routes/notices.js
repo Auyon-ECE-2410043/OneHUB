@@ -20,6 +20,7 @@ async function uploadFileToCloudinary(file) {
   const result = await cloudinary.uploader.upload(base64, {
     resource_type: isPdf ? "raw" : "image",
     folder: "onehub_notices",
+    ...(isPdf && { format: "pdf" }),
   });
   return { url: result.secure_url, type: isPdf ? "pdf" : "image" };
 }
