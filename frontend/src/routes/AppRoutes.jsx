@@ -5,7 +5,7 @@
  * This file is part of the RUET OneHub Project.
  */
 
-import { lazy, Suspense, useState, useEffect } from "react";
+import { useState, useEffect } from "react";
 import { Routes, Route, Navigate } from "react-router-dom";
 import ProtectedRoute from "../components/common/ProtectedRoute";
 import DashboardLayout from "../components/layout/DashboardLayout";
@@ -14,35 +14,35 @@ import api from "../services/api";
 import { useAuth } from "../context/AuthContext";
 
 // Auth Pages
-const Login = lazy(() => import("../pages/auth/Login"));
-const Register = lazy(() => import("../pages/auth/Register"));
+import Login from "../pages/auth/Login";
+import Register from "../pages/auth/Register";
 
 // Feature Pages
-const Dashboard = lazy(() => import("../pages/dashboard/Dashboard"));
-const CourseList = lazy(() => import("../pages/courses/CourseList"));
-const CourseDetails = lazy(() => import("../pages/courses/CourseDetails"));
-const CourseAssignmentList = lazy(() => import("../pages/courseAssignment/CourseAssignmentList"));
-const Routine = lazy(() => import("../pages/routine/Routine"));
-const ManageRoutine = lazy(() => import("../pages/admin/ManageRoutine"));
-const ManageCalendar = lazy(() => import("../pages/admin/ManageCalendar"));
-const RegistrationForm = lazy(() => import("../pages/registration/RegistrationForm"));
-const FeeList = lazy(() => import("../pages/fees/FeeList"));
-const FeePayment = lazy(() => import("../pages/fees/FeePayment"));
-const MarksList = lazy(() => import("../pages/marks/MarksList"));
-const MarksEntry = lazy(() => import("../pages/marks/MarksEntry"));
-const CGPAAnalytics = lazy(() => import("../pages/marks/CGPAAnalytics"));
-const AttendanceList = lazy(() => import("../pages/attendance/AttendanceList"));
-const MarkAttendance = lazy(() => import("../pages/attendance/MarkAttendance"));
-const NoticeList = lazy(() => import("../pages/notices/NoticeList"));
-const HallApplicationForm = lazy(() => import("../pages/hallApplication/HallApplicationForm"));
-const HallApplicationStatus = lazy(() => import("../pages/hallApplication/HallApplicationStatus"));
-const FacultyDirectory = lazy(() => import("../pages/faculty/FacultyDirectory"));
-const Profile = lazy(() => import("../pages/profile/Profile"));
-const MedicalCenter = lazy(() => import("../pages/medical/MedicalCenter").then(module => ({ default: module.MedicalCenter })));
-const ClearanceStatus = lazy(() => import("../pages/clearance/ClearanceStatus").then(module => ({ default: module.ClearanceStatus })));
-const ClearanceAdmin = lazy(() => import("../pages/clearance/ClearanceAdmin").then(module => ({ default: module.ClearanceAdmin })));
-const AcademicCalendar = lazy(() => import("../pages/calendar/AcademicCalendar"));
-const Maintenance = lazy(() => import("../pages/auth/Maintenance"));
+import Dashboard from "../pages/dashboard/Dashboard";
+import CourseList from "../pages/courses/CourseList";
+import CourseDetails from "../pages/courses/CourseDetails";
+import CourseAssignmentList from "../pages/courseAssignment/CourseAssignmentList";
+import Routine from "../pages/routine/Routine";
+import ManageRoutine from "../pages/admin/ManageRoutine";
+import ManageCalendar from "../pages/admin/ManageCalendar";
+import RegistrationForm from "../pages/registration/RegistrationForm";
+import FeeList from "../pages/fees/FeeList";
+import FeePayment from "../pages/fees/FeePayment";
+import MarksList from "../pages/marks/MarksList";
+import MarksEntry from "../pages/marks/MarksEntry";
+import CGPAAnalytics from "../pages/marks/CGPAAnalytics";
+import AttendanceList from "../pages/attendance/AttendanceList";
+import MarkAttendance from "../pages/attendance/MarkAttendance";
+import NoticeList from "../pages/notices/NoticeList";
+import HallApplicationForm from "../pages/hallApplication/HallApplicationForm";
+import HallApplicationStatus from "../pages/hallApplication/HallApplicationStatus";
+import FacultyDirectory from "../pages/faculty/FacultyDirectory";
+import Profile from "../pages/profile/Profile";
+import { MedicalCenter } from "../pages/medical/MedicalCenter";
+import { ClearanceStatus } from "../pages/clearance/ClearanceStatus";
+import { ClearanceAdmin } from "../pages/clearance/ClearanceAdmin";
+import AcademicCalendar from "../pages/calendar/AcademicCalendar";
+import Maintenance from "../pages/auth/Maintenance";
 
 // Loading Fallback
 const PageLoader = () => (
@@ -77,9 +77,9 @@ export function AppRoutes() {
     if (user?.role === 'admin') return children;
     if (features[featureKey] === false) {
       return (
-        <Suspense fallback={<PageLoader />}>
+        
           <Maintenance embedded={true} title={`${title} is Unavailable`} message={`The ${title} module is currently turned off by the administration for maintenance or updates. Please check back later.`} />
-        </Suspense>
+        
       );
     }
     return children;
@@ -93,15 +93,15 @@ export function AppRoutes() {
     // To allow admin to login during maintenance, if path is /login, we can let it render.
     if (window.location.pathname !== "/") {
       return (
-        <Suspense fallback={<PageLoader />}>
+        
           <Maintenance />
-        </Suspense>
+        
       );
     }
   }
 
   return (
-    <Suspense fallback={<PageLoader />}>
+    
       <Routes>
         {/* Public Auth Routes */}
       <Route path="/" element={<Login />} />
@@ -202,7 +202,7 @@ export function AppRoutes() {
       {/* Fallback */}
       <Route path="*" element={<Navigate to="/dashboard" replace />} />
       </Routes>
-    </Suspense>
+    
   );
 }
 
