@@ -409,9 +409,9 @@ export function Dashboard() {
                     </div>
 
                     {notice.attachmentUrl && (
-                      <span className="shrink-0 px-2.5 py-1 bg-sky-50 text-sky-700 text-xs font-medium rounded-lg border border-sky-100">
+                      <a href={notice.attachmentUrl} target="_blank" rel="noopener noreferrer" className="shrink-0 px-2.5 py-1 bg-sky-50 dark:bg-sky-500/10 text-sky-700 dark:text-sky-400 text-xs font-medium rounded-lg border border-sky-100 dark:border-sky-800 hover:bg-sky-100 dark:hover:bg-sky-500/20 transition-colors z-10" onClick={(e) => e.stopPropagation()}>
                         Attachment
-                      </span>
+                      </a>
                     )}
                   </div>
                 </div>
