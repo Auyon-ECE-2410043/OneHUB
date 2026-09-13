@@ -11,6 +11,7 @@ const CourseAssignment = require("../models/CourseAssignment");
 const Fee = require("../models/Fee");
 const Notification = require("../models/Notification");
 const User = require("../models/User");
+const Notification = require("../models/Notification");
 const { requireAuth, requireRole } = require("../middleware/auth");
 
 const router = express.Router();
@@ -71,6 +72,32 @@ router.post("/", requireAuth, requireRole("student"), async (req, res) => {
       totalCredit,
       status: "pending_approval",
     });
+    
+    // Notify the adviser or admin
+    let recipientIds = [];
+    if (student.adviserId) {
+      recipientIds.push(student.adviserId);
+    }
+    
+    // Also notify all admins so they are aware
+    const admins = await User.find({ role: "admin" }).select("_id");
+    admins.forEach(admin => {
+      if (!recipientIds.some(id => id.toString() === admin._id.toString())) {
+        recipientIds.push(admin._id);
+      }
+    });
+
+    const notifications = recipientIds.map(id => ({
+      recipientId: id,
+      title: "New Course Registration",
+      message: `${student.name} (${student.rollNo}) has submitted their course registration for Semester ${semester}.`,
+      type: "system",
+      link: "/registration-approvals"
+    }));
+    
+    if (notifications.length > 0) {
+      await Notification.insertMany(notifications);
+    }
 
     res.status(201).json({ registration });
   } catch (err) {
@@ -209,6 +236,14 @@ router.put("/:id/approve", requireAuth, requireRole("faculty", "admin"), async (
     registration.approvedAt = new Date();
     registration.adviserComment = adviserComment || "";
     await registration.save();
+    
+    await Notification.create({
+      recipientId: registration.studentId,
+      title: "Registration Approved",
+      message: `Your course registration for Semester ${registration.semester} has been approved.`,
+      type: "academic",
+      link: "/registration"
+    });
 
     res.json({ registration });
   } catch (err) {
@@ -238,6 +273,13 @@ router.put("/:id/reject", requireAuth, requireRole("faculty", "admin"), async (r
       { new: true }
     );
 
+    await Notification.create({
+      recipientId: updatedRegistration.studentId,
+      title: "Registration Rejected",
+      message: `Your course registration for Semester ${updatedRegistration.semester} has been rejected. Comment: ${adviserComment || "N/A"}`,
+      type: "alert",
+      link: "/registration"
+    });
     res.json({ registration: updatedRegistration });
   } catch (err) {
     res.status(500).json({ error: err.message });
