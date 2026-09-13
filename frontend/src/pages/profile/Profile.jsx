@@ -213,33 +213,35 @@ export function Profile() {
               />
             </div>
             
-            <div className="grid grid-cols-2 gap-4">
-              <div>
-                <label className="block text-xs font-semibold uppercase text-slate-600 mb-1">
-                  Roll Number
-                </label>
-                <input
-                  type="text"
-                  placeholder="e.g., 2410001"
-                  value={profileForm.rollNo}
-                  onChange={(e) => setProfileForm({ ...profileForm, rollNo: e.target.value })}
-                  className="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:ring-2 focus:ring-indigo-500 focus:outline-none"
-                />
+            {user?.role === "student" && (
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-xs font-semibold uppercase text-slate-600 mb-1">
+                    Roll Number
+                  </label>
+                  <input
+                    type="text"
+                    placeholder="e.g., 2410001"
+                    value={profileForm.rollNo}
+                    onChange={(e) => setProfileForm({ ...profileForm, rollNo: e.target.value })}
+                    className="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:ring-2 focus:ring-indigo-500 focus:outline-none"
+                  />
+                </div>
+                
+                <div>
+                  <label className="block text-xs font-semibold uppercase text-slate-600 mb-1">
+                    Batch / Series
+                  </label>
+                  <input
+                    type="text"
+                    placeholder="e.g., 24"
+                    value={profileForm.batch}
+                    onChange={(e) => setProfileForm({ ...profileForm, batch: e.target.value })}
+                    className="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:ring-2 focus:ring-indigo-500 focus:outline-none"
+                  />
+                </div>
               </div>
-              
-              <div>
-                <label className="block text-xs font-semibold uppercase text-slate-600 mb-1">
-                  Batch / Series
-                </label>
-                <input
-                  type="text"
-                  placeholder="e.g., 24"
-                  value={profileForm.batch}
-                  onChange={(e) => setProfileForm({ ...profileForm, batch: e.target.value })}
-                  className="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:ring-2 focus:ring-indigo-500 focus:outline-none"
-                />
-              </div>
-            </div>
+            )}
 
             <div>
               <label className="block text-xs font-semibold uppercase text-slate-600 mb-1">
@@ -254,31 +256,35 @@ export function Profile() {
               />
             </div>
 
-            <div>
-              <label className="block text-xs font-semibold uppercase text-slate-600 mb-1">
-                Father's Contact #
-              </label>
-              <input
-                type="text"
-                placeholder="e.g., 01700000000"
-                value={profileForm.fatherContactNo}
-                onChange={(e) => setProfileForm({ ...profileForm, fatherContactNo: e.target.value })}
-                className="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:ring-2 focus:ring-indigo-500 focus:outline-none"
-              />
-            </div>
+            {user?.role === "student" && (
+              <>
+                <div>
+                  <label className="block text-xs font-semibold uppercase text-slate-600 mb-1">
+                    Father's Contact #
+                  </label>
+                  <input
+                    type="text"
+                    placeholder="e.g., 01700000000"
+                    value={profileForm.fatherContactNo}
+                    onChange={(e) => setProfileForm({ ...profileForm, fatherContactNo: e.target.value })}
+                    className="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:ring-2 focus:ring-indigo-500 focus:outline-none"
+                  />
+                </div>
 
-            <div>
-              <label className="block text-xs font-semibold uppercase text-slate-600 mb-1">
-                Mother's Contact #
-              </label>
-              <input
-                type="text"
-                placeholder="e.g., 01700000000"
-                value={profileForm.motherContactNo}
-                onChange={(e) => setProfileForm({ ...profileForm, motherContactNo: e.target.value })}
-                className="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:ring-2 focus:ring-indigo-500 focus:outline-none"
-              />
-            </div>
+                <div>
+                  <label className="block text-xs font-semibold uppercase text-slate-600 mb-1">
+                    Mother's Contact #
+                  </label>
+                  <input
+                    type="text"
+                    placeholder="e.g., 01700000000"
+                    value={profileForm.motherContactNo}
+                    onChange={(e) => setProfileForm({ ...profileForm, motherContactNo: e.target.value })}
+                    className="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:ring-2 focus:ring-indigo-500 focus:outline-none"
+                  />
+                </div>
+              </>
+            )}
 
             <div>
               <label className="block text-xs font-semibold uppercase text-slate-600 mb-1">
