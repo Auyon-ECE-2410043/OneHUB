@@ -131,16 +131,14 @@ export function Dashboard() {
             console.warn("Admin data fetch error", e);
           }
 
-          if (user?.role === "admin") {
-            try {
-              const { default: api } = await import("../../services/api");
-              const res = await api.get("/settings");
-              setMaintenance(res.data.maintenanceMode);
-                      setFeatures(res.data.features || {});
-        setFeatures(res.data.features || {});
-            } catch (e) {
-              console.warn("Could not load settings", e);
-            }
+          // Fetch features for everyone (controls overview cards)
+          try {
+            const { default: api } = await import("../../services/api");
+            const res = await api.get("/settings");
+            setMaintenance(res.data.maintenanceMode);
+            setFeatures(res.data.features || {});
+          } catch (e) {
+            console.warn("Could not load settings", e);
           }
         }
       } finally {
