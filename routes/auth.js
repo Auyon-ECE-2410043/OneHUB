@@ -12,6 +12,9 @@ const User = require("../models/User");
 const Otp = require("../models/Otp");
 const sendEmail = require("../utils/sendEmail");
 const { requireAuth } = require("../middleware/auth");
+const multer = require("multer");
+const cloudinary = require("../config/cloudinary");
+const upload = multer({ storage: multer.memoryStorage(), limits: { fileSize: 5 * 1024 * 1024 } });
 
 
 
@@ -346,6 +349,38 @@ router.put("/profile", requireAuth, async (req, res) => {
       }
 
     res.json({ message: "Profile updated successfully", user: userObj });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// POST /api/auth/profile/picture
+router.post("/profile/picture", requireAuth, upload.single("picture"), async (req, res) => {
+  try {
+    if (!req.file) return res.status(400).json({ error: "No image file provided" });
+    const user = await User.findById(req.user.id);
+    if (!user) return res.status(404).json({ error: "User not found" });
+
+    const base64 = `data:${req.file.mimetype};base64,${req.file.buffer.toString("base64")}`;
+    const result = await cloudinary.uploader.upload(base64, {
+      folder: "onehub_profiles",
+      resource_type: "image",
+      transformation: [{ width: 200, height: 200, crop: "fill" }]
+    });
+
+    user.profilePicture = result.secure_url;
+    if (user.role === "faculty") {
+      user.photoUrl = result.secure_url;
+    }
+    await user.save();
+
+    const userObj = user.toObject();
+    delete userObj.passwordHash;
+    if (user.role === "faculty") {
+      const studentCount = await User.countDocuments({ adviserId: user._id });
+      userObj.isAdviser = studentCount > 0;
+    }
+    res.json({ message: "Profile picture updated successfully", user: userObj });
   } catch (err) {
     res.status(500).json({ error: err.message });
   }

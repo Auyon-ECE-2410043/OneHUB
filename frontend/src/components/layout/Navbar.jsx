@@ -84,8 +84,12 @@ export function Navbar({ onMenuToggle, isSidebarOpen }) {
               onClick={() => setDropdownOpen(!dropdownOpen)}
               className="flex items-center space-x-3 p-1.5 pl-2 pr-3 rounded-xl hover:bg-slate-100 dark:hover:bg-slate-800/50 transition-smooth border border-transparent hover:border-slate-200 dark:hover:border-slate-700"
             >
-              <div className="w-8 h-8 rounded-lg bg-sky-600 text-white font-semibold flex items-center justify-center text-xs shadow-xs">
-                {getInitials(user?.name)}
+              <div className="w-8 h-8 rounded-lg bg-sky-600 text-white font-semibold flex items-center justify-center text-xs shadow-xs overflow-hidden">
+                {user?.profilePicture ? (
+                  <img src={user.profilePicture} alt="Profile" className="w-full h-full object-cover" />
+                ) : (
+                  getInitials(user?.name)
+                )}
               </div>
               <div className="hidden md:flex flex-col text-left">
                 <span className="text-xs font-semibold text-slate-800 dark:text-slate-200 leading-tight">

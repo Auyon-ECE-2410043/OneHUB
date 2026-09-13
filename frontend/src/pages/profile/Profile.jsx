@@ -126,9 +126,35 @@ export function Profile() {
       )}
 
       {/* Profile Overview Card */}
-      <div className="p-6 bg-white rounded-2xl border border-slate-200 shadow-xs flex flex-col md:flex-row items-center md:items-start space-y-4 md:space-y-0 md:space-x-6">
-        <div className="w-20 h-20 rounded-2xl bg-gradient-to-tr from-sky-600 to-indigo-600 text-white text-2xl font-bold flex items-center justify-center shadow-lg shadow-sky-600/20 shrink-0">
-          {getInitials(user?.name)}
+      <div className="p-6 bg-white dark:bg-slate-900/40 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-xs flex flex-col md:flex-row items-center md:items-start space-y-4 md:space-y-0 md:space-x-6">
+        <div className="relative group shrink-0">
+          <div className="w-20 h-20 rounded-2xl bg-gradient-to-tr from-sky-600 to-indigo-600 text-white text-2xl font-bold flex items-center justify-center shadow-lg overflow-hidden relative">
+            {user?.profilePicture ? (
+              <img src={user.profilePicture} alt="Profile" className="w-full h-full object-cover" />
+            ) : (
+              getInitials(user?.name)
+            )}
+            <label className="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 transition-opacity cursor-pointer flex items-center justify-center text-white text-xs font-medium">
+              Update
+              <input
+                type="file"
+                className="hidden"
+                accept="image/*"
+                onChange={async (e) => {
+                  if (e.target.files && e.target.files[0]) {
+                    try {
+                      setMsg({ text: "Uploading...", type: "success" });
+                      const res = await authService.uploadProfilePicture(e.target.files[0]);
+                      updateUser(res.user);
+                      setMsg({ text: "Profile picture updated successfully", type: "success" });
+                    } catch (err) {
+                      setMsg({ text: "Failed to update profile picture", type: "error" });
+                    }
+                  }
+                }}
+              />
+            </label>
+          </div>
         </div>
 
         <div className="flex-1 text-center md:text-left space-y-2">
