@@ -9,6 +9,7 @@ const express = require("express");
 const crypto = require("crypto");
 const Clearance = require("../models/Clearance");
 const User = require("../models/User");
+const HallApplication = require("../models/HallApplication");
 const { requireAuth, requireRole } = require("../middleware/auth");
 
 const router = express.Router();
@@ -24,12 +25,16 @@ router.get("/", requireAuth, async (req, res) => {
     if (!clearance) {
       // Auto-initialize clearance file if it doesn't exist
       const student = await User.findById(req.user.id);
+      
+      // Check if student has an approved hall allocation
+      const hallApp = await HallApplication.findOne({ studentId: student._id, status: "approved" });
+      
       clearance = await Clearance.create({
         studentId: student._id,
         semester,
-        // If not assigned a hall, hall clearance is NA
-        "departments.hall.status": "not_applicable" // simplified logic
+        "departments.hall.status": hallApp ? "pending" : "not_applicable"
       });
+
     }
 
     res.json({ clearance });
