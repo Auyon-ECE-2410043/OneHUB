@@ -52,8 +52,7 @@ export function LiveSidebar({ onOpenPostModal }) {
     return <div className="h-full bg-white/50 dark:bg-slate-900/50 rounded-3xl p-6 border border-slate-100 dark:border-slate-800 animate-pulse min-h-[400px]"></div>;
   }
 
-  const emergencies = feeds.filter(f => f.type === "emergency_blood");
-  const others = feeds.filter(f => f.type !== "emergency_blood");
+  
 
   return (
     <motion.div 
@@ -97,70 +96,68 @@ export function LiveSidebar({ onOpenPostModal }) {
 
       <div className="relative z-10 flex-1 overflow-y-auto space-y-5 pr-2 custom-scrollbar">
         <AnimatePresence>
-          {emergencies.map((feed) => (
-            <motion.div
-              key={feed._id}
-              initial={{ opacity: 0, x: -20 }}
-              animate={{ opacity: 1, x: 0 }}
-              exit={{ opacity: 0, scale: 0.9 }}
-              className={`relative p-5 rounded-2xl bg-gradient-to-r from-rose-950/80 to-red-900/40 backdrop-blur-md border border-rose-500/50 hover:border-rose-400 transition-colors shadow-lg shadow-rose-900/20 group ${getUrl(feed.content) ? 'cursor-pointer hover:shadow-rose-500/20' : ''}`}
-              onClick={() => { const url = getUrl(feed.content); if(url) window.open(url, '_blank'); }}
-            >
-              <div className="absolute top-0 right-0 p-4 opacity-10">
-                <AlertCircle className="w-24 h-24 text-rose-500" />
-              </div>
-              <div className="relative z-10 flex items-start space-x-4">
-                <div className="p-3 bg-rose-500/20 rounded-2xl text-rose-400 border border-rose-500/30">
-                  <AlertCircle className="w-6 h-6 animate-pulse" />
+          {feeds.map((feed) => (
+            feed.type === 'emergency_blood' ? (
+              <motion.div
+                key={feed._id}
+                initial={{ opacity: 0, x: -20 }}
+                animate={{ opacity: 1, x: 0 }}
+                exit={{ opacity: 0, scale: 0.9 }}
+                className={`relative p-5 rounded-2xl bg-gradient-to-r from-rose-950/80 to-red-900/40 backdrop-blur-md border border-rose-500/50 hover:border-rose-400 transition-colors shadow-lg shadow-rose-900/20 group ${getUrl(feed.content) ? 'cursor-pointer hover:shadow-rose-500/20' : ''}`}
+                onClick={() => { const url = getUrl(feed.content); if(url) window.open(url, '_blank'); }}
+              >
+                <div className="absolute top-0 right-0 p-4 opacity-10">
+                  <AlertCircle className="w-24 h-24 text-rose-500" />
                 </div>
-                <div className="flex-1">
-                  <h3 className="font-bold text-rose-100 text-lg mb-1">{feed.title}</h3>
-                  <p className="text-sm text-rose-200/90 leading-relaxed mb-3">{renderContent(feed.content)}</p>
-                  <p className="text-xs text-rose-400 font-semibold uppercase tracking-widest">{formatDate(feed.createdAt)}</p>
+                <div className="relative z-10 flex items-start space-x-4">
+                  <div className="p-3 bg-rose-500/20 rounded-2xl text-rose-400 border border-rose-500/30">
+                    <AlertCircle className="w-6 h-6 animate-pulse" />
+                  </div>
+                  <div className="flex-1">
+                    <h3 className="font-bold text-rose-100 text-lg mb-1">{feed.title}</h3>
+                    <p className="text-sm text-rose-200/90 leading-relaxed mb-3">{renderContent(feed.content)}</p>
+                    <p className="text-xs text-rose-400 font-semibold uppercase tracking-widest">{formatDate(feed.createdAt)}</p>
+                  </div>
                 </div>
-              </div>
-              {user?.role === "admin" && (
-                <button onClick={(e) => { e.stopPropagation(); handleDelete(feed._id); }} className="absolute bottom-3 right-3 p-2 bg-rose-900/50 rounded-lg text-rose-300 opacity-0 group-hover:opacity-100 hover:bg-rose-800 transition-all z-20">
-                  <Trash2 className="w-4 h-4" />
-                </button>
-              )}
-        
-      
-    </motion.div>
-          ))}
-          
-          {others.map((feed) => (
-            <motion.div
-              key={feed._id}
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              className={`relative p-5 rounded-2xl backdrop-blur-md border hover:shadow-xl transition-all group ${
-                feed.type === 'achievement' 
-                  ? 'bg-gradient-to-br from-amber-900/30 to-orange-900/10 border-amber-500/30 hover:border-amber-400/50' 
-                  : 'bg-white/5 border-white/10 hover:border-sky-400/30'
-              } ${getUrl(feed.content) ? 'cursor-pointer hover:-translate-y-0.5' : ''}`}
-              onClick={() => { const url = getUrl(feed.content); if(url) window.open(url, '_blank'); }}
-            >
-              <div className="flex items-start space-x-4">
-                <div className={`p-3 rounded-2xl border ${
+                {user?.role === "admin" && (
+                  <button onClick={(e) => { e.stopPropagation(); handleDelete(feed._id); }} className="absolute bottom-3 right-3 p-2 bg-rose-900/50 rounded-lg text-rose-300 opacity-0 group-hover:opacity-100 hover:bg-rose-800 transition-all z-20">
+                    <Trash2 className="w-4 h-4" />
+                  </button>
+                )}
+              </motion.div>
+            ) : (
+              <motion.div
+                key={feed._id}
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                className={`relative p-5 rounded-2xl backdrop-blur-md border hover:shadow-xl transition-all group ${
                   feed.type === 'achievement' 
-                    ? 'bg-amber-500/20 text-amber-400 border-amber-500/30' 
-                    : 'bg-sky-500/20 text-sky-400 border-sky-500/30'
-                }`}>
-                  {feed.type === "achievement" ? <Award className="w-6 h-6" /> : feed.type === "ruet_news" ? <Globe className="w-6 h-6" /> : <Bell className="w-6 h-6" />}
+                    ? 'bg-gradient-to-br from-amber-900/30 to-orange-900/10 border-amber-500/30 hover:border-amber-400/50' 
+                    : 'bg-white/5 border-white/10 hover:border-sky-400/30'
+                } ${getUrl(feed.content) ? 'cursor-pointer hover:-translate-y-0.5' : ''}`}
+                onClick={() => { const url = getUrl(feed.content); if(url) window.open(url, '_blank'); }}
+              >
+                <div className="flex items-start space-x-4">
+                  <div className={`p-3 rounded-2xl border ${
+                    feed.type === 'achievement' 
+                      ? 'bg-amber-500/20 text-amber-400 border-amber-500/30' 
+                      : 'bg-sky-500/20 text-sky-400 border-sky-500/30'
+                  }`}>
+                    {feed.type === "achievement" ? <Award className="w-6 h-6" /> : feed.type === "ruet_news" ? <Globe className="w-6 h-6" /> : <Bell className="w-6 h-6" />}
+                  </div>
+                  <div className="flex-1">
+                    <h3 className={`font-bold text-base mb-1 ${feed.type === 'achievement' ? 'text-amber-300' : 'text-slate-100'}`}>{feed.title}</h3>
+                    <p className="text-sm text-slate-300/80 leading-relaxed mb-3">{renderContent(feed.content)}</p>
+                    <p className="text-xs text-slate-500 font-semibold uppercase tracking-widest">{formatDate(feed.createdAt)}</p>
+                  </div>
                 </div>
-                <div className="flex-1">
-                  <h3 className={`font-bold text-base mb-1 ${feed.type === 'achievement' ? 'text-amber-300' : 'text-slate-100'}`}>{feed.title}</h3>
-                  <p className="text-sm text-slate-300/80 leading-relaxed mb-3">{renderContent(feed.content)}</p>
-                  <p className="text-xs text-slate-500 font-semibold uppercase tracking-widest">{formatDate(feed.createdAt)}</p>
-                </div>
-              </div>
-              {user?.role === "admin" && (
-                <button onClick={(e) => { e.stopPropagation(); handleDelete(feed._id); }} className="absolute bottom-3 right-3 p-2 bg-white/5 rounded-lg text-slate-400 opacity-0 group-hover:opacity-100 hover:bg-white/10 hover:text-white transition-all z-20">
-                  <Trash2 className="w-4 h-4" />
-                </button>
-              )}
-            </motion.div>
+                {user?.role === "admin" && (
+                  <button onClick={(e) => { e.stopPropagation(); handleDelete(feed._id); }} className="absolute bottom-3 right-3 p-2 bg-white/5 rounded-lg text-slate-400 opacity-0 group-hover:opacity-100 hover:bg-white/10 hover:text-white transition-all z-20">
+                    <Trash2 className="w-4 h-4" />
+                  </button>
+                )}
+              </motion.div>
+            )
           ))}
           
           {feeds.length === 0 && (

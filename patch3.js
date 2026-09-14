@@ -1,13 +1,20 @@
 const fs = require('fs');
-let code = fs.readFileSync('v:/Project/OneHUB/OneHUB/frontend/src/pages/dashboard/Dashboard.jsx', 'utf8');
+const path = 'frontend/src/pages/dashboard/Dashboard.jsx';
+let content = fs.readFileSync(path, 'utf-8');
 
-code = code.replace(
-  'import { LiveSidebar } from "../../components/dashboard/LiveSidebar";\r\nimport { LiveSidebar } from "../../components/dashboard/LiveSidebar";',
-  'import { LiveSidebar } from "../../components/dashboard/LiveSidebar";'
-);
-code = code.replace(
-  'import { LiveSidebar } from "../../components/dashboard/LiveSidebar";\nimport { LiveSidebar } from "../../components/dashboard/LiveSidebar";',
-  'import { LiveSidebar } from "../../components/dashboard/LiveSidebar";'
-);
+const regexes = [
+  { match: /<Link\s+to="\/attendance"[\s\S]*?<\/Link>/, flag: 'attendance' },
+  { match: /<Link\s+to="\/marks"[\s\S]*?<\/Link>/, flag: 'marks' },
+  { match: /<Link\s+to="\/fees"[\s\S]*?<\/Link>/, flag: 'fees' },
+  { match: /<Link\s+to="\/attendance\/mark"[\s\S]*?<\/Link>/, flag: 'attendance' },
+  { match: /<Link\s+to="\/marks\/entry"[\s\S]*?<\/Link>/, flag: 'marks' }
+];
 
-fs.writeFileSync('v:/Project/OneHUB/OneHUB/frontend/src/pages/dashboard/Dashboard.jsx', code);
+regexes.forEach(r => {
+  content = content.replace(r.match, (match) => {
+    return '<>{features.' + r.flag + ' !== false && ( ' + match + ' )}</>';
+  });
+});
+
+fs.writeFileSync(path, content, 'utf-8');
+console.log('Done');
