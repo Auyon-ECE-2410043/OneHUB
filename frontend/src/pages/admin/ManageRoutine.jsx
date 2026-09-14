@@ -31,6 +31,7 @@ export default function ManageRoutine() {
   const [facultyList, setFacultyList] = useState([]);
   const [selectedDeptFilter, setSelectedDeptFilter] = useState("ECE");
   const [selectedTeacherFilter, setSelectedTeacherFilter] = useState("");
+  const [selectedSeriesFilter, setSelectedSeriesFilter] = useState("");
   
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [currentSlot, setCurrentSlot] = useState(null);
@@ -144,9 +145,11 @@ export default function ManageRoutine() {
 
   const departments = [...new Set(facultyList.map(f => f.department).filter(Boolean))].sort();
 
-  const filteredSlots = selectedTeacherFilter 
-    ? slots.filter(s => s.teacherInitials?.includes(selectedTeacherFilter)) 
-    : slots;
+  const filteredSlots = slots.filter(s => {
+    const matchTeacher = selectedTeacherFilter ? s.teacherInitials?.includes(selectedTeacherFilter) : true;
+    const matchSeries = selectedSeriesFilter ? (s.series === selectedSeriesFilter || s.semester === selectedSeriesFilter) : true;
+    return matchTeacher && matchSeries;
+  });
 
   if (loading) return <PageLoader />;
 
@@ -157,6 +160,19 @@ export default function ManageRoutine() {
         <div className="flex items-center gap-3">
           <div className="flex items-center bg-white border rounded-lg px-2 py-1 shadow-sm overflow-hidden">
             <Filter className="w-4 h-4 text-gray-500 ml-2" />
+            <select
+              value={selectedSeriesFilter}
+              onChange={(e) => setSelectedSeriesFilter(e.target.value)}
+              className="outline-none bg-transparent text-sm text-gray-700 p-1 border-r border-gray-200"
+            >
+              <option value="">All Series / Sem</option>
+              <optgroup label="By Semester">
+                {semesterOptions.map(sem => <option key={sem} value={sem}>{sem}</option>)}
+              </optgroup>
+              <optgroup label="By Series">
+                {seriesOptions.map(ser => <option key={ser} value={ser}>{ser}</option>)}
+              </optgroup>
+            </select>
             <select
               value={selectedDeptFilter}
               onChange={(e) => {
@@ -211,7 +227,7 @@ export default function ManageRoutine() {
               {filteredSlots.length === 0 && (
                 <tr>
                   <td colSpan="6" className="p-6 text-center text-gray-500">
-                    No classes found for the selected teacher.
+                    No classes found for the selected filters.
                   </td>
                 </tr>
               )}
