@@ -211,7 +211,7 @@ export function Profile() {
               <input
                 type="text"
                 placeholder="e.g., John Doe"
-                value={profileForm.name}
+                  value={profileForm.name}
                 onChange={(e) => setProfileForm({ ...profileForm, name: e.target.value })}
                 className="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:ring-2 focus:ring-indigo-500 focus:outline-none"
               />
@@ -346,7 +346,7 @@ export function Profile() {
                 <input
                   type={showPassword ? "text" : "password"}
                   required
-                  placeholder="��������"
+                  placeholder="********"
                   value={passwordForm.currentPassword}
                   onChange={(e) =>
                     setPasswordForm({ ...passwordForm, currentPassword: e.target.value })
