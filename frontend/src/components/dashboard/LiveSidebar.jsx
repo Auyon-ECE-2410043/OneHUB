@@ -7,6 +7,13 @@ import { useAuth } from "../../context/AuthContext";
 import { formatDate } from "../../utils/helpers";
 
 const getUrl = (text) => { const match = text.match(/https?:\/\/[^\s]+/); return match ? match[0] : null; };
+const renderContent = (text) => {
+  if (!text) return "";
+  let clean = text.replace(/https?:\/\/[^\s]+/, "").trim();
+  clean = clean.replace(/^Official update:?\s*/i, "");
+  if (!clean) return "Click to read full story";
+  return clean;
+};
 
 export function LiveSidebar({ onOpenPostModal }) {
   const { user } = useAuth();
@@ -108,7 +115,7 @@ export function LiveSidebar({ onOpenPostModal }) {
                 </div>
                 <div className="flex-1">
                   <h3 className="font-bold text-rose-100 text-lg mb-1">{feed.title}</h3>
-                  <p className="text-sm text-rose-200/90 leading-relaxed mb-3">{feed.content}</p>
+                  <p className="text-sm text-rose-200/90 leading-relaxed mb-3">{renderContent(feed.content)}</p>
                   <p className="text-xs text-rose-400 font-semibold uppercase tracking-widest">{formatDate(feed.createdAt)}</p>
                 </div>
               </div>
@@ -144,7 +151,7 @@ export function LiveSidebar({ onOpenPostModal }) {
                 </div>
                 <div className="flex-1">
                   <h3 className={`font-bold text-base mb-1 ${feed.type === 'achievement' ? 'text-amber-300' : 'text-slate-100'}`}>{feed.title}</h3>
-                  <p className="text-sm text-slate-300/80 leading-relaxed mb-3">{feed.content}</p>
+                  <p className="text-sm text-slate-300/80 leading-relaxed mb-3">{renderContent(feed.content)}</p>
                   <p className="text-xs text-slate-500 font-semibold uppercase tracking-widest">{formatDate(feed.createdAt)}</p>
                 </div>
               </div>

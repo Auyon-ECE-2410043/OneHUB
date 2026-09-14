@@ -16,12 +16,13 @@ async function scrapeRuet() {
     const newItems = [];
 
     function extractDate(el) {
-        const parentText = $(el).closest("li, .news-item, .event-item, div.row, div.col").text();
-        // Look for common formats like 14 Sep 2026, 14/09/2026, 2026-09-14
-        const dateMatch = parentText.match(/(\d{1,2}\s+[a-zA-Z]{3,9}\s+\d{4})|(\d{1,2}[\/\-]\d{1,2}[\/\-]\d{2,4})|(\d{4}[\/\-]\d{1,2}[\/\-]\d{1,2})/);
+        const parentText = $(el).closest("li, .news-item, .event-item, div.row, div.col, .news_events").text().replace(/\n/g, " ");
+        // Look for common formats like 14 Sep 2026, 14th May 2026, 14/09/2026, 2026-09-14
+        const dateMatch = parentText.match(/(\d{1,2}(?:st|nd|rd|th)?\s+[a-zA-Z]{3,9}\s+\d{4})|(\d{1,2}[\/\-]\d{1,2}[\/\-]\d{2,4})|(\d{4}[\/\-]\d{1,2}[\/\-]\d{1,2})/i);
         
         if (dateMatch) {
-            const parsed = new Date(dateMatch[0]);
+            let dateStr = dateMatch[0].replace(/(st|nd|rd|th)/gi, "");
+            const parsed = new Date(dateStr);
             if (!isNaN(parsed.valueOf())) return parsed;
         }
         return new Date(); // Fallback to now
