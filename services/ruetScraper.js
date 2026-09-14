@@ -15,6 +15,18 @@ async function scrapeRuet() {
     const $ = cheerio.load(res.data);
     const newItems = [];
 
+    function extractDate(el) {
+        const parentText = $(el).closest("li, .news-item, .event-item, div.row, div.col").text();
+        // Look for common formats like 14 Sep 2026, 14/09/2026, 2026-09-14
+        const dateMatch = parentText.match(/(\d{1,2}\s+[a-zA-Z]{3,9}\s+\d{4})|(\d{1,2}[\/\-]\d{1,2}[\/\-]\d{2,4})|(\d{4}[\/\-]\d{1,2}[\/\-]\d{1,2})/);
+        
+        if (dateMatch) {
+            const parsed = new Date(dateMatch[0]);
+            if (!isNaN(parsed.valueOf())) return parsed;
+        }
+        return new Date(); // Fallback to now
+    }
+
     // General heuristic for RUET website news/events/achievements
     $(".news, .events, .notice-board, .achievements, #news, #events, .single-news, .news-content, .recent-news").find("a").each((i, el) => {
       const title = $(el).text().trim();
@@ -24,7 +36,8 @@ async function scrapeRuet() {
         newItems.push({
           title: title.replace(/\s+/g, " "),
           content: href ? (href.startsWith("http") ? href : "https://www.ruet.ac.bd" + (href.startsWith("/") ? href : "/" + href)) : "Official Website Update",
-          type: title.toLowerCase().includes("achievement") ? "achievement" : "ruet_news"
+          type: title.toLowerCase().includes("achievement") ? "achievement" : "ruet_news",
+          createdAt: extractDate(el)
         });
       }
     });
@@ -38,7 +51,8 @@ async function scrapeRuet() {
              newItems.push({
                title: text.replace(/\s+/g, " "),
                content: href.startsWith("http") ? href : "https://www.ruet.ac.bd" + (href.startsWith("/") ? href : "/" + href),
-               type: text.toLowerCase().includes("achievement") ? "achievement" : "ruet_news"
+               type: text.toLowerCase().includes("achievement") ? "achievement" : "ruet_news",
+               createdAt: extractDate(el)
              });
           }
        }
@@ -64,13 +78,14 @@ async function scrapeRuet() {
     let addedCount = 0;
 
     for (const item of topItems) {
-      const existing = await LiveFeed.findOne({ title: item.title });
+      const existing = await LiveFeed.findOne({ title: "[RUET.AC.BD] " + item.title });
       if (!existing) {
         await LiveFeed.create({
           title: "[RUET.AC.BD] " + item.title,
           content: "Official update: " + item.content,
           type: item.type,
-          active: true
+          active: true,
+          createdAt: item.createdAt
         });
         addedCount++;
       }
@@ -81,10 +96,6 @@ async function scrapeRuet() {
     console.error("[RUET Scraper] Error scraping:", err.message);
   }
 }
-
-module.exports = { scrapeRuet };
-
-
 
 const cron = require("node-cron");
 function initRuetScraper() {
@@ -98,3 +109,4 @@ function initRuetScraper() {
 }
 
 module.exports = { scrapeRuet, initRuetScraper };
+

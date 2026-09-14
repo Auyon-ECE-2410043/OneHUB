@@ -266,7 +266,7 @@ export function Dashboard() {
     </motion.div>
           
           {/* HUGE LIVE FEED */}
-          <div className="w-full">
+          <div className="w-full h-[500px]">
             <LiveSidebar onOpenPostModal={() => setIsLiveFeedModalOpen(true)} />
           </div>
 
