@@ -78,10 +78,10 @@ async function scrapeRuet() {
     let addedCount = 0;
 
     for (const item of topItems) {
-      const existing = await LiveFeed.findOne({ title: "[RUET.AC.BD] " + item.title });
+      const existing = await LiveFeed.findOne({ title: item.title });
       if (!existing) {
         await LiveFeed.create({
-          title: "[RUET.AC.BD] " + item.title,
+          title: item.title,
           content: "Official update: " + item.content,
           type: item.type,
           active: true,
