@@ -3,7 +3,7 @@ const mongoose = require("mongoose");
 const liveFeedSchema = new mongoose.Schema({
   type: {
     type: String,
-    enum: ["emergency_blood", "achievement", "campus_alert"],
+    enum: ["emergency_blood", "achievement", "campus_alert", "ruet_news"],
     required: true,
   },
   title: {

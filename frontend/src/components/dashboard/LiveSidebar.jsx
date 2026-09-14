@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { AlertCircle, Award, Bell, Activity, Trash2, Zap, Sparkles, Plus } from "lucide-react";
+import { AlertCircle, Award, Bell, Activity, Trash2, Zap, Sparkles, Plus, Globe } from "lucide-react";
 import LiveFeedPostModal from "./LiveFeedPostModal";
 import livefeedService from "../../services/livefeedService";
 import { useAuth } from "../../context/AuthContext";
@@ -136,7 +136,7 @@ export function LiveSidebar({ onOpenPostModal }) {
                     ? 'bg-amber-500/20 text-amber-400 border-amber-500/30' 
                     : 'bg-sky-500/20 text-sky-400 border-sky-500/30'
                 }`}>
-                  {feed.type === 'achievement' ? <Award className="w-6 h-6" /> : <Bell className="w-6 h-6" />}
+                  {feed.type === "achievement" ? <Award className="w-6 h-6" /> : feed.type === "ruet_news" ? <Globe className="w-6 h-6" /> : <Bell className="w-6 h-6" />}
                 </div>
                 <div className="flex-1">
                   <h3 className={`font-bold text-base mb-1 ${feed.type === 'achievement' ? 'text-amber-300' : 'text-slate-100'}`}>{feed.title}</h3>

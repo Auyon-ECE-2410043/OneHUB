@@ -1,0 +1,100 @@
+const axios = require("axios");
+const cheerio = require("cheerio");
+const LiveFeed = require("../models/LiveFeed");
+
+async function scrapeRuet() {
+  try {
+    console.log("[RUET Scraper] Fetching latest news from www.ruet.ac.bd...");
+    const res = await axios.get("https://www.ruet.ac.bd/", {
+      headers: { 
+        "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36"
+      },
+      timeout: 15000
+    });
+    
+    const $ = cheerio.load(res.data);
+    const newItems = [];
+
+    // General heuristic for RUET website news/events/achievements
+    $(".news, .events, .notice-board, .achievements, #news, #events, .single-news, .news-content, .recent-news").find("a").each((i, el) => {
+      const title = $(el).text().trim();
+      const href = $(el).attr("href");
+      
+      if (title && title.length > 15 && title.length < 150) {
+        newItems.push({
+          title: title.replace(/\s+/g, " "),
+          content: href ? (href.startsWith("http") ? href : "https://www.ruet.ac.bd" + (href.startsWith("/") ? href : "/" + href)) : "Official Website Update",
+          type: title.toLowerCase().includes("achievement") ? "achievement" : "ruet_news"
+        });
+      }
+    });
+
+    // Also fallback: grab heading tags if they contain links
+    $("h3, h4, h5, h6").each((i, el) => {
+       const text = $(el).text().trim();
+       if (text.length > 15 && text.length < 150) {
+          const href = $(el).closest("a").attr("href") || $(el).find("a").attr("href");
+          if (href) {
+             newItems.push({
+               title: text.replace(/\s+/g, " "),
+               content: href.startsWith("http") ? href : "https://www.ruet.ac.bd" + (href.startsWith("/") ? href : "/" + href),
+               type: text.toLowerCase().includes("achievement") ? "achievement" : "ruet_news"
+             });
+          }
+       }
+    });
+
+    if (newItems.length === 0) {
+       console.log("[RUET Scraper] No obvious news items found on the homepage.");
+       return;
+    }
+
+    // Deduplicate
+    const uniqueItems = [];
+    const titles = new Set();
+    for (const item of newItems) {
+      if (!titles.has(item.title)) {
+        titles.add(item.title);
+        uniqueItems.push(item);
+      }
+    }
+
+    // Top 5 most recent
+    const topItems = uniqueItems.slice(0, 5);
+    let addedCount = 0;
+
+    for (const item of topItems) {
+      const existing = await LiveFeed.findOne({ title: item.title });
+      if (!existing) {
+        await LiveFeed.create({
+          title: "[RUET.AC.BD] " + item.title,
+          content: "Official update: " + item.content,
+          type: item.type,
+          active: true
+        });
+        addedCount++;
+      }
+    }
+    
+    console.log(`[RUET Scraper] Successfully synced ${addedCount} new items from RUET.`);
+  } catch (err) {
+    console.error("[RUET Scraper] Error scraping:", err.message);
+  }
+}
+
+module.exports = { scrapeRuet };
+
+
+
+const cron = require("node-cron");
+function initRuetScraper() {
+  console.log("RUET News Scraper initialized (running every 30 minutes)");
+  // Run every 30 minutes
+  cron.schedule("*/30 * * * *", () => {
+    scrapeRuet();
+  });
+  // Also run immediately on boot
+  scrapeRuet();
+}
+
+module.exports = { scrapeRuet, initRuetScraper };

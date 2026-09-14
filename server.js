@@ -21,6 +21,7 @@ const calendarRoutes = require("./routes/calendar");
 const cronRoutes = require("./routes/cron");
 
 const { initReminderScheduler } = require("./services/reminderScheduler");
+const { initRuetScraper } = require("./services/ruetScraper");
 const logger = require("./utils/logger");
 const rateLimit = require("express-rate-limit");
 
@@ -95,6 +96,7 @@ mongoose
     logger.info("Connected to MongoDB");
     // Start automated class reminder scheduler
     initReminderScheduler();
+    initRuetScraper();
     app.listen(PORT, () => logger.info(`RUET OneHub Server running on port ${PORT}`));
   })
   .catch((err) => {
