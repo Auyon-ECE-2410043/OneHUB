@@ -235,7 +235,7 @@ router.get("/weekly", requireAuth, async (req, res) => {
 });
 
 // POST /api/routine -> Add new routine slot (Admin only)
-router.post("/", requireAuth, requireRole(["admin"]), async (req, res) => {
+router.post("/", requireAuth, requireRole("admin"), async (req, res) => {
   try {
     const newSlot = new ClassSchedule(req.body);
     await newSlot.save();
@@ -250,7 +250,7 @@ router.post("/", requireAuth, requireRole(["admin"]), async (req, res) => {
 });
 
 // PUT /api/routine/:id -> Update routine slot (Admin only)
-router.put("/:id", requireAuth, requireRole(["admin"]), async (req, res) => {
+router.put("/:id", requireAuth, requireRole("admin"), async (req, res) => {
   try {
     const oldSlot = await ClassSchedule.findById(req.params.id);
     const updatedSlot = await ClassSchedule.findByIdAndUpdate(req.params.id, req.body, { new: true });
@@ -275,7 +275,7 @@ router.put("/:id", requireAuth, requireRole(["admin"]), async (req, res) => {
 });
 
 // DELETE /api/routine/:id -> Delete routine slot (Admin only)
-router.delete("/:id", requireAuth, requireRole(["admin"]), async (req, res) => {
+router.delete("/:id", requireAuth, requireRole("admin"), async (req, res) => {
   try {
     const deletedSlot = await ClassSchedule.findByIdAndDelete(req.params.id);
     if (!deletedSlot) return res.status(404).json({ error: "Slot not found" });
