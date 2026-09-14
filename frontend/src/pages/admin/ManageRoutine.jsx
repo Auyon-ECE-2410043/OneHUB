@@ -423,10 +423,21 @@ export default function ManageRoutine() {
                     className="w-full border-orange-200 rounded-lg p-2 outline-none focus:ring-2 focus:ring-orange-500 bg-white"
                   >
                     <option value="None">None</option>
-                    <option value="CT">Class Test (CT)</option>
-                    <option value="Quiz">Quiz</option>
-                    <option value="Assignment">Assignment</option>
-                    <option value="Presentation">Presentation</option>
+                    {formData.type === "sessional" ? (
+                        <>
+                          <option value="Lab Final">Lab Final</option>
+                          <option value="Lab Quiz">Lab Quiz</option>
+                          <option value="Assignment">Assignment</option>
+                          <option value="Presentation">Presentation</option>
+                        </>
+                      ) : (
+                        <>
+                          <option value="CT">Class Test (CT)</option>
+                          <option value="Quiz">Quiz</option>
+                          <option value="Assignment">Assignment</option>
+                          <option value="Presentation">Presentation</option>
+                        </>
+                      )}
                   </select>
                 </div>
                 {formData.assessmentType !== 'None' && (
