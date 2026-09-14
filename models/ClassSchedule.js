@@ -26,7 +26,7 @@ const classScheduleSchema = new mongoose.Schema(
     teacherInitials: [{ type: String, uppercase: true, trim: true }], // e.g. ["MFA", "NIS"]
     teacherUserIds: [{ type: mongoose.Schema.Types.ObjectId, ref: "User" }], // Linked teacher accounts
     targetGroup: { type: String, enum: ['All', '1st 30', '2nd 30'], default: 'All' }, // Group targeting for split labs
-    assessmentType: { type: String, enum: ['None', 'CT', 'Quiz', 'Assignment', 'Presentation'], default: 'None' },
+    assessmentType: { type: String, enum: ['None', 'CT', 'Quiz', 'Assignment', 'Presentation', 'Lab Final', 'Lab Quiz'], default: 'None' },
     assessmentInfo: { type: String, default: '' },
   },
   { timestamps: true }
