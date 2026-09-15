@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { 
   Wallet, 
   Utensils, 
@@ -15,36 +15,56 @@ import {
 } from "lucide-react";
 import { useAuth } from "../../context/AuthContext";
 import { format, addDays } from "date-fns";
-
-const mockWallet = {
-  deposit: 2880,
-  withdrawn: 2800,
-  balance: 80
-};
+import { getDiningDashboard, purchaseDiningToken } from "../../services/diningApi";
+import { toast } from "react-toastify";
 
 const mockMenu = [
   { id: 1, type: "Lunch", desc: "Rice, Chicken/Fish/Egg, Vorta, Daul.", startTime: "01:00 PM", endTime: "03:00 PM", price: 40, available: true },
   { id: 2, type: "Dinner", desc: "Rice, Chicken/Fish/Egg, Vorta, Daul.", startTime: "08:00 PM", endTime: "10:30 PM", price: 40, available: true }
 ];
 
-const mockRecords = [
-  { id: 1, type: "Lunch", price: 40, borderType: "Non Residential Border", date: new Date(), status: "used", usedAt: "22:52" },
-  { id: 2, type: "Lunch", price: 40, borderType: "Non Residential Border", date: addDays(new Date(), -1), status: "active", usedAt: null },
-  { id: 3, type: "Dinner", price: 40, borderType: "Non Residential Border", date: addDays(new Date(), -2), status: "expired", usedAt: null },
-];
-
 export function DiningDashboard() {
   const { user } = useAuth();
   const [activeTab, setActiveTab] = useState("purchase");
-  const [purchasing, setPurchasing] = useState(false);
-
-  const handlePurchase = (type) => {
-    setPurchasing(true);
-    setTimeout(() => {
-      setPurchasing(false);
-      alert(`Successfully purchased ${type} token!`);
-    }, 800);
+  const [purchasing, setPurchasing] = useState(null); // id of menu
+  const [loading, setLoading] = useState(true);
+  const [wallet, setWallet] = useState({ deposit: 0, withdrawn: 0, balance: 0 });
+  const [records, setRecords] = useState([]);
+  const [selectedDate, setSelectedDate] = useState(new Date());
+  
+  const fetchDashboard = async () => {
+    try {
+      const data = await getDiningDashboard();
+      setWallet(data.wallet);
+      setRecords(data.tokens);
+    } catch (err) {
+      toast.error("Failed to load dining data");
+    } finally {
+      setLoading(false);
+    }
   };
+
+  useEffect(() => {
+    fetchDashboard();
+  }, []);
+
+  const handlePurchase = async (type) => {
+    setPurchasing(type);
+    try {
+      await purchaseDiningToken({ mealType: type, date: selectedDate });
+      toast.success(`Successfully purchased ${type} token!`);
+      fetchDashboard();
+      setActiveTab("records");
+    } catch (err) {
+      toast.error(err.response?.data?.error || "Failed to purchase token");
+    } finally {
+      setPurchasing(null);
+    }
+  };
+
+  if (loading) {
+    return <div className="flex justify-center p-12"><div className="w-8 h-8 border-4 border-sky-500 border-t-transparent rounded-full animate-spin"></div></div>;
+  }
 
   return (
     <div className="space-y-6 animate-fade-in pb-12">
@@ -72,7 +92,7 @@ export function DiningDashboard() {
               <ArrowDownRight className="w-5 h-5 text-emerald-700 dark:text-emerald-400" />
             </div>
             <p className="text-sm font-semibold text-emerald-700 dark:text-emerald-400 uppercase tracking-wider mb-1">Total Deposit</p>
-            <h3 className="text-3xl font-black text-emerald-900 dark:text-emerald-100">{mockWallet.deposit} <span className="text-lg font-bold text-emerald-600/50">Nos.</span></h3>
+            <h3 className="text-3xl font-black text-emerald-900 dark:text-emerald-100">{wallet.deposit} <span className="text-lg font-bold text-emerald-600/50">?</span></h3>
           </div>
         </div>
 
@@ -85,7 +105,7 @@ export function DiningDashboard() {
               <ArrowUpRight className="w-5 h-5 text-rose-700 dark:text-rose-400" />
             </div>
             <p className="text-sm font-semibold text-rose-700 dark:text-rose-400 uppercase tracking-wider mb-1">Total Withdrawn</p>
-            <h3 className="text-3xl font-black text-rose-900 dark:text-rose-100">{mockWallet.withdrawn} <span className="text-lg font-bold text-rose-600/50">Nos.</span></h3>
+            <h3 className="text-3xl font-black text-rose-900 dark:text-rose-100">{wallet.withdrawn} <span className="text-lg font-bold text-rose-600/50">?</span></h3>
           </div>
         </div>
 
@@ -104,7 +124,7 @@ export function DiningDashboard() {
               </button>
             </div>
             <p className="text-sm font-semibold text-sky-700 dark:text-sky-400 uppercase tracking-wider mb-1">Current Balance</p>
-            <h3 className="text-3xl font-black text-sky-900 dark:text-sky-100">{mockWallet.balance} <span className="text-lg font-bold text-sky-600/50">Nos.</span></h3>
+            <h3 className="text-3xl font-black text-sky-900 dark:text-sky-100">{wallet.balance} <span className="text-lg font-bold text-sky-600/50">?</span></h3>
           </div>
         </div>
       </div>
@@ -137,14 +157,28 @@ export function DiningDashboard() {
                   <p className="text-sm text-slate-500 dark:text-slate-400">Select and purchase dining coupons for upcoming days.</p>
                 </div>
                 <div className="flex bg-slate-100 dark:bg-slate-800 rounded-lg p-1">
-                  <button className="px-4 py-1.5 text-xs font-bold rounded-md bg-white dark:bg-slate-700 text-slate-800 dark:text-white shadow-sm">Today</button>
-                  <button className="px-4 py-1.5 text-xs font-bold rounded-md text-slate-500 dark:text-slate-400 hover:text-slate-800 dark:hover:text-white">Tomorrow</button>
+                  <button 
+                    onClick={() => setSelectedDate(new Date())}
+                    className={`px-4 py-1.5 text-xs font-bold rounded-md shadow-sm transition-colors ${selectedDate.toDateString() === new Date().toDateString() ? "bg-white dark:bg-slate-700 text-slate-800 dark:text-white" : "text-slate-500 hover:text-slate-800 dark:text-slate-400 dark:hover:text-white"}`}
+                  >
+                    Today
+                  </button>
+                  <button 
+                    onClick={() => setSelectedDate(addDays(new Date(), 1))}
+                    className={`px-4 py-1.5 text-xs font-bold rounded-md shadow-sm transition-colors ${selectedDate.toDateString() === addDays(new Date(), 1).toDateString() ? "bg-white dark:bg-slate-700 text-slate-800 dark:text-white" : "text-slate-500 hover:text-slate-800 dark:text-slate-400 dark:hover:text-white"}`}
+                  >
+                    Tomorrow
+                  </button>
                 </div>
               </div>
 
               <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
-                {mockMenu.map((m) => (
-                  <div key={m.id} className="border border-slate-200 dark:border-slate-700 rounded-2xl p-5 hover:border-sky-300 dark:hover:border-sky-500/50 transition-all flex flex-col justify-between bg-slate-50/50 dark:bg-slate-900/20">
+                {mockMenu.map((m) => {
+                  // Check if already purchased
+                  const isPurchased = records.some(r => r.mealType === m.type && new Date(r.date).toDateString() === selectedDate.toDateString());
+                  
+                  return (
+                  <div key={m.id} className={`border ${isPurchased ? "border-emerald-500/50 bg-emerald-50/20 dark:bg-emerald-900/10" : "border-slate-200 dark:border-slate-700"} rounded-2xl p-5 hover:border-sky-300 dark:hover:border-sky-500/50 transition-all flex flex-col justify-between bg-slate-50/50 dark:bg-slate-900/20`}>
                     <div className="flex justify-between items-start mb-4">
                       <div className="flex items-center gap-3">
                         <div className={`w-12 h-12 rounded-full flex items-center justify-center shrink-0 ${m.type === "Lunch" ? "bg-amber-100 dark:bg-amber-500/20 text-amber-600 dark:text-amber-400" : "bg-indigo-100 dark:bg-indigo-500/20 text-indigo-600 dark:text-indigo-400"}`}>
@@ -163,24 +197,25 @@ export function DiningDashboard() {
                       </div>
                     </div>
                     
-                    <div className="bg-white dark:bg-slate-800/50 rounded-xl p-3 border border-slate-100 dark:border-slate-700/50 mb-4">
+                    <div className="bg-white dark:bg-slate-800/50 rounded-xl p-3 border border-slate-100 dark:border-slate-700/50 mb-4 flex-grow">
                       <p className="text-sm font-medium text-slate-600 dark:text-slate-300">{m.desc}</p>
                     </div>
 
                     <div className="flex gap-2">
                       <button 
                         onClick={() => handlePurchase(m.type)}
-                        disabled={purchasing}
-                        className="flex-1 bg-sky-600 hover:bg-sky-700 text-white py-2.5 rounded-xl font-bold text-sm shadow-sm transition-colors disabled:opacity-50"
+                        disabled={purchasing === m.type || isPurchased}
+                        className={`flex-1 py-2.5 rounded-xl font-bold text-sm shadow-sm transition-colors flex items-center justify-center gap-2 ${isPurchased ? "bg-emerald-600 text-white" : "bg-sky-600 hover:bg-sky-700 text-white disabled:opacity-50"}`}
                       >
-                        {purchasing ? "Processing..." : "Cut Token @ ?40"}
+                        {isPurchased ? <><CheckCircle2 className="w-4 h-4" /> Purchased</> : purchasing === m.type ? "Processing..." : `Cut Token @ ?${m.price}`}
                       </button>
                       <button className="flex-1 bg-slate-200 dark:bg-slate-800 hover:bg-slate-300 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-300 py-2.5 rounded-xl font-bold text-sm transition-colors">
                         Guest @ ?45
                       </button>
                     </div>
                   </div>
-                ))}
+                  );
+                })}
               </div>
             </div>
           ) : (
@@ -201,32 +236,38 @@ export function DiningDashboard() {
               </div>
 
               <div className="overflow-x-auto rounded-xl border border-slate-200 dark:border-slate-700/50">
-                <table className="w-full text-sm text-left">
-                  <thead className="bg-slate-50 dark:bg-slate-800/50 text-xs uppercase font-bold text-slate-500 dark:text-slate-400">
-                    <tr>
-                      <th className="px-4 py-3">ID</th>
-                      <th className="px-4 py-3">Category</th>
-                      <th className="px-4 py-3">Date</th>
-                      <th className="px-4 py-3 text-center">Status</th>
-                      <th className="px-4 py-3 text-right">Price</th>
-                    </tr>
-                  </thead>
-                  <tbody className="divide-y divide-slate-200 dark:divide-slate-700/50">
-                    {mockRecords.map((r, i) => (
-                      <tr key={r.id} className="hover:bg-slate-50/50 dark:hover:bg-slate-800/30 transition-colors">
-                        <td className="px-4 py-3 font-semibold text-slate-700 dark:text-slate-300">#{1000 + i}</td>
-                        <td className="px-4 py-3 font-medium text-slate-800 dark:text-slate-200">{r.type}</td>
-                        <td className="px-4 py-3 text-slate-500 dark:text-slate-400">{format(r.date, "dd MMM, yyyy")}</td>
-                        <td className="px-4 py-3 text-center">
-                          {r.status === "used" && <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-emerald-100 dark:bg-emerald-500/10 text-emerald-700 dark:text-emerald-400 text-xs font-bold"><CheckCircle2 className="w-3.5 h-3.5" /> Used</span>}
-                          {r.status === "active" && <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-sky-100 dark:bg-sky-500/10 text-sky-700 dark:text-sky-400 text-xs font-bold"><Ticket className="w-3.5 h-3.5" /> Active</span>}
-                          {r.status === "expired" && <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-slate-100 dark:bg-slate-800 text-slate-500 dark:text-slate-400 text-xs font-bold"><Ban className="w-3.5 h-3.5" /> Expired</span>}
-                        </td>
-                        <td className="px-4 py-3 text-right font-bold text-slate-700 dark:text-slate-300">?{r.price}</td>
+                {records.length === 0 ? (
+                  <div className="py-12 text-center text-slate-500">
+                    <History className="w-12 h-12 mx-auto text-slate-300 dark:text-slate-600 mb-3" />
+                    <p>No dining tokens purchased yet.</p>
+                  </div>
+                ) : (
+                  <table className="w-full text-sm text-left">
+                    <thead className="bg-slate-50 dark:bg-slate-800/50 text-xs uppercase font-bold text-slate-500 dark:text-slate-400">
+                      <tr>
+                        <th className="px-4 py-3">Category</th>
+                        <th className="px-4 py-3">Date</th>
+                        <th className="px-4 py-3 text-center">Status</th>
+                        <th className="px-4 py-3 text-right">Price</th>
                       </tr>
-                    ))}
-                  </tbody>
-                </table>
+                    </thead>
+                    <tbody className="divide-y divide-slate-200 dark:divide-slate-700/50">
+                      {records.map((r) => (
+                        <tr key={r._id} className="hover:bg-slate-50/50 dark:hover:bg-slate-800/30 transition-colors">
+                          <td className="px-4 py-3 font-semibold text-slate-800 dark:text-slate-200">{r.mealType}</td>
+                          <td className="px-4 py-3 text-slate-500 dark:text-slate-400">{format(new Date(r.date), "dd MMM, yyyy")}</td>
+                          <td className="px-4 py-3 text-center">
+                            {r.status === "used" && <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-emerald-100 dark:bg-emerald-500/10 text-emerald-700 dark:text-emerald-400 text-xs font-bold"><CheckCircle2 className="w-3.5 h-3.5" /> Used</span>}
+                            {r.status === "active" && <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-sky-100 dark:bg-sky-500/10 text-sky-700 dark:text-sky-400 text-xs font-bold"><Ticket className="w-3.5 h-3.5" /> Active</span>}
+                            {r.status === "expired" && <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-slate-100 dark:bg-slate-800 text-slate-500 dark:text-slate-400 text-xs font-bold"><Ban className="w-3.5 h-3.5" /> Expired</span>}
+                            {r.status === "cancelled" && <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-red-100 dark:bg-red-900/30 text-red-700 dark:text-red-400 text-xs font-bold"><Ban className="w-3.5 h-3.5" /> Cancelled</span>}
+                          </td>
+                          <td className="px-4 py-3 text-right font-bold text-slate-700 dark:text-slate-300">?{r.price}</td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                )}
               </div>
             </div>
           )}
