@@ -15,9 +15,9 @@ import {
   X
 } from "lucide-react";
 import { useAuth } from "../../context/AuthContext";
-import { format, addDays } from "date-fns";
+
 import { getDiningDashboard, purchaseDiningToken, topupDiningWallet } from "../../services/diningApi";
-import { toast } from "react-toastify";
+import { toast } from "sonner";
 
 const mockMenu = [
   { id: 1, type: "Lunch", desc: "Rice, Chicken/Fish/Egg, Vorta, Daul.", startTime: "01:00 PM", endTime: "03:00 PM", price: 40, available: true },
@@ -192,8 +192,8 @@ export function DiningDashboard() {
                     Today
                   </button>
                   <button 
-                    onClick={() => setSelectedDate(addDays(new Date(), 1))}
-                    className={`px-4 py-1.5 text-xs font-bold rounded-md shadow-sm transition-colors ${selectedDate.toDateString() === addDays(new Date(), 1).toDateString() ? "bg-white dark:bg-slate-700 text-slate-800 dark:text-white" : "text-slate-500 hover:text-slate-800 dark:text-slate-400 dark:hover:text-white"}`}
+                    onClick={() => setSelectedDate(new Date(new Date().setDate(new Date().getDate() + 1)))}
+                    className={`px-4 py-1.5 text-xs font-bold rounded-md shadow-sm transition-colors ${selectedDate.toDateString() === new Date(new Date().setDate(new Date().getDate() + 1)).toDateString() ? "bg-white dark:bg-slate-700 text-slate-800 dark:text-white" : "text-slate-500 hover:text-slate-800 dark:text-slate-400 dark:hover:text-white"}`}
                   >
                     Tomorrow
                   </button>
@@ -280,7 +280,7 @@ export function DiningDashboard() {
                       {records.map((r) => (
                         <tr key={r._id} className="hover:bg-slate-50/50 dark:hover:bg-slate-800/30 transition-colors">
                           <td className="px-4 py-3 font-semibold text-slate-800 dark:text-slate-200">{r.mealType}</td>
-                          <td className="px-4 py-3 text-slate-500 dark:text-slate-400">{format(new Date(r.date), "dd MMM, yyyy")}</td>
+                          <td className="px-4 py-3 text-slate-500 dark:text-slate-400">{new Date(r.date).toLocaleDateString("en-GB", { day: "2-digit", month: "short", year: "numeric" })}</td>
                           <td className="px-4 py-3 text-center">
                             {r.status === "used" && <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-emerald-100 dark:bg-emerald-500/10 text-emerald-700 dark:text-emerald-400 text-xs font-bold"><CheckCircle2 className="w-3.5 h-3.5" /> Used</span>}
                             {r.status === "active" && <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-sky-100 dark:bg-sky-500/10 text-sky-700 dark:text-sky-400 text-xs font-bold"><Ticket className="w-3.5 h-3.5" /> Active</span>}
