@@ -483,5 +483,54 @@ router.post('/update-fcm-token', requireAuth, async (req, res) => {
     res.status(500).json({ error: err.message });
   }
 });
+// POST /api/auth/google
+router.post("/google", async (req, res) => {
+  try {
+    const { token } = req.body;
+    if (!token) return res.status(400).json({ error: "No Google token provided" });
+
+    const { OAuth2Client } = require('google-auth-library');
+    const client = new OAuth2Client(process.env.GOOGLE_CLIENT_ID);
+    
+    const ticket = await client.verifyIdToken({
+        idToken: token,
+        audience: process.env.GOOGLE_CLIENT_ID,
+    });
+    
+    const payload = ticket.getPayload();
+    const email = payload.email.toLowerCase();
+
+    const user = await User.findOne({ email });
+    if (!user) {
+      return res.status(404).json({ error: "Account not found. Please ask an admin to create an account for you." });
+    }
+
+    if (user.isFirstLogin) {
+      user.isFirstLogin = false;
+      await user.save();
+    }
+
+    const JWT_SECRET = process.env.JWT_SECRET || "defaultsecret";
+    const tokenJwt = jwt.sign({ id: user._id, role: user.role }, JWT_SECRET, { expiresIn: "7d" });
+
+    res.json({
+      token: tokenJwt,
+      user: {
+        id: user._id,
+        name: user.name,
+        email: user.email,
+        role: user.role,
+        department: user.department,
+        designation: user.designation,
+        batch: user.batch
+      }
+    });
+
+  } catch (err) {
+    console.error("Google Auth Error:", err);
+    res.status(500).json({ error: "Google authentication failed. " + err.message });
+  }
+});
+
 module.exports = router;
 
