@@ -283,7 +283,7 @@ export function Dashboard() {
               <>
                 <>{features.attendance !== false && ( <Link
                   to="/attendance"
-                  className="p-4 bg-white hover:bg-sky-50/50 rounded-2xl border border-slate-200/80 flex items-center justify-between group transition-smooth"
+                  className="p-4 bg-white dark:bg-[#0f172a] hover:bg-sky-50/50 dark:hover:bg-slate-800 rounded-2xl border border-slate-200/80 flex items-center justify-between group transition-smooth"
                 >
                   <div className="flex items-center space-x-3.5">
                     <div className="w-10 h-10 rounded-xl bg-sky-100 text-sky-700 flex items-center justify-center group-hover:bg-sky-600 group-hover:text-white transition-smooth">
@@ -299,7 +299,7 @@ export function Dashboard() {
 
                 <>{features.marks !== false && ( <Link
                   to="/marks"
-                  className="p-4 bg-white hover:bg-sky-50/50 rounded-2xl border border-slate-200/80 flex items-center justify-between group transition-smooth"
+                  className="p-4 bg-white dark:bg-[#0f172a] hover:bg-sky-50/50 dark:hover:bg-slate-800 rounded-2xl border border-slate-200/80 flex items-center justify-between group transition-smooth"
                 >
                   <div className="flex items-center space-x-3.5">
                     <div className="w-10 h-10 rounded-xl bg-amber-100 text-amber-700 flex items-center justify-center group-hover:bg-amber-600 group-hover:text-white transition-smooth">
@@ -315,7 +315,7 @@ export function Dashboard() {
 
                 <>{features.fees !== false && ( <Link
                   to="/fees"
-                  className="p-4 bg-white hover:bg-sky-50/50 rounded-2xl border border-slate-200/80 flex items-center justify-between group transition-smooth"
+                  className="p-4 bg-white dark:bg-[#0f172a] hover:bg-sky-50/50 dark:hover:bg-slate-800 rounded-2xl border border-slate-200/80 flex items-center justify-between group transition-smooth"
                 >
                   <div className="flex items-center space-x-3.5">
                     <div className="w-10 h-10 rounded-xl bg-emerald-100 text-emerald-700 flex items-center justify-center group-hover:bg-emerald-600 group-hover:text-white transition-smooth">
@@ -335,7 +335,7 @@ export function Dashboard() {
               <>
                 <Link
                   to="/attendance/mark"
-                  className="p-4 bg-white hover:bg-sky-50/50 rounded-2xl border border-slate-200/80 flex items-center justify-between group transition-smooth"
+                  className="p-4 bg-white dark:bg-[#0f172a] hover:bg-sky-50/50 dark:hover:bg-slate-800 rounded-2xl border border-slate-200/80 flex items-center justify-between group transition-smooth"
                 >
                   <div className="flex items-center space-x-3.5">
                     <div className="w-10 h-10 rounded-xl bg-sky-100 text-sky-700 flex items-center justify-center group-hover:bg-sky-600 group-hover:text-white transition-smooth">
@@ -351,7 +351,7 @@ export function Dashboard() {
 
                 <>{features.marks !== false && ( <Link
                   to="/marks/entry"
-                  className="p-4 bg-white hover:bg-sky-50/50 rounded-2xl border border-slate-200/80 flex items-center justify-between group transition-smooth"
+                  className="p-4 bg-white dark:bg-[#0f172a] hover:bg-sky-50/50 dark:hover:bg-slate-800 rounded-2xl border border-slate-200/80 flex items-center justify-between group transition-smooth"
                 >
                   <div className="flex items-center space-x-3.5">
                     <div className="w-10 h-10 rounded-xl bg-purple-100 text-purple-700 flex items-center justify-center group-hover:bg-purple-600 group-hover:text-white transition-smooth">
@@ -369,7 +369,7 @@ export function Dashboard() {
 
             <Link
               to="/faculty"
-              className="p-4 bg-white hover:bg-sky-50/50 rounded-2xl border border-slate-200/80 flex items-center justify-between group transition-smooth"
+              className="p-4 bg-white dark:bg-[#0f172a] hover:bg-sky-50/50 dark:hover:bg-slate-800 rounded-2xl border border-slate-200/80 flex items-center justify-between group transition-smooth"
             >
               <div className="flex items-center space-x-3.5">
                 <div className="w-10 h-10 rounded-xl bg-slate-100 text-slate-700 flex items-center justify-center group-hover:bg-slate-700 group-hover:text-white transition-smooth">
@@ -402,14 +402,14 @@ export function Dashboard() {
 
           <div className="space-y-3">
             {notices.length === 0 ? (
-              <div className="p-8 bg-white rounded-2xl border border-slate-200 text-center text-slate-500">
+              <div className="p-8 bg-white dark:bg-[#0f172a] rounded-2xl border border-slate-200 text-center text-slate-500">
                 No active announcements published.
               </div>
             ) : (
               notices.map((notice) => (
                 <div
                   key={notice._id}
-                  className="p-5 bg-white rounded-2xl border border-slate-200/80 hover:border-sky-300 shadow-xs hover:shadow-sm transition-smooth"
+                  className="p-5 bg-white dark:bg-[#0f172a] rounded-2xl border border-slate-200/80 hover:border-sky-300 shadow-xs hover:shadow-sm transition-smooth"
                 >
                   <div className="flex items-start justify-between gap-3">
                     <div>
