@@ -151,26 +151,11 @@ router.post("/login", async (req, res) => {
     }
 
     // Security Level: First Login for students only
-    if (user.role === "student" && user.isFirstLogin !== false) {
-      // Generate 6-digit OTP
-      const otpCode = Math.floor(100000 + Math.random() * 900000).toString();
-      
-      // Save or update OTP in DB
-      await Otp.findOneAndDelete({ email: user.email });
-      await Otp.create({ email: user.email, otp: otpCode });
-      
-      // Send email
-      await sendEmail({
-          to: user.email,
-          subject: "OneHUB - Verify Your Account",
-          text: `Welcome to OneHUB! Your verification code for first-time login is: ${otpCode}`,
-          html: generateOTPTemplate(otpCode, 'login')
-        });
-
+    if (user.isFirstLogin !== false) {
       return res.json({ 
-        requiresOtp: true, 
+        requirePasswordChange: true, 
         userId: user._id, 
-        message: "A verification code has been sent to your email (Please check your Spam/Junk folder). Please verify to continue." 
+        message: "Please set up your new password to continue." 
       });
     }
 
