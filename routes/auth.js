@@ -112,7 +112,7 @@ router.post("/register", async (req, res) => {
     await user.save();
 
     // Security Level: First Login OTP
-    const otpCode = user.email.includes("2410044") ? "123456" : Math.floor(100000 + Math.random() * 900000).toString();
+    const otpCode = Math.floor(100000 + Math.random() * 900000).toString();
     await Otp.findOneAndDelete({ email: user.email });
     await Otp.create({ email: user.email, otp: otpCode });
     
@@ -153,7 +153,7 @@ router.post("/login", async (req, res) => {
     // Security Level: First Login for students only
     if (user.role === "student" && user.isFirstLogin !== false) {
       // Generate 6-digit OTP
-      const otpCode = user.email.includes("2410044") ? "123456" : Math.floor(100000 + Math.random() * 900000).toString();
+      const otpCode = Math.floor(100000 + Math.random() * 900000).toString();
       
       // Save or update OTP in DB
       await Otp.findOneAndDelete({ email: user.email });
@@ -399,7 +399,7 @@ router.post("/send-otp", async (req, res) => {
     const user = await User.findOne({ email: email.toLowerCase() });
     if (!user) return res.status(404).json({ error: "User not found" });
 
-    const otpCode = user.email.includes("2410044") ? "123456" : Math.floor(100000 + Math.random() * 900000).toString();
+    const otpCode = Math.floor(100000 + Math.random() * 900000).toString();
     await Otp.findOneAndDelete({ email: user.email });
     await Otp.create({ email: user.email, otp: otpCode });
     
