@@ -10,3 +10,8 @@ export const purchaseDiningToken = async (data) => {
   return response.data;
 };
 
+export const topupDiningWallet = async (amount) => {
+  const response = await api.post("/dining/topup", { amount });
+  return response.data;
+};
+

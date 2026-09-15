@@ -11,11 +11,12 @@ import {
   Ban,
   Search,
   Filter,
-  Ticket
+  Ticket,
+  X
 } from "lucide-react";
 import { useAuth } from "../../context/AuthContext";
 import { format, addDays } from "date-fns";
-import { getDiningDashboard, purchaseDiningToken } from "../../services/diningApi";
+import { getDiningDashboard, purchaseDiningToken, topupDiningWallet } from "../../services/diningApi";
 import { toast } from "react-toastify";
 
 const mockMenu = [
@@ -26,11 +27,15 @@ const mockMenu = [
 export function DiningDashboard() {
   const { user } = useAuth();
   const [activeTab, setActiveTab] = useState("purchase");
-  const [purchasing, setPurchasing] = useState(null); // id of menu
+  const [purchasing, setPurchasing] = useState(null);
   const [loading, setLoading] = useState(true);
   const [wallet, setWallet] = useState({ deposit: 0, withdrawn: 0, balance: 0 });
   const [records, setRecords] = useState([]);
   const [selectedDate, setSelectedDate] = useState(new Date());
+  
+  const [showTopupModal, setShowTopupModal] = useState(false);
+  const [topupAmount, setTopupAmount] = useState("");
+  const [toppingUp, setToppingUp] = useState(false);
   
   const fetchDashboard = async () => {
     try {
@@ -59,6 +64,26 @@ export function DiningDashboard() {
       toast.error(err.response?.data?.error || "Failed to purchase token");
     } finally {
       setPurchasing(null);
+    }
+  };
+
+  const handleTopup = async (e) => {
+    e.preventDefault();
+    if (!topupAmount || isNaN(topupAmount) || Number(topupAmount) <= 0) {
+      toast.error("Please enter a valid amount");
+      return;
+    }
+    setToppingUp(true);
+    try {
+      await topupDiningWallet(Number(topupAmount));
+      toast.success("Wallet recharged successfully!");
+      setShowTopupModal(false);
+      setTopupAmount("");
+      fetchDashboard();
+    } catch (err) {
+      toast.error("Failed to recharge wallet");
+    } finally {
+      setToppingUp(false);
     }
   };
 
@@ -118,7 +143,10 @@ export function DiningDashboard() {
               <div className="w-10 h-10 rounded-full bg-sky-200/50 dark:bg-sky-900/50 flex items-center justify-center">
                 <Wallet className="w-5 h-5 text-sky-700 dark:text-sky-400" />
               </div>
-              <button className="text-xs font-bold px-3 py-1.5 bg-white dark:bg-slate-800 text-sky-600 dark:text-sky-400 rounded-full shadow-sm hover:shadow transition-all flex items-center gap-1.5 border border-sky-100 dark:border-slate-700">
+              <button 
+                onClick={() => setShowTopupModal(true)}
+                className="text-xs font-bold px-3 py-1.5 bg-white dark:bg-slate-800 text-sky-600 dark:text-sky-400 rounded-full shadow-sm hover:shadow transition-all flex items-center gap-1.5 border border-sky-100 dark:border-slate-700 hover:bg-sky-50 dark:hover:bg-slate-700/80"
+              >
                 <CreditCard className="w-3.5 h-3.5" />
                 Top Up
               </button>
@@ -204,13 +232,10 @@ export function DiningDashboard() {
                     <div className="flex gap-2">
                       <button 
                         onClick={() => handlePurchase(m.type)}
-                        disabled={purchasing === m.type || isPurchased}
+                        disabled={purchasing === m.type || isPurchased || wallet.balance < m.price}
                         className={`flex-1 py-2.5 rounded-xl font-bold text-sm shadow-sm transition-colors flex items-center justify-center gap-2 ${isPurchased ? "bg-emerald-600 text-white" : "bg-sky-600 hover:bg-sky-700 text-white disabled:opacity-50"}`}
                       >
                         {isPurchased ? <><CheckCircle2 className="w-4 h-4" /> Purchased</> : purchasing === m.type ? "Processing..." : `Cut Token @ ?${m.price}`}
-                      </button>
-                      <button className="flex-1 bg-slate-200 dark:bg-slate-800 hover:bg-slate-300 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-300 py-2.5 rounded-xl font-bold text-sm transition-colors">
-                        Guest @ ?45
                       </button>
                     </div>
                   </div>
@@ -273,6 +298,61 @@ export function DiningDashboard() {
           )}
         </div>
       </div>
+
+      {/* Topup Modal */}
+      {showTopupModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/50 backdrop-blur-sm animate-in fade-in duration-200">
+          <div className="bg-white dark:bg-slate-900 rounded-2xl shadow-xl w-full max-w-md overflow-hidden animate-in zoom-in-95 duration-200">
+            <div className="flex justify-between items-center p-5 border-b border-slate-200 dark:border-slate-800">
+              <h3 className="font-bold text-lg flex items-center gap-2 text-slate-800 dark:text-slate-100">
+                <CreditCard className="w-5 h-5 text-sky-600 dark:text-sky-400" /> Recharge Wallet
+              </h3>
+              <button 
+                onClick={() => setShowTopupModal(false)}
+                className="text-slate-400 hover:text-slate-600 dark:hover:text-slate-300"
+              >
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+            
+            <form onSubmit={handleTopup} className="p-6">
+              <div className="mb-6">
+                <label className="block text-sm font-semibold text-slate-700 dark:text-slate-300 mb-2">Amount to Recharge (?)</label>
+                <div className="relative">
+                  <span className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-500 font-bold">?</span>
+                  <input 
+                    type="number"
+                    value={topupAmount}
+                    onChange={(e) => setTopupAmount(e.target.value)}
+                    className="w-full pl-9 pr-4 py-3 bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 rounded-xl text-lg font-bold text-slate-800 dark:text-slate-100 focus:outline-none focus:border-sky-500 focus:ring-1 focus:ring-sky-500 transition-colors"
+                    placeholder="e.g. 500"
+                    min="10"
+                    required
+                  />
+                </div>
+                <p className="text-xs text-slate-500 dark:text-slate-400 mt-2">Enter the amount you wish to add to your digital dining wallet.</p>
+              </div>
+
+              <div className="flex justify-end gap-3">
+                <button 
+                  type="button" 
+                  onClick={() => setShowTopupModal(false)}
+                  className="px-5 py-2.5 text-sm font-bold text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-xl transition-colors"
+                >
+                  Cancel
+                </button>
+                <button 
+                  type="submit" 
+                  disabled={toppingUp}
+                  className="px-6 py-2.5 text-sm font-bold text-white bg-sky-600 hover:bg-sky-700 disabled:opacity-50 rounded-xl shadow-sm transition-colors flex items-center gap-2"
+                >
+                  {toppingUp ? "Processing..." : "Proceed to Payment"}
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
