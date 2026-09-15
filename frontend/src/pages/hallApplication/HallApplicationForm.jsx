@@ -313,7 +313,7 @@ export function HallApplicationForm() {
                 Current CGPA
               </label>
               <div className="w-full px-3.5 py-2 border border-slate-200 bg-slate-50 rounded-xl text-sm font-semibold text-slate-800">
-                  {loadingCgpa ? "Calculating..." : Number(formData.cgpa).toFixed(2)}
+                  {loadingCgpa ? "Calculating..." : Number(formData.cgpa) === 0 ? "N/A (No Grades Yet)" : Number(formData.cgpa).toFixed(2)}
                 </div>
             </div>
           </div>
