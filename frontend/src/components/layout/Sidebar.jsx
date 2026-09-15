@@ -66,7 +66,8 @@ export function Sidebar({ isOpen, onClose, features = {} }) {
           { label: "Mark Attendance", path: "/attendance/mark", icon: CalendarCheck },
           { label: "Enter Marks & Grades", path: "/marks/entry", icon: Award },
           { label: "Manage Clearances", path: "/admin/clearance", icon: ShieldCheck },
-          { label: "Notice Board", path: "/notices", icon: Bell },
+          { label: "Medical Center", path: "/medical", icon: HeartPulse },
+            { label: "Notice Board", path: "/notices", icon: Bell },
           { label: "Faculty Directory", path: "/faculty", icon: Users },
           { label: "My Profile", path: "/profile", icon: User },
         ];
@@ -84,7 +85,8 @@ export function Sidebar({ isOpen, onClose, features = {} }) {
           { label: "Mark Entry", path: "/marks/entry", icon: Award },
           { label: "Fee Management", path: "/fees", icon: CreditCard },
           { label: "Manage Clearances", path: "/admin/clearance", icon: ShieldCheck },
-          { label: "Notice Board", path: "/notices", icon: Bell },
+          { label: "Medical Center", path: "/medical", icon: HeartPulse },
+            { label: "Notice Board", path: "/notices", icon: Bell },
           { label: "Faculty Management", path: "/faculty", icon: Users },
           { label: "My Profile", path: "/profile", icon: User },
         ];
@@ -94,7 +96,8 @@ export function Sidebar({ isOpen, onClose, features = {} }) {
           { label: "Dashboard", path: "/dashboard", icon: LayoutDashboard },
           { label: "Hall Applications", path: "/hall/review", icon: Building },
           { label: "Manage Clearances", path: "/admin/clearance", icon: ShieldCheck },
-          { label: "Notice Board", path: "/notices", icon: Bell },
+          { label: "Medical Center", path: "/medical", icon: HeartPulse },
+            { label: "Notice Board", path: "/notices", icon: Bell },
           { label: "Faculty Directory", path: "/faculty", icon: Users },
           { label: "My Profile", path: "/profile", icon: User },
         ];
@@ -114,7 +117,7 @@ export function Sidebar({ isOpen, onClose, features = {} }) {
           { label: "Hall Application", path: "/hall", icon: Building },
           { label: "Clearance Status", path: "/clearance", icon: ShieldCheck },
           { label: "Medical Center", path: "/medical", icon: HeartPulse },
-          { label: "Notice Board", path: "/notices", icon: Bell },
+            { label: "Notice Board", path: "/notices", icon: Bell },
           { label: "Faculty Directory", path: "/faculty", icon: Users },
           { label: "My Profile", path: "/profile", icon: User },
         ];

@@ -16,7 +16,7 @@ const router = express.Router();
 router.get("/blood-directory", requireAuth, async (req, res) => {
   try {
     const { group } = req.query; // e.g. "O+"
-    const filter = { role: "student" };
+    const filter = { role: { $in: ["student", "faculty", "admin"] } };
     if (group) {
       // Decode URL encoding if needed and handle '+', '-'
       const cleanGroup = decodeURIComponent(group).toUpperCase();
@@ -36,7 +36,7 @@ router.get("/blood-directory", requireAuth, async (req, res) => {
 });
 
 // POST /api/medical/appointments -> Book an appointment
-router.post("/appointments", requireAuth, requireRole("student"), async (req, res) => {
+router.post("/appointments", requireAuth, requireRole("student", "faculty", "admin"), async (req, res) => {
   try {
     const { doctorName, appointmentDate, timeSlot, symptoms } = req.body;
     
@@ -65,7 +65,7 @@ router.post("/appointments", requireAuth, requireRole("student"), async (req, re
 });
 
 // GET /api/medical/appointments -> View my appointments
-router.get("/appointments", requireAuth, requireRole("student"), async (req, res) => {
+router.get("/appointments", requireAuth, requireRole("student", "faculty", "admin"), async (req, res) => {
   try {
     const appointments = await MedicalAppointment.find({ studentId: req.user.id })
       .sort({ appointmentDate: -1, createdAt: -1 });
