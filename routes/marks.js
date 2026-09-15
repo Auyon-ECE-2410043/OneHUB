@@ -151,7 +151,16 @@ router.get("/academic-summary", requireAuth, async (req, res) => {
       });
     }
 
-    const cgpa = cumulativeCredits > 0 ? parseFloat((cumulativeEarnedPoints / cumulativeCredits).toFixed(2)) : 0.0;
+    let cgpa = cumulativeCredits > 0 ? parseFloat((cumulativeEarnedPoints / cumulativeCredits).toFixed(2)) : 0.0;
+    
+    // Fallback to OfficialResult if no digital marks are present but they have official results
+    if (cgpa === 0.0) {
+      const OfficialResult = require("../models/OfficialResult");
+      const latestOfficial = await OfficialResult.findOne({ studentId: req.user.id }).sort({ semester: -1 });
+      if (latestOfficial && latestOfficial.cgpa) {
+        cgpa = latestOfficial.cgpa;
+      }
+    }
 
     res.json({
       cgpa,
