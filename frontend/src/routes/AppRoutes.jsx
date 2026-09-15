@@ -40,6 +40,7 @@ import HallApplicationStatus from "../pages/hallApplication/HallApplicationStatu
 import FacultyDirectory from "../pages/faculty/FacultyDirectory";
 import Profile from "../pages/profile/Profile";
 import { MedicalCenter } from "../pages/medical/MedicalCenter";
+import { DiningDashboard } from "../pages/dining/DiningDashboard";
 import { ClearanceStatus } from "../pages/clearance/ClearanceStatus";
 import { ClearanceAdmin } from "../pages/clearance/ClearanceAdmin";
 import AcademicCalendar from "../pages/calendar/AcademicCalendar";
@@ -191,6 +192,7 @@ export function AppRoutes() {
         <Route path="/profile" element={<Profile />} />
 
         {/* Medical & Clearance */}
+        <Route path="/dining" element={<FeatureGuard featureKey="hall" title="Dining Tokens"><ProtectedRoute allowedRoles={["student"]}><DiningDashboard /></ProtectedRoute></FeatureGuard>} />
         <Route path="/medical" element={<FeatureGuard featureKey="medical" title="Medical Center"><MedicalCenter /></FeatureGuard>} />
         <Route path="/clearance" element={<FeatureGuard featureKey="clearance" title="Clearance Status"><ClearanceStatus /></FeatureGuard>} />
         <Route path="/admin/clearance" element={<FeatureGuard featureKey="clearance" title="Manage Clearances"><ProtectedRoute allowedRoles={["admin", "faculty", "hall_admin"]}><ClearanceAdmin /></ProtectedRoute></FeatureGuard>} />
