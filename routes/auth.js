@@ -19,9 +19,17 @@ const upload = multer({ storage: multer.memoryStorage(), limits: { fileSize: 5 *
 
 
 const generateOTPTemplate = (otp, type) => {
-  const message = type === 'register' 
-    ? 'Thank you for registering with RUET OneHUB. Please use the verification code below to verify your email address and activate your account.'
-    : 'Welcome to RUET OneHUB! Please use the verification code below to complete your first-time login and set up your secure password.';
+  let message;
+  let title = "Identity Verification Required";
+  
+  if (type === "register") {
+    message = "Thank you for registering with RUET OneHUB. Please use the verification code below to verify your email address and activate your account.";
+  } else if (type === "reset") {
+    message = "We received a request to reset the password for your RUET OneHUB account. Please use the verification code below to set up a new password.";
+    title = "Password Reset Request";
+  } else {
+    message = "Welcome to RUET OneHUB! Please use the verification code below to complete your first-time login and set up your secure password.";
+  }
 
   return `
     <div style="font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; max-width: 600px; margin: 0 auto; background-color: #f4f7f6; padding: 30px 20px; border-radius: 12px;">
@@ -33,7 +41,7 @@ const generateOTPTemplate = (otp, type) => {
       </div>
       
       <div style="background-color: #ffffff; padding: 40px; border-radius: 12px; box-shadow: 0 4px 6px rgba(0,0,0,0.02); border: 1px solid #e2e8f0;">
-        <h2 style="color: #1e293b; margin-top: 0; font-size: 20px; text-align: center;">Identity Verification Required</h2>
+        <h2 style="color: #1e293b; margin-top: 0; font-size: 20px; text-align: center;">\${title}</h2>
         <div style="height: 3px; width: 40px; background-color: #0284c7; margin: 15px auto 25px auto; border-radius: 2px;"></div>
         
         <p style="color: #475569; line-height: 1.6; font-size: 15px; text-align: center;">
@@ -407,7 +415,7 @@ router.post("/send-otp", async (req, res) => {
       to: user.email,
       subject: "OneHUB - Password Reset Verification",
       text: `Your password reset verification code is: ${otpCode}`,
-      html: generateOTPTemplate(otpCode, 'login') // Reuse the auth template
+      html: generateOTPTemplate(otpCode, 'reset') // Reuse the auth template
     });
 
     res.json({ message: "A password reset code has been sent to your email (Please check your Spam folder)." });

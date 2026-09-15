@@ -49,8 +49,8 @@ export const authService = {
     return res.data;
   },
 
-  verifyOtp: async (email, otp) => {
-    const res = await api.post("/auth/verify-otp", { email, otp });
+  verifyOtp: async (email, otp, newPassword) => {
+    const res = await api.post("/auth/verify-otp", { email, otp, newPassword });
     return res.data;
   },
 

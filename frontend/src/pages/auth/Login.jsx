@@ -54,6 +54,46 @@ export function Login() {
     setVerifyData({ ...verifyData, [e.target.name]: e.target.value });
   };
 
+  const handleForgotPasswordEmail = async (e) => {
+    e.preventDefault();
+    if (!formData.email) {
+      toast.error("Please enter your email.");
+      return;
+    }
+    setLoading(true);
+    try {
+      await authService.sendOtp(formData.email);
+      toast.success("Password reset code sent to your email!");
+      setStep("reset_password");
+    } catch (err) {
+      toast.error(err.response?.data?.error || err.message || "Failed to send reset code.");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleForgotPasswordReset = async (e) => {
+    e.preventDefault();
+    if (!verifyData.otp || !verifyData.newPassword) {
+      toast.error("Please fill in OTP and a new password.");
+      return;
+    }
+    if (verifyData.newPassword.length < 6) {
+      toast.error("Password must be at least 6 characters.");
+      return;
+    }
+    setLoading(true);
+    try {
+      await authService.verifyOtp(formData.email, verifyData.otp, verifyData.newPassword);
+      toast.success("Password reset successfully! You can now login.");
+      setStep("login");
+    } catch (err) {
+      toast.error(err.response?.data?.error || err.message || "Invalid verification code.");
+    } finally {
+      setLoading(false);
+    }
+  };
+
   const handleSubmit = async (e) => {
     e.preventDefault();
     if (!formData.email) {
@@ -178,9 +218,14 @@ export function Login() {
                 </div>
 
                 <div>
-                  <label className="block text-xs font-semibold uppercase tracking-wider text-slate-300 mb-1.5">
-                    Password
-                  </label>
+                  <div className="flex items-center justify-between mb-1.5">
+                    <label className="block text-xs font-semibold uppercase tracking-wider text-slate-300">
+                      Password
+                    </label>
+                    <button type="button" onClick={() => setStep("forgot_password")} className="text-xs font-medium text-sky-400 hover:text-sky-300 transition-smooth">
+                      Forgot password?
+                    </button>
+                  </div>
                   <div className="relative rounded-xl shadow-xs">
                     <div className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-slate-500">
                       <Lock className="h-5 w-5" />
@@ -354,6 +399,97 @@ export function Login() {
                       <ArrowRight className="w-4 h-4" />
                     </span>
                   )}
+                </button>
+              </div>
+            </form>
+          ) : step === "forgot_password" ? (
+            <form className="space-y-5 animate-fade-in" onSubmit={handleForgotPasswordEmail}>
+              <div className="text-center mb-6">
+                <Mail className="w-12 h-12 text-sky-400 mx-auto mb-2" />
+                <h3 className="text-xl font-bold text-white">Reset Password</h3>
+                <p className="text-sm text-slate-400 mt-2">
+                  Enter your university email to receive a password reset verification code.
+                </p>
+              </div>
+              <div>
+                <label className="block text-xs font-semibold uppercase tracking-wider text-slate-300 mb-1.5">
+                  University Email
+                </label>
+                <div className="relative rounded-xl shadow-xs">
+                  <div className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-slate-500">
+                    <Mail className="h-5 w-5" />
+                  </div>
+                  <input
+                    type="email"
+                    name="email"
+                    value={formData.email}
+                    onChange={handleChange}
+                    placeholder="2410042@student.ruet.ac.bd"
+                    className="block w-full pl-10 pr-3.5 py-2.5 bg-slate-800/80 border border-slate-700 rounded-xl text-white placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-sky-500 focus:border-transparent text-sm transition-smooth"
+                    required
+                  />
+                </div>
+              </div>
+              <div>
+                <button
+                  type="submit"
+                  disabled={loading}
+                  className="w-full flex items-center justify-center py-3 px-4 rounded-xl shadow-lg shadow-sky-600/30 text-sm font-semibold text-white bg-gradient-to-r from-sky-500 to-indigo-600 hover:from-sky-400 hover:to-indigo-500 disabled:opacity-50 transition-smooth cursor-pointer"
+                >
+                  {loading ? "Sending..." : "Send Verification Code"}
+                </button>
+              </div>
+              <div className="text-center mt-4">
+                <button type="button" onClick={() => setStep("login")} className="text-sm font-medium text-slate-400 hover:text-white transition-smooth">
+                  Back to Login
+                </button>
+              </div>
+            </form>
+
+          ) : step === "reset_password" ? (
+            <form className="space-y-5 animate-fade-in" onSubmit={handleForgotPasswordReset}>
+              <div className="text-center mb-6">
+                <ShieldCheck className="w-12 h-12 text-emerald-400 mx-auto mb-2" />
+                <h3 className="text-xl font-bold text-white">Verify & Reset</h3>
+                <p className="text-sm text-slate-400 mt-2">
+                  We've sent a 6-digit code to {formData.email}.
+                </p>
+              </div>
+              <div>
+                <label className="block text-xs font-semibold uppercase tracking-wider text-slate-300 mb-1.5">
+                  Verification Code (OTP)
+                </label>
+                <input
+                  type="text"
+                  name="otp"
+                  value={verifyData.otp}
+                  onChange={handleVerifyChange}
+                  placeholder="6-digit code"
+                  className="block w-full px-4 py-2.5 bg-slate-800/80 border border-slate-700 rounded-xl text-white placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-transparent text-sm transition-smooth text-center tracking-widest text-lg"
+                  required
+                />
+              </div>
+              <div>
+                <label className="block text-xs font-semibold uppercase tracking-wider text-slate-300 mb-1.5">
+                  New Password
+                </label>
+                <input
+                  type="password"
+                  name="newPassword"
+                  value={verifyData.newPassword}
+                  onChange={handleVerifyChange}
+                  placeholder="New password"
+                  className="block w-full px-4 py-2.5 bg-slate-800/80 border border-slate-700 rounded-xl text-white placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-transparent text-sm transition-smooth"
+                  required
+                />
+              </div>
+              <div>
+                <button
+                  type="submit"
+                  disabled={loading}
+                  className="w-full flex items-center justify-center py-3 px-4 rounded-xl shadow-lg shadow-emerald-600/30 text-sm font-semibold text-white bg-gradient-to-r from-emerald-500 to-teal-600 hover:from-emerald-400 hover:to-teal-500 disabled:opacity-50 transition-smooth cursor-pointer"
+                >
+                  {loading ? "Resetting..." : "Reset Password"}
                 </button>
               </div>
             </form>
