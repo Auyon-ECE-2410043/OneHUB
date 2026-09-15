@@ -47,6 +47,8 @@ export function Sidebar({ isOpen, onClose, features = {} }) {
     "/fees": "fees",
     "/hall": "hall",
     "/hall/review": "hall",
+      "/dining": "dining",
+      "/admin/dining": "dining",
     "/admin/clearance": "clearance",
     "/clearance": "clearance",
     "/medical": "medical",

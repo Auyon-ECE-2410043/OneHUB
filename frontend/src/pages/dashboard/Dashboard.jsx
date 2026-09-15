@@ -641,6 +641,7 @@ export function Dashboard() {
                       { key: 'cgpa', label: 'CGPA' },
                       { key: 'fees', label: 'Fees' },
                       { key: 'hall', label: 'Hall' },
+                      { key: 'dining', label: 'Dining' },
                       { key: 'medical', label: 'Medical' },
                       { key: 'notices', label: 'Notices' },
                       { key: 'faculty', label: 'Faculty' },
