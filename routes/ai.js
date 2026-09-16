@@ -45,7 +45,7 @@ router.post('/chat', requireAuth, async (req, res) => {
     }
 
     const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
-    const model = genAI.getGenerativeModel({ model: 'gemini-1.5-flash' });
+    const model = genAI.getGenerativeModel({ model: 'gemini-2.5-flash' });
 
     const systemPrompt = `You are OneHUB Study AI, a helpful educational assistant for university students. 
 You can answer study questions normally. 
@@ -129,7 +129,7 @@ router.post('/summarize', requireAuth, async (req, res) => {
     }
 
     const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
-    const model = genAI.getGenerativeModel({ model: 'gemini-1.5-flash' });
+    const model = genAI.getGenerativeModel({ model: 'gemini-2.5-flash' });
 
     const prompt = `You are a university professor creating a study guide. 
 Please read the following transcript from an educational video and create a highly structured, easy-to-read summary. 
