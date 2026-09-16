@@ -22,13 +22,13 @@ async function searchYouTube(query) {
     });
 
     return response.data.items.map(item => ({
-      videoId: item.id.videoId || null,
-      playlistId: item.id.playlistId || null,
-      kind: item.id.kind,
-      title: item.snippet.title,
-      description: item.snippet.description,
-      thumbnail: item.snippet.thumbnails.high.url,
-      channelTitle: item.snippet.channelTitle
+      videoId: item.id?.videoId || null,
+      playlistId: item.id?.playlistId || null,
+      kind: item.id?.kind,
+      title: item.snippet?.title || 'Unknown Title',
+      description: item.snippet?.description || '',
+      thumbnail: item.snippet?.thumbnails?.high?.url || item.snippet?.thumbnails?.default?.url || '',
+      channelTitle: item.snippet?.channelTitle || 'Unknown Channel'
     }));
   } catch (error) {
     console.error('YouTube search error:', error.response?.data || error.message);
