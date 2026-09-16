@@ -8,6 +8,9 @@ import remarkGfm from 'remark-gfm';
 import remarkMath from 'remark-math';
 import rehypeKatex from 'rehype-katex';
 import 'katex/dist/katex.min.css';
+import remarkMath from 'remark-math';
+import rehypeKatex from 'rehype-katex';
+import 'katex/dist/katex.min.css';
 import { useNavigate } from 'react-router-dom';
 
 export default function StudyBuddy() {
@@ -356,7 +359,7 @@ export default function StudyBuddy() {
               : 'bg-slate-800 text-slate-200 border border-slate-700 rounded-bl-none'
           }`}>
             <div className="prose prose-invert prose-p:leading-relaxed prose-pre:bg-slate-900 prose-pre:border prose-pre:border-slate-700 max-w-none text-sm">
-              <ReactMarkdown remarkPlugins={[remarkGfm]}>
+              <ReactMarkdown remarkPlugins={[remarkGfm, remarkMath]} rehypePlugins={[rehypeKatex]}>
                 {msg.content}
               </ReactMarkdown>
             </div>
