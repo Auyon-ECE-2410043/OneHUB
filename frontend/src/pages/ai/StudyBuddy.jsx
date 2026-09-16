@@ -264,7 +264,7 @@ export default function StudyBuddy() {
       <div className="flex gap-6 h-full flex-1 min-h-0">
         
         {/* Chat Window */}
-        <div className={`bg-slate-900 border border-slate-800 rounded-2xl flex flex-col overflow-hidden transition-all duration-300 ${activeVideo ? 'w-1/3' : 'w-full'}`}>
+        <div className={`bg-slate-900 border border-slate-800 rounded-2xl flex flex-col overflow-hidden transition-all duration-300 ${activeVideo ? 'lg:w-[400px] xl:w-[450px] shrink-0 w-full hidden lg:flex' : 'w-full'}`}>
           {/* Chat Header */}
           <div className="p-4 border-b border-slate-800 bg-slate-900/50 backdrop-blur-sm flex items-center gap-3">
             <div className="w-10 h-10 rounded-full bg-gradient-to-tr from-purple-500 to-indigo-500 flex items-center justify-center shadow-lg shadow-purple-500/20">
@@ -410,7 +410,7 @@ export default function StudyBuddy() {
 
         {/* Video Player & Summarizer Area */}
         {activeVideo && (
-          <div className="w-2/3 flex flex-col bg-slate-900 border border-slate-800 rounded-2xl overflow-hidden animate-fade-in">
+          <div className="flex-1 flex flex-col bg-slate-900 border border-slate-800 rounded-2xl overflow-hidden animate-fade-in min-w-0">
             {/* Player Header */}
             <div className="p-4 border-b border-slate-800 bg-slate-900/50 backdrop-blur-sm flex items-center justify-between">
               <div className="flex items-center gap-3 min-w-0">
@@ -419,19 +419,19 @@ export default function StudyBuddy() {
                 </div>
                 <div className="truncate pr-4">
                   <h3 className="font-semibold text-white truncate">{activeVideo.title}</h3>
-                  <p className="text-xs text-slate-400 truncate">{activeVideo.channelTitle}</p>
+                  <p className="text-sm text-slate-400 truncate mt-0.5">{activeVideo.description}</p>
                 </div>
               </div>
               <button 
-                onClick={closeVideo}
-                className="p-2 hover:bg-slate-800 rounded-lg text-slate-400 hover:text-white transition-colors shrink-0"
+                onClick={() => setActiveVideo(null)}
+                className="p-2 text-slate-400 hover:text-white hover:bg-slate-800 rounded-lg transition-colors shrink-0"
               >
                 <X className="w-5 h-5" />
               </button>
             </div>
 
             {/* Video Player */}
-            <div className="w-full aspect-video bg-black relative">
+            <div className="w-full bg-black relative shrink-0 h-[45%] border-b border-slate-800">
               <YouTube 
                 videoId={activeVideo.videoId} 
                 opts={opts}
