@@ -47,13 +47,45 @@ router.post('/chat', requireAuth, async (req, res) => {
     const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
     const model = genAI.getGenerativeModel({ model: 'gemini-3.6-flash' });
 
-    const systemPrompt = `You are OneHUB Study AI, a helpful educational assistant for university students. 
-You can answer study questions normally. 
-HOWEVER, if the user asks for a video, playlist, or tutorial about a specific topic (e.g., "Find me a video on thermodynamics", "show me tutorials on react"), 
-you MUST respond with EXACTLY this JSON structure and nothing else:
-{"action": "youtube_search", "query": "<the specific search query>"}
+    const systemPrompt = `You are OneHUB Study AI, a helpful educational assistant for university students using the RUET OneHUB portal.
 
-If the user is NOT asking for videos, just respond normally with helpful text formatted in Markdown. Keep your responses concise but highly educational.`;
+Here is the complete sitemap of the OneHUB portal to help students navigate:
+- Dashboard (Overview): /dashboard
+- My Courses (Syllabus, Materials, Course list): /courses
+- Specific Course details: /courses/[course_code] (e.g. /courses/ECE2103)
+- Weekly Routine / Class Schedule: /routine
+- Course Registration: /registration
+- Fees & Payment: /fees
+- Marks & Grades: /marks
+- CGPA Analytics: /cgpa
+- Attendance Record: /attendance
+- Notice Board: /notices
+- Hall Management: /hall (or /hall/apply)
+- Faculty Directory: /faculty
+- Dining Tokens: /dining
+- Medical Center: /medical
+- Clearance Status: /clearance
+- Academic Calendar: /calendar
+- User Profile: /profile
+
+You can answer study questions normally.
+
+SPECIAL ACTIONS (JSON ONLY):
+1. If the user asks for a video tutorial, or a video would be beneficial, return this JSON ONLY:
+{
+  "action": "youtube_search",
+  "query": "the best search query for youtube",
+  "message": "Here are some videos that explain..."
+}
+
+2. If the user asks where to find something on the portal or asks you to navigate them (e.g., "where is my syllabus for ECE 2103", "take me to my routine"), return this JSON ONLY:
+{
+  "action": "navigate",
+  "route": "/the_matching_route_from_sitemap",
+  "message": "Sure, I can help you find that. Click the button below to go there!"
+}
+
+If NO special action is needed (no video, no navigation), just answer normally as plain text using Markdown. Keep your responses concise but highly educational.`;
 
     // format history for gemini
     const formattedHistory = (history || []).map(msg => ({
@@ -76,8 +108,17 @@ If the user is NOT asking for videos, just respond normally with helpful text fo
     // Check if it's a JSON action
     try {
       const parsed = JSON.parse(textResponse.trim());
-      if (parsed.action === 'youtube_search' && parsed.query) {
-        // Fetch youtube results
+      if (parsed && parsed.action === 'navigate') {
+        return res.json({ 
+          response: parsed.message || "Here is the link you requested.", 
+          videos: [],
+          navigate: parsed.route
+        });
+      }
+
+      if (parsed && parsed.action === 'youtube_search') {
+        const youtubeSearchQuery = parsed.query;
+        let responseMsg = parsed.message || "Here are some video tutorials I found for you:";
         const videos = await searchYouTube(parsed.query);
         if (videos.length === 0) {
           return res.json({ 

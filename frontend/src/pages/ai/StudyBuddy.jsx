@@ -1,5 +1,5 @@
 import React, { useState, useRef, useEffect } from 'react';
-import { Bot, Send, User, Loader2, Video, MessageSquare, PlayCircle, BookOpen, X, FileText } from 'lucide-react';
+import { Bot, Send, User, Loader2, Video, MessageSquare, PlayCircle, BookOpen, X, FileText, ExternalLink } from 'lucide-react';
 import { toast } from 'sonner';
 import YouTube from 'react-youtube';
 import api from '../../services/api';
@@ -8,8 +8,10 @@ import remarkGfm from 'remark-gfm';
 import remarkMath from 'remark-math';
 import rehypeKatex from 'rehype-katex';
 import 'katex/dist/katex.min.css';
+import { useNavigate } from 'react-router-dom';
 
 export default function StudyBuddy() {
+  const navigate = useNavigate();
   const [messages, setMessages] = useState([
     {
       role: 'model',
@@ -46,7 +48,16 @@ export default function StudyBuddy() {
         history: messages.slice(1) // send context but exclude greeting
       });
 
-      if (response.data.videos && response.data.videos.length > 0) {
+      if (response.data.navigate) {
+        setMessages(prev => [
+          ...prev, 
+          { 
+            role: 'model', 
+            content: response.data.response,
+            navigate: response.data.navigate
+          }
+        ]);
+      } else if (response.data.videos && response.data.videos.length > 0) {
         setMessages(prev => [
           ...prev, 
           { 
@@ -154,6 +165,18 @@ export default function StudyBuddy() {
                         {msg.content}
                       </ReactMarkdown>
                     </div>
+
+                    {msg.navigate && (
+                      <div className="mt-4">
+                        <button
+                          onClick={() => navigate(msg.navigate)}
+                          className="flex items-center gap-2 bg-purple-500 hover:bg-purple-600 text-white px-4 py-2 rounded-lg text-sm font-medium transition-colors w-full justify-center"
+                        >
+                          <ExternalLink className="w-4 h-4" />
+                          Go to Section
+                        </button>
+                      </div>
+                    )}
 
                     {msg.videos && msg.videos.length > 0 && (
                       <div className="mt-4 space-y-3">
