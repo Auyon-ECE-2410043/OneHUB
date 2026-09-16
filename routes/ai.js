@@ -102,44 +102,59 @@ If NO special action is needed (no video, no navigation), just answer normally a
       }
     });
 
-    const result = await chat.sendMessage(message);
-    const textResponse = result.response.text();
+    res.setHeader('Content-Type', 'text/event-stream');
+    res.setHeader('Cache-Control', 'no-cache');
+    res.setHeader('Connection', 'keep-alive');
 
-    // Check if it's a JSON action
-    try {
-      const parsed = JSON.parse(textResponse.trim());
-      if (parsed && parsed.action === 'navigate') {
-        return res.json({ 
-          response: parsed.message || "Here is the link you requested.", 
-          videos: [],
-          navigate: parsed.route
-        });
-      }
+    const result = await chat.sendMessageStream(message);
+    
+    let textSoFar = '';
+    let isJson = null;
 
-      if (parsed && parsed.action === 'youtube_search') {
-        const youtubeSearchQuery = parsed.query;
-        let responseMsg = parsed.message || "Here are some video tutorials I found for you:";
-        const videos = await searchYouTube(parsed.query);
-        if (videos.length === 0) {
-          return res.json({ 
-            response: `I tried to search YouTube for "${parsed.query}", but I couldn't find any good results or the API key is missing.`,
-            videos: []
-          });
+    for await (const chunk of result.stream) {
+      const chunkText = chunk.text();
+      textSoFar += chunkText;
+      
+      if (isJson === null) {
+        if (textSoFar.trim().startsWith('{')) {
+          isJson = true;
+        } else if (textSoFar.trim().length > 0) {
+          isJson = false;
+          res.write(`data: ${JSON.stringify({ chunk: textSoFar })}\n\n`);
         }
-        return res.json({
-          response: `Here are the best educational videos I found on YouTube for "${parsed.query}":`,
-          videos: videos
-        });
+      } else if (!isJson) {
+        res.write(`data: ${JSON.stringify({ chunk: chunkText })}\n\n`);
       }
-    } catch (e) {
-      // Not JSON, just a normal text response
     }
 
-    res.json({ response: textResponse, videos: [] });
+    if (isJson) {
+      try {
+        let cleanJson = textSoFar.trim();
+        if (cleanJson.startsWith('```json')) cleanJson = cleanJson.slice(7);
+        if (cleanJson.startsWith('```')) cleanJson = cleanJson.slice(3);
+        if (cleanJson.endsWith('```')) cleanJson = cleanJson.slice(0, -3);
+        
+        const parsed = JSON.parse(cleanJson.trim());
+        
+        if (parsed && parsed.action === 'navigate') {
+          res.write(`data: ${JSON.stringify({ action: 'navigate', response: parsed.message || "Here is the link you requested.", navigate: parsed.route })}\n\n`);
+        } else if (parsed && parsed.action === 'youtube_search') {
+          const videos = await searchYouTube(parsed.query);
+          res.write(`data: ${JSON.stringify({ action: 'youtube_search', response: parsed.message || "Here are some video tutorials I found for you:", videos })}\n\n`);
+        } else {
+          res.write(`data: ${JSON.stringify({ chunk: textSoFar })}\n\n`);
+        }
+      } catch (e) {
+        res.write(`data: ${JSON.stringify({ chunk: textSoFar })}\n\n`);
+      }
+    }
 
+    res.write('data: [DONE]\n\n');
+    res.end();
   } catch (err) {
     console.error('AI Chat Error:', err);
-    res.status(500).json({ error: 'Failed to communicate with AI.' });
+    res.write(`data: ${JSON.stringify({ error: 'Failed to communicate with AI.' })}\n\n`);
+    res.end();
   }
 });
 

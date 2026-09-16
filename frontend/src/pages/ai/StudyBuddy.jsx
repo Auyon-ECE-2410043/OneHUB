@@ -62,43 +62,83 @@ export default function StudyBuddy() {
     if (!input.trim()) return;
 
     const userMessage = { role: 'user', content: input };
-    setMessages(prev => [...prev, userMessage]);
+    setMessages(prev => [...prev, userMessage, { role: 'model', content: '' }]);
     setInput('');
     setLoading(true);
 
     try {
-      const response = await api.post('/ai/chat', {
-        message: userMessage.content,
-        history: messages.slice(1) // send context but exclude greeting
+      const response = await fetch((import.meta.env.VITE_API_URL || "http://localhost:5000/api") + '/ai/chat', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${localStorage.getItem('token')}`
+        },
+        body: JSON.stringify({
+          message: userMessage.content,
+          history: messages.slice(1)
+        })
       });
 
-      if (response.data.navigate) {
-        setMessages(prev => [
-          ...prev, 
-          { 
-            role: 'model', 
-            content: response.data.response,
-            navigate: response.data.navigate
+      const reader = response.body.getReader();
+      const decoder = new TextDecoder();
+      let done = false;
+
+      while (!done) {
+        const { value, done: doneReading } = await reader.read();
+        done = doneReading;
+        const chunkValue = decoder.decode(value, { stream: true });
+        
+        const lines = chunkValue.split('\n\n');
+        for (const line of lines) {
+          if (line.startsWith('data: ')) {
+            const dataStr = line.slice(6);
+            if (dataStr === '[DONE]') {
+              setLoading(false);
+              return;
+            }
+            try {
+              const parsed = JSON.parse(dataStr);
+              if (parsed.error) {
+                toast.error(parsed.error);
+                setMessages(prev => {
+                  const newMsgs = [...prev];
+                  newMsgs[newMsgs.length - 1].content = 'Sorry, I encountered an error.';
+                  return newMsgs;
+                });
+              } else if (parsed.chunk) {
+                setMessages(prev => {
+                  const newMsgs = [...prev];
+                  newMsgs[newMsgs.length - 1].content += parsed.chunk;
+                  return newMsgs;
+                });
+              } else if (parsed.action === 'navigate') {
+                setMessages(prev => {
+                  const newMsgs = [...prev];
+                  newMsgs[newMsgs.length - 1].content = parsed.response;
+                  newMsgs[newMsgs.length - 1].navigate = parsed.navigate;
+                  return newMsgs;
+                });
+              } else if (parsed.action === 'youtube_search') {
+                setMessages(prev => {
+                  const newMsgs = [...prev];
+                  newMsgs[newMsgs.length - 1].content = parsed.response;
+                  newMsgs[newMsgs.length - 1].videos = parsed.videos;
+                  return newMsgs;
+                });
+              }
+            } catch (e) {
+              // Ignore partial parsing errors
+            }
           }
-        ]);
-      } else if (response.data.videos && response.data.videos.length > 0) {
-        setMessages(prev => [
-          ...prev, 
-          { 
-            role: 'model', 
-            content: response.data.response,
-            videos: response.data.videos
-          }
-        ]);
-      } else {
-        setMessages(prev => [
-          ...prev, 
-          { role: 'model', content: response.data.response }
-        ]);
+        }
       }
     } catch (err) {
       toast.error('Failed to get a response from AI');
-      setMessages(prev => [...prev, { role: 'model', content: 'Sorry, I encountered an error. Please make sure the API keys are configured.' }]);
+      setMessages(prev => {
+        const newMsgs = [...prev];
+        newMsgs[newMsgs.length - 1].content = 'Sorry, I encountered an error. Please make sure the API keys are configured.';
+        return newMsgs;
+      });
     } finally {
       setLoading(false);
     }
