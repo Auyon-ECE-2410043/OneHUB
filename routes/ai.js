@@ -1,6 +1,6 @@
 const express = require('express');
 const router = express.Router();
-const auth = require('../middleware/auth');
+const { requireAuth } = require('../middleware/auth');
 const { GoogleGenerativeAI } = require('@google/generative-ai');
 const axios = require('axios');
 const { YoutubeTranscript } = require('youtube-transcript');
@@ -36,7 +36,7 @@ async function searchYouTube(query) {
 }
 
 // POST /api/ai/chat
-router.post('/chat', auth, async (req, res) => {
+router.post('/chat', requireAuth, async (req, res) => {
   try {
     const { message, history } = req.body;
     
@@ -103,7 +103,7 @@ If the user is NOT asking for videos, just respond normally with helpful text fo
 });
 
 // POST /api/ai/summarize
-router.post('/summarize', auth, async (req, res) => {
+router.post('/summarize', requireAuth, async (req, res) => {
   try {
     const { videoId } = req.body;
     if (!videoId) return res.status(400).json({ error: 'Video ID is required' });
