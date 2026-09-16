@@ -347,7 +347,7 @@ export default function StudyBuddy() {
               : 'bg-slate-800 text-slate-200 border border-slate-700 rounded-bl-none'
           }`}>
             <div className="prose prose-invert prose-p:leading-relaxed prose-pre:bg-slate-900 prose-pre:border prose-pre:border-slate-700 max-w-none text-sm">
-              <ReactMarkdown remarkPlugins={[remarkGfm, remarkMath]} rehypePlugins={[rehypeKatex]}>
+              <ReactMarkdown remarkPlugins={[remarkGfm]}>
                 {msg.content}
               </ReactMarkdown>
             </div>
