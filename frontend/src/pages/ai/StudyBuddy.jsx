@@ -487,11 +487,11 @@ export default function StudyBuddy() {
                   </ReactMarkdown>
                 </div>
               ) : (
-                <div className="text-center py-12 px-4 bg-slate-800/30 rounded-xl border border-slate-700/30 border-dashed">
-                  <Bot className="w-12 h-12 text-slate-600 mx-auto mb-3" />
-                  <p className="text-slate-400 font-medium">No study guide generated yet.</p>
-                  <p className="text-sm text-slate-500 mt-1">Click the button above to let Gemini watch the video and create a structured summary for you.</p>
-                </div>
+                  <div className="flex flex-col items-center justify-center h-full text-center py-10">
+                    <Bot className="w-12 h-12 text-slate-600 mx-auto mb-3" />
+                    <p className="text-slate-400 font-medium">No study guide generated yet.</p>
+                    <p className="text-sm text-slate-500 mt-1">Click the button above to let StudyBuddy watch the video and create a structured summary for you.</p>
+                  </div>
               )}
             </div>
           </div>

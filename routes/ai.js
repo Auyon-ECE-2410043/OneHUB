@@ -227,7 +227,7 @@ router.post('/summarize', requireAuth, async (req, res) => {
 
   } catch (err) {
     console.error('AI Summarize Error:', err);
-    res.status(500).json({ error: 'Failed to summarize video.' });
+    res.status(500).json({ error: err.message || 'Failed to summarize video.' });
   }
 });
 
