@@ -1,5 +1,5 @@
 import React, { useState, useRef, useEffect } from 'react';
-import { Bot, Send, User, Loader2, Youtube, Video, MessageSquare, PlayCircle, BookOpen, X, FileText } from 'lucide-react';
+import { Bot, Send, User, Loader2, Video, MessageSquare, PlayCircle, BookOpen, X, FileText } from 'lucide-react';
 import { toast } from 'sonner';
 import YouTube from 'react-youtube';
 import api from '../../services/api';
@@ -112,7 +112,7 @@ export default function StudyBuddy() {
       <div className="flex gap-6 h-full flex-1 min-h-0">
         
         {/* Chat Window */}
-        <div className={\g-slate-900 border border-slate-800 rounded-2xl flex flex-col overflow-hidden transition-all duration-300 \\}>
+        <div className={`bg-slate-900 border border-slate-800 rounded-2xl flex flex-col overflow-hidden transition-all duration-300 ${activeVideo ? 'w-1/3' : 'w-full'}`}>
           {/* Chat Header */}
           <div className="p-4 border-b border-slate-800 bg-slate-900/50 backdrop-blur-sm flex items-center gap-3">
             <div className="w-10 h-10 rounded-full bg-gradient-to-tr from-purple-500 to-indigo-500 flex items-center justify-center shadow-lg shadow-purple-500/20">
@@ -130,14 +130,22 @@ export default function StudyBuddy() {
           {/* Messages Area */}
           <div className="flex-1 overflow-y-auto p-4 space-y-6 custom-scrollbar">
             {messages.map((msg, idx) => (
-              <div key={idx} className={\lex \\}>
-                <div className={\lex max-w-[85%] \ items-end gap-2\}>
+              <div key={idx} className={`flex ${msg.role === 'user' ? 'justify-end' : 'justify-start'}`}>
+                <div className={`flex max-w-[85%] ${msg.role === 'user' ? 'flex-row-reverse' : 'flex-row'} items-end gap-2`}>
                   
-                  <div className={\w-8 h-8 rounded-full flex items-center justify-center shrink-0 \\}>
+                  <div className={`w-8 h-8 rounded-full flex items-center justify-center shrink-0 ${
+                    msg.role === 'user' 
+                      ? 'bg-sky-500/20 text-sky-400' 
+                      : 'bg-purple-500/20 text-purple-400'
+                  }`}>
                     {msg.role === 'user' ? <User className="w-4 h-4" /> : <Bot className="w-4 h-4" />}
                   </div>
                   
-                  <div className={\ounded-2xl px-5 py-3.5 \\}>
+                  <div className={`rounded-2xl px-5 py-3.5 ${
+                    msg.role === 'user' 
+                      ? 'bg-sky-600 text-white rounded-br-none' 
+                      : 'bg-slate-800 text-slate-200 border border-slate-700 rounded-bl-none'
+                  }`}>
                     <div className="prose prose-invert prose-p:leading-relaxed prose-pre:bg-slate-900 prose-pre:border prose-pre:border-slate-700 max-w-none text-sm">
                       <ReactMarkdown remarkPlugins={[remarkGfm]}>
                         {msg.content}
@@ -147,7 +155,7 @@ export default function StudyBuddy() {
                     {msg.videos && msg.videos.length > 0 && (
                       <div className="mt-4 space-y-3">
                         <div className="text-xs font-semibold text-purple-400 uppercase tracking-wider mb-2 flex items-center gap-1">
-                          <Youtube className="w-4 h-4" /> YouTube Results
+                          <Video className="w-4 h-4" /> YouTube Results
                         </div>
                         {msg.videos.map((video, vidx) => (
                           <div 
@@ -224,7 +232,7 @@ export default function StudyBuddy() {
             <div className="p-4 border-b border-slate-800 bg-slate-900/50 backdrop-blur-sm flex items-center justify-between">
               <div className="flex items-center gap-3 min-w-0">
                 <div className="w-10 h-10 rounded-xl bg-red-500/20 text-red-500 flex items-center justify-center shrink-0">
-                  <Youtube className="w-5 h-5" />
+                  <Video className="w-5 h-5" />
                 </div>
                 <div className="truncate pr-4">
                   <h3 className="font-semibold text-white truncate">{activeVideo.title}</h3>

@@ -1,3 +1,4 @@
+import StudyBuddy from "../pages/ai/StudyBuddy";
 /**
  * File: AppRoutes.jsx
  * Description: React component rendering the AppRoutes UI interface.
@@ -194,7 +195,7 @@ export function AppRoutes() {
         <Route path="/profile" element={<Profile />} />
 
         {/* AI Features */}
-        <Route path="/ai/study" element={<StudyBuddy />} />
+        <Route path="/ai/study" element={<ProtectedRoute allowedRoles={["student", "faculty"]}><StudyBuddy /></ProtectedRoute>} />
 
 
         {/* Medical & Clearance */}
@@ -217,3 +218,4 @@ export function AppRoutes() {
 }
 
 export default AppRoutes;
+
