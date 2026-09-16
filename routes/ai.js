@@ -129,9 +129,10 @@ If NO special action is needed (no video, no navigation), just answer normally a
       textSoFar += chunkText;
       
       if (isJson === null) {
-        if (textSoFar.trim().startsWith('{')) {
+        const trimmed = textSoFar.trim();
+        if (trimmed.startsWith('{') || trimmed.startsWith('```')) {
           isJson = true;
-        } else if (textSoFar.trim().length > 0) {
+        } else if (trimmed.length > 0 && !trimmed.startsWith('`') && !trimmed.startsWith('{')) {
           isJson = false;
           res.write(`data: ${JSON.stringify({ chunk: textSoFar })}\n\n`);
         }
@@ -143,11 +144,8 @@ If NO special action is needed (no video, no navigation), just answer normally a
     if (isJson) {
       try {
         let cleanJson = textSoFar.trim();
-        if (cleanJson.startsWith('```json')) cleanJson = cleanJson.slice(7);
-        if (cleanJson.startsWith('```')) cleanJson = cleanJson.slice(3);
-        if (cleanJson.endsWith('```')) cleanJson = cleanJson.slice(0, -3);
-        
-        const parsed = JSON.parse(cleanJson.trim());
+        cleanJson = cleanJson.replace(/^```[a-z]*\n?/, '').replace(/```$/, '').trim();
+        const parsed = JSON.parse(cleanJson);
         
         if (parsed && parsed.action === 'navigate') {
           res.write(`data: ${JSON.stringify({ action: 'navigate', response: parsed.message || "Here is the link you requested.", navigate: parsed.route })}\n\n`);
