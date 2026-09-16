@@ -62,7 +62,7 @@ export default function StudyBuddy() {
     if (!input.trim()) return;
 
     const userMessage = { role: 'user', content: input };
-    setMessages(prev => [...prev, userMessage, { role: 'model', content: '' }]);
+    setMessages(prev => [...prev, userMessage]);
     setInput('');
     setLoading(true);
 
@@ -102,27 +102,47 @@ export default function StudyBuddy() {
                 toast.error(parsed.error);
                 setMessages(prev => {
                   const newMsgs = [...prev];
-                  newMsgs[newMsgs.length - 1].content = 'Sorry, I encountered an error.';
+                  if (newMsgs[newMsgs.length - 1].role === 'user') {
+                    newMsgs.push({ role: 'model', content: 'Sorry, I encountered an error.' });
+                  } else {
+                    newMsgs[newMsgs.length - 1].content = 'Sorry, I encountered an error.';
+                  }
                   return newMsgs;
                 });
+                setLoading(false);
               } else if (parsed.chunk) {
+                setLoading(false);
                 setMessages(prev => {
                   const newMsgs = [...prev];
-                  newMsgs[newMsgs.length - 1].content += parsed.chunk;
+                  if (newMsgs[newMsgs.length - 1].role === 'user') {
+                    newMsgs.push({ role: 'model', content: parsed.chunk });
+                  } else {
+                    newMsgs[newMsgs.length - 1].content += parsed.chunk;
+                  }
                   return newMsgs;
                 });
               } else if (parsed.action === 'navigate') {
+                setLoading(false);
                 setMessages(prev => {
                   const newMsgs = [...prev];
-                  newMsgs[newMsgs.length - 1].content = parsed.response;
-                  newMsgs[newMsgs.length - 1].navigate = parsed.navigate;
+                  if (newMsgs[newMsgs.length - 1].role === 'user') {
+                    newMsgs.push({ role: 'model', content: parsed.response, navigate: parsed.navigate });
+                  } else {
+                    newMsgs[newMsgs.length - 1].content = parsed.response;
+                    newMsgs[newMsgs.length - 1].navigate = parsed.navigate;
+                  }
                   return newMsgs;
                 });
               } else if (parsed.action === 'youtube_search') {
+                setLoading(false);
                 setMessages(prev => {
                   const newMsgs = [...prev];
-                  newMsgs[newMsgs.length - 1].content = parsed.response;
-                  newMsgs[newMsgs.length - 1].videos = parsed.videos;
+                  if (newMsgs[newMsgs.length - 1].role === 'user') {
+                    newMsgs.push({ role: 'model', content: parsed.response, videos: parsed.videos });
+                  } else {
+                    newMsgs[newMsgs.length - 1].content = parsed.response;
+                    newMsgs[newMsgs.length - 1].videos = parsed.videos;
+                  }
                   return newMsgs;
                 });
               }
@@ -136,7 +156,11 @@ export default function StudyBuddy() {
       toast.error('Failed to get a response from AI');
       setMessages(prev => {
         const newMsgs = [...prev];
-        newMsgs[newMsgs.length - 1].content = 'Sorry, I encountered an error. Please make sure the API keys are configured.';
+        if (newMsgs[newMsgs.length - 1].role === 'user') {
+          newMsgs.push({ role: 'model', content: 'Sorry, I encountered an error. Please make sure the API keys are configured.' });
+        } else {
+          newMsgs[newMsgs.length - 1].content = 'Sorry, I encountered an error. Please make sure the API keys are configured.';
+        }
         return newMsgs;
       });
     } finally {
