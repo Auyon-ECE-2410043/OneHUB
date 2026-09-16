@@ -1,5 +1,5 @@
 import React, { useState, useRef, useEffect } from 'react';
-import { Bot, Send, User, Loader2, Video, MessageSquare, PlayCircle, BookOpen, X, FileText, ExternalLink, Trash2 } from 'lucide-react';
+import { Bot, Send, User, Loader2, Video, MessageSquare, PlayCircle, BookOpen, X, FileText, ExternalLink, Trash2, Paperclip } from 'lucide-react';
 import { toast } from 'sonner';
 import YouTube from 'react-youtube';
 import api from '../../services/api';
@@ -47,6 +47,30 @@ export default function StudyBuddy() {
   const [activeVideo, setActiveVideo] = useState(null);
   const [videoSummary, setVideoSummary] = useState(null);
   const [summarizing, setSummarizing] = useState(false);
+  
+  const [selectedFile, setSelectedFile] = useState(null);
+  const fileInputRef = useRef(null);
+
+  const handleFileSelect = (e) => {
+    const file = e.target.files[0];
+    if (!file) return;
+
+    if (file.size > 5 * 1024 * 1024) {
+      toast.error("File is too large (max 5MB)");
+      return;
+    }
+
+    const reader = new FileReader();
+    reader.onloadend = () => {
+      setSelectedFile({
+        name: file.name,
+        type: file.type,
+        data: reader.result
+      });
+    };
+    reader.readAsDataURL(file);
+    e.target.value = null; // reset input
+  };
   const messagesEndRef = useRef(null);
 
   const scrollToBottom = () => {
@@ -59,11 +83,22 @@ export default function StudyBuddy() {
 
   const handleSend = async (e) => {
     e.preventDefault();
-    if (!input.trim()) return;
+    if (!input.trim() && !selectedFile) return;
 
-    const userMessage = { role: 'user', content: input };
+    let displayContent = input;
+    if (selectedFile) {
+      if (input.trim()) displayContent += `\n\n*(Attached: ${selectedFile.name})*`;
+      else displayContent = `*(Attached: ${selectedFile.name})*`;
+    }
+
+    const userMessage = { role: 'user', content: displayContent };
     setMessages(prev => [...prev, userMessage]);
+    
+    const messageToSend = input;
+    const fileToSend = selectedFile;
+    
     setInput('');
+    setSelectedFile(null);
     setLoading(true);
 
     try {
@@ -74,8 +109,12 @@ export default function StudyBuddy() {
           'Authorization': `Bearer ${localStorage.getItem('token')}`
         },
         body: JSON.stringify({
-          message: userMessage.content,
-          history: messages.slice(1)
+          message: messageToSend,
+          file: fileToSend,
+          history: messages.slice(1).map(m => ({
+            role: m.role,
+            content: m.content
+          }))
         })
       });
 
@@ -327,18 +366,37 @@ export default function StudyBuddy() {
 
           {/* Input Area */}
           <div className="p-4 bg-slate-800/50 border-t border-slate-800">
+            {selectedFile && (
+              <div className="mb-3 flex items-center gap-3 bg-slate-800 w-max px-4 py-2 rounded-lg border border-slate-700">
+                 <FileText className="w-4 h-4 text-purple-400" />
+                 <span className="text-sm text-slate-300 max-w-[200px] truncate">{selectedFile.name}</span>
+                 <button type="button" onClick={() => setSelectedFile(null)} className="text-slate-500 hover:text-red-400">
+                   <X className="w-4 h-4" />
+                 </button>
+              </div>
+            )}
             <form onSubmit={handleSend} className="relative flex items-center">
+              <input type="file" ref={fileInputRef} className="hidden" accept="image/*,application/pdf" onChange={handleFileSelect} />
+              <button 
+                type="button" 
+                onClick={() => fileInputRef.current?.click()} 
+                className="absolute left-2 p-2 text-slate-400 hover:text-purple-400 hover:bg-purple-500/10 rounded-lg transition-colors z-10"
+                title="Upload image or PDF (max 5MB)"
+              >
+                <Paperclip className="w-4 h-4" />
+              </button>
+
               <input
                 type="text"
                 value={input}
                 onChange={(e) => setInput(e.target.value)}
-                placeholder="Ask a question or request a video..."
-                className="w-full bg-slate-900 border border-slate-700 rounded-xl py-3.5 pl-4 pr-12 text-sm text-white placeholder-slate-500 focus:outline-none focus:border-purple-500 focus:ring-1 focus:ring-purple-500 transition-smooth"
+                placeholder="Ask a question, upload an image, or request a video..."
+                className="w-full bg-slate-900 border border-slate-700 rounded-xl py-3.5 pl-12 pr-12 text-sm text-white placeholder-slate-500 focus:outline-none focus:border-purple-500 focus:ring-1 focus:ring-purple-500 transition-smooth"
                 disabled={loading}
               />
               <button
                 type="submit"
-                disabled={!input.trim() || loading}
+                disabled={(!input.trim() && !selectedFile) || loading}
                 className="absolute right-2 p-2 bg-purple-500 hover:bg-purple-600 text-white rounded-lg disabled:opacity-50 disabled:hover:bg-purple-500 transition-colors"
               >
                 <Send className="w-4 h-4" />

@@ -38,7 +38,7 @@ async function searchYouTube(query) {
 // POST /api/ai/chat
 router.post('/chat', requireAuth, async (req, res) => {
   try {
-    const { message, history } = req.body;
+    const { message, history, file } = req.body;
     
     if (!process.env.GEMINI_API_KEY) {
       return res.status(500).json({ error: 'Gemini API key is not configured on the server.' });
@@ -106,7 +106,20 @@ If NO special action is needed (no video, no navigation), just answer normally a
     res.setHeader('Cache-Control', 'no-cache');
     res.setHeader('Connection', 'keep-alive');
 
-    const result = await chat.sendMessageStream(message);
+    let userMessageParts = [{ text: message || "Here is a file." }];
+    if (file && file.data && file.type) {
+      const base64Data = file.data.split(',')[1];
+      if (base64Data) {
+        userMessageParts.push({
+          inlineData: {
+            data: base64Data,
+            mimeType: file.type
+          }
+        });
+      }
+    }
+
+    const result = await chat.sendMessageStream(userMessageParts);
     
     let textSoFar = '';
     let isJson = null;
