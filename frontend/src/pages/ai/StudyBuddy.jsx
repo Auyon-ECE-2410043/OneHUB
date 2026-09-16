@@ -1,5 +1,5 @@
 import React, { useState, useRef, useEffect } from 'react';
-import { Bot, Send, User, Loader2, Video, MessageSquare, PlayCircle, BookOpen, X, FileText, ExternalLink } from 'lucide-react';
+import { Bot, Send, User, Loader2, Video, MessageSquare, PlayCircle, BookOpen, X, FileText, ExternalLink, Trash2 } from 'lucide-react';
 import { toast } from 'sonner';
 import YouTube from 'react-youtube';
 import api from '../../services/api';
@@ -12,12 +12,36 @@ import { useNavigate } from 'react-router-dom';
 
 export default function StudyBuddy() {
   const navigate = useNavigate();
-  const [messages, setMessages] = useState([
-    {
-      role: 'model',
-      content: "Hi there! I am OneHUB Study AI. Ask me any study question, or ask me to find a YouTube video on a topic for you!"
+  const [messages, setMessages] = useState(() => {
+    const saved = localStorage.getItem('studyBuddyChatHistory');
+    if (saved) {
+      try {
+        return JSON.parse(saved);
+      } catch (e) {}
     }
-  ]);
+    return [
+      {
+        role: 'model',
+        content: "Hi there! I am OneHUB Study AI. Ask me any study question, or ask me to find a YouTube video on a topic for you!"
+      }
+    ];
+  });
+  
+  useEffect(() => {
+    localStorage.setItem('studyBuddyChatHistory', JSON.stringify(messages));
+  }, [messages]);
+
+  const clearChat = () => {
+    setMessages([
+      {
+        role: 'model',
+        content: "Hi there! I am OneHUB Study AI. Ask me any study question, or ask me to find a YouTube video on a topic for you!"
+      }
+    ]);
+    setActiveVideo(null);
+    setVideoSummary(null);
+  };
+
   const [input, setInput] = useState('');
   const [loading, setLoading] = useState(false);
   const [activeVideo, setActiveVideo] = useState(null);
@@ -121,6 +145,13 @@ export default function StudyBuddy() {
           </h2>
           <p className="text-sm text-slate-400 mt-1">Your personal AI tutor and video assistant.</p>
         </div>
+        <button
+          onClick={clearChat}
+          className="flex items-center gap-2 px-4 py-2 bg-slate-800 hover:bg-red-500/20 text-slate-300 hover:text-red-400 border border-slate-700 rounded-lg text-sm font-medium transition-colors"
+        >
+          <Trash2 className="w-4 h-4" />
+          Clear Chat
+        </button>
       </div>
 
       <div className="flex gap-6 h-full flex-1 min-h-0">
