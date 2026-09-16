@@ -184,13 +184,14 @@ export default function StudyBuddy() {
                 setMessages(prev => {
                   const newMsgs = [...prev];
                   if (newMsgs[newMsgs.length - 1].role === 'user') {
-                    newMsgs.push({ role: 'model', content: 'Sorry, I encountered an error.' });
+                    newMsgs.push({ role: 'model', content: `Sorry, I encountered an error: ${parsed.error}` });
                   } else {
-                    newMsgs[newMsgs.length - 1].content = 'Sorry, I encountered an error.';
+                    newMsgs[newMsgs.length - 1].content = `Sorry, I encountered an error: ${parsed.error}`;
                   }
                   return newMsgs;
                 });
                 setLoading(false);
+                return;
               } else if (parsed.chunk) {
                 setLoading(false);
                 setMessages(prev => {

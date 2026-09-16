@@ -194,7 +194,7 @@ If NO special action is needed (no video, no navigation), just answer normally a
     res.end();
   } catch (err) {
     console.error('AI Chat Error:', err);
-    res.write(`data: ${JSON.stringify({ error: 'Failed to communicate with AI.' })}\n\n`);
+    res.write(`data: ${JSON.stringify({ error: err.message || 'Failed to communicate with AI.' })}\n\n`);
     res.end();
   }
 });
