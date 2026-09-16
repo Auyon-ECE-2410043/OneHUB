@@ -5,6 +5,9 @@ import YouTube from 'react-youtube';
 import api from '../../services/api';
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
+import remarkMath from 'remark-math';
+import rehypeKatex from 'rehype-katex';
+import 'katex/dist/katex.min.css';
 
 export default function StudyBuddy() {
   const [messages, setMessages] = useState([
@@ -147,7 +150,7 @@ export default function StudyBuddy() {
                       : 'bg-slate-800 text-slate-200 border border-slate-700 rounded-bl-none'
                   }`}>
                     <div className="prose prose-invert prose-p:leading-relaxed prose-pre:bg-slate-900 prose-pre:border prose-pre:border-slate-700 max-w-none text-sm">
-                      <ReactMarkdown remarkPlugins={[remarkGfm]}>
+                      <ReactMarkdown remarkPlugins={[remarkGfm, remarkMath]} rehypePlugins={[rehypeKatex]}>
                         {msg.content}
                       </ReactMarkdown>
                     </div>
@@ -285,7 +288,7 @@ export default function StudyBuddy() {
 
               {videoSummary ? (
                 <div className="prose prose-invert prose-indigo max-w-none text-sm bg-slate-800/50 p-6 rounded-xl border border-slate-700/50">
-                  <ReactMarkdown remarkPlugins={[remarkGfm]}>
+                  <ReactMarkdown remarkPlugins={[remarkGfm, remarkMath]} rehypePlugins={[rehypeKatex]}>
                     {videoSummary}
                   </ReactMarkdown>
                 </div>
