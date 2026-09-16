@@ -27,9 +27,47 @@ export default function StudyBuddy() {
     ];
   });
   
+  // Load history from API in the background and merge with localStorage cache
   useEffect(() => {
-    localStorage.setItem('studyBuddyChatHistory', JSON.stringify(messages));
-  }, [messages]);
+    const fetchHistory = async () => {
+      try {
+        const { data } = await api.get('/ai/history');
+        if (data.messages && data.messages.length > 0) {
+          // Compare with local to see if we need to update
+          const localStr = localStorage.getItem('studyBuddyChatHistory');
+          const local = localStr ? JSON.parse(localStr) : [];
+          if (local.length < data.messages.length || (data.messages.length > 0 && local.length === 0)) {
+            setMessages(data.messages);
+            localStorage.setItem('studyBuddyChatHistory', JSON.stringify(data.messages));
+          }
+        }
+      } catch (err) {
+        console.error('Failed to sync history from cloud:', err);
+      }
+    };
+    fetchHistory();
+  }, []);
+
+  // Sync to cloud whenever messages change (debounce slightly to avoid spam on stream chunks)
+  useEffect(() => {
+    if (messages.length > 0) {
+      localStorage.setItem('studyBuddyChatHistory', JSON.stringify(messages));
+      
+      // Only sync to cloud if it's not currently streaming (loading is false)
+      // or if we cleared the chat (messages length is 1)
+      if (!loading) {
+        const timeout = setTimeout(() => {
+          api.post('/ai/history', { messages }).catch(console.error);
+        }, 1000);
+        return () => clearTimeout(timeout);
+      }
+    } else {
+      localStorage.removeItem('studyBuddyChatHistory');
+      if (!loading) {
+        api.post('/ai/history', { messages: [] }).catch(console.error);
+      }
+    }
+  }, [messages, loading]);
 
   const clearChat = () => {
     setMessages([

@@ -36,6 +36,35 @@ async function searchYouTube(query) {
   }
 }
 
+const AIChat = require('../models/AIChat');
+
+// GET /api/ai/history
+router.get('/history', requireAuth, async (req, res) => {
+  try {
+    const chat = await AIChat.findOne({ userId: req.user.id });
+    res.json({ messages: chat ? chat.messages : [] });
+  } catch (error) {
+    console.error('Fetch AI History Error:', error);
+    res.status(500).json({ error: 'Failed to fetch history' });
+  }
+});
+
+// POST /api/ai/history
+router.post('/history', requireAuth, async (req, res) => {
+  try {
+    const { messages } = req.body;
+    await AIChat.findOneAndUpdate(
+      { userId: req.user.id },
+      { messages },
+      { upsert: true, new: true }
+    );
+    res.json({ success: true });
+  } catch (error) {
+    console.error('Save AI History Error:', error);
+    res.status(500).json({ error: 'Failed to save history' });
+  }
+});
+
 // POST /api/ai/chat
 router.post('/chat', requireAuth, async (req, res) => {
   try {
