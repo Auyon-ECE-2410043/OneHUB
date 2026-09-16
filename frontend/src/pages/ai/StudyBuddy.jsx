@@ -290,6 +290,15 @@ export default function StudyBuddy() {
 
   
 
+
+  const opts = {
+    height: '100%',
+    width: '100%',
+    playerVars: {
+      autoplay: 1,
+    },
+  };
+
   return (
     <div className="space-y-6 h-[calc(100vh-8rem)] flex flex-col">
       <div className="flex items-center justify-between">
