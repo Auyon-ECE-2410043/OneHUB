@@ -15,15 +15,16 @@ async function searchYouTube(query) {
       params: {
         part: 'snippet',
         q: query,
-        type: 'video',
+        type: 'video,playlist',
         maxResults: 5,
-        key: API_KEY,
-        videoEmbeddable: 'true'
+        key: API_KEY
       }
     });
 
     return response.data.items.map(item => ({
-      videoId: item.id.videoId,
+      videoId: item.id.videoId || null,
+      playlistId: item.id.playlistId || null,
+      kind: item.id.kind,
       title: item.snippet.title,
       description: item.snippet.description,
       thumbnail: item.snippet.thumbnails.high.url,

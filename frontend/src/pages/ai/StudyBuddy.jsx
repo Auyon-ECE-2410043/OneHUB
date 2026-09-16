@@ -1,5 +1,5 @@
 import React, { useState, useRef, useEffect } from 'react';
-import { Bot, Send, User, Loader2, Video, MessageSquare, PlayCircle, BookOpen, X, FileText, ExternalLink, Trash2, Paperclip } from 'lucide-react';
+import { Bot, Send, User, Loader2, Video, MessageSquare, PlayCircle, BookOpen, X, FileText, ExternalLink, Trash2, Paperclip, ListVideo } from 'lucide-react';
 import { toast } from 'sonner';
 import YouTube from 'react-youtube';
 import api from '../../services/api';
@@ -331,6 +331,12 @@ export default function StudyBuddy() {
                           >
                             <div className="relative w-24 h-16 rounded-lg overflow-hidden shrink-0">
                               <img src={video.thumbnail} alt="thumbnail" className="w-full h-full object-cover" />
+                              {video.kind === 'youtube#playlist' && (
+                                <div className="absolute top-1 right-1 bg-black/80 px-1.5 py-0.5 rounded text-[9px] font-bold text-white flex items-center gap-1 shadow-md">
+                                  <ListVideo className="w-2.5 h-2.5" />
+                                  PLAYLIST
+                                </div>
+                              )}
                               <div className="absolute inset-0 bg-black/40 group-hover:bg-transparent transition-colors flex items-center justify-center">
                                 <PlayCircle className="w-6 h-6 text-white opacity-80 group-hover:opacity-100 group-hover:scale-110 transition-transform" />
                               </div>
@@ -435,8 +441,14 @@ export default function StudyBuddy() {
             {/* Video Player */}
             <div className="w-full bg-black relative shrink-0 h-[45%] border-b border-slate-800">
               <YouTube 
-                videoId={activeVideo.videoId} 
-                opts={opts}
+                videoId={activeVideo.kind === 'youtube#playlist' ? undefined : activeVideo.videoId} 
+                opts={{
+                  ...opts,
+                  playerVars: {
+                    ...opts.playerVars,
+                    ...(activeVideo.kind === 'youtube#playlist' ? { listType: 'playlist', list: activeVideo.playlistId } : {})
+                  }
+                }}
                 className="absolute inset-0 w-full h-full"
                 iframeClassName="w-full h-full border-0"
               />
