@@ -218,12 +218,14 @@ export default function StudyBuddy() {
     setVideoSummary(null);
     try {
       const response = await api.post('/ai/summarize', {
-        videoId: activeVideo.videoId
+        videoId: activeVideo.videoId,
+        title: activeVideo.title,
+        description: activeVideo.description
       });
       setVideoSummary(response.data.summary);
       toast.success("Summary generated!");
     } catch (err) {
-      toast.error(err.response?.data?.error || 'Failed to generate summary');
+      toast.error(err.message || 'Failed to generate summary');
     } finally {
       setSummarizing(false);
     }

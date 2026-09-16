@@ -172,7 +172,7 @@ If NO special action is needed (no video, no navigation), just answer normally a
 // POST /api/ai/summarize
 router.post('/summarize', requireAuth, async (req, res) => {
   try {
-    const { videoId } = req.body;
+    const { videoId, title, description } = req.body;
     if (!videoId) return res.status(400).json({ error: 'Video ID is required' });
 
     if (!process.env.GEMINI_API_KEY) {
@@ -181,12 +181,19 @@ router.post('/summarize', requireAuth, async (req, res) => {
 
     // Fetch transcript
     let transcriptText = '';
+    let usedFallback = false;
     try {
       const transcript = await YoutubeTranscript.fetchTranscript(videoId);
       transcriptText = transcript.map(t => t.text).join(' ');
     } catch (err) {
       console.error('Transcript fetch error:', err);
-      return res.status(400).json({ error: 'Could not fetch subtitles for this video. It may not have captions enabled.' });
+      // Fallback to title and description
+      if (title) {
+        transcriptText = `Title: ${title}\nDescription: ${description || 'No description provided.'}\n\n(Note: The full transcript was unavailable, so please generate a study guide based on the topic implied by the title and description.)`;
+        usedFallback = true;
+      } else {
+        return res.status(400).json({ error: 'Could not fetch subtitles, and no fallback title was provided.' });
+      }
     }
 
     // Truncate to avoid massive tokens if it's a 10 hour video
@@ -199,14 +206,19 @@ router.post('/summarize', requireAuth, async (req, res) => {
     const model = genAI.getGenerativeModel({ model: 'gemini-3.6-flash' });
 
     const prompt = `You are a university professor creating a study guide. 
-Please read the following transcript from an educational video and create a highly structured, easy-to-read summary. 
-Use Markdown. Include:
-1. A brief overview of the video's main topic.
-2. Key takeaways (bullet points).
-3. Important terms or formulas mentioned (if any).
-
-Transcript:
-${transcriptText}`;
+    Analyze the following ${usedFallback ? 'video title and description' : 'YouTube video transcript'} and create a structured study guide with the following sections (format in Markdown):
+    
+    ## 🎯 Key Concepts
+    (Bullet points of main ideas)
+    
+    ## 📝 Detailed Notes
+    (Elaborate on the concepts)
+    
+    ## ❓ Practice Questions
+    (Create 3-5 practice questions to test understanding)
+    
+    Here is the content:
+    ${transcriptText}`;
 
     const result = await model.generateContent(prompt);
     
