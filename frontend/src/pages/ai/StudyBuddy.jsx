@@ -403,7 +403,7 @@ export default function StudyBuddy() {
               </button>
             </form>
             <div className="mt-2 text-center">
-               <p className="text-[10px] text-slate-500">Gemini can make mistakes. Consider verifying important information.</p>
+               <p className="text-[10px] text-slate-500">Studybuddy can make mistakes. Consider verifying important information.</p>
             </div>
           </div>
         </div>
