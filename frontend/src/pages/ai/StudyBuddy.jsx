@@ -83,6 +83,92 @@ export default function StudyBuddy() {
   const [input, setInput] = useState('');
   const [loading, setLoading] = useState(false);
   const [activeVideo, setActiveVideo] = useState(null);
+
+  const opts = {
+    height: '100%',
+    width: '100%',
+    playerVars: {
+      autoplay: 1,
+    },
+  };
+
+  const memoizedMessages = React.useMemo(() => {
+    return messages.map((msg, idx) => (
+      <div key={idx} className={`flex ${msg.role === 'user' ? 'justify-end' : 'justify-start'}`}>
+        <div className={`flex max-w-[85%] ${msg.role === 'user' ? 'flex-row-reverse' : 'flex-row'} items-end gap-2`}>
+          
+          <div className={`w-8 h-8 rounded-full flex items-center justify-center shrink-0 ${
+            msg.role === 'user' 
+              ? 'bg-sky-500/20 text-sky-400' 
+              : 'bg-purple-500/20 text-purple-400'
+          }`}>
+            {msg.role === 'user' ? <User className="w-4 h-4" /> : <Bot className="w-4 h-4" />}
+          </div>
+
+          <div className={`p-4 rounded-2xl ${
+            msg.role === 'user'
+              ? 'bg-sky-500 text-white rounded-br-none'
+              : 'bg-slate-800 text-slate-200 border border-slate-700 rounded-bl-none'
+          }`}>
+            <div className="prose prose-invert prose-p:leading-relaxed prose-pre:bg-slate-900 prose-pre:border prose-pre:border-slate-700 max-w-none text-sm">
+              <ReactMarkdown remarkPlugins={[remarkGfm, remarkMath]} rehypePlugins={[rehypeKatex]}>
+                {msg.content}
+              </ReactMarkdown>
+            </div>
+
+            {msg.navigate && (
+              <div className="mt-4">
+                <button
+                  onClick={() => navigate(msg.navigate)}
+                  className="flex items-center gap-2 px-4 py-2 bg-indigo-500 hover:bg-indigo-600 text-white rounded-lg transition-colors text-sm font-medium shadow-lg shadow-indigo-500/25"
+                >
+                  <ExternalLink className="w-4 h-4" />
+                  Go to Section
+                </button>
+              </div>
+            )}
+
+            {msg.videos && msg.videos.length > 0 && (
+              <div className="mt-4 space-y-3">
+                <div className="text-xs font-semibold text-purple-400 uppercase tracking-wider mb-2 flex items-center gap-1">
+                  <Video className="w-4 h-4" /> YouTube Results
+                </div>
+                {msg.videos.map((video, vidx) => (
+                  <div 
+                    key={vidx}
+                    onClick={() => setActiveVideo(video)}
+                    className="flex gap-3 bg-slate-900/80 hover:bg-slate-900 p-2 rounded-xl cursor-pointer border border-slate-700/50 hover:border-purple-500/50 transition-all group"
+                  >
+                    <div className="relative w-24 h-16 rounded-lg overflow-hidden shrink-0">
+                      <img src={video.thumbnail} alt="thumbnail" className="w-full h-full object-cover" />
+                      {video.kind === 'youtube#playlist' && (
+                        <div className="absolute top-1 right-1 bg-black/80 px-1.5 py-0.5 rounded text-[9px] font-bold text-white flex items-center gap-1 shadow-md">
+                          <ListVideo className="w-2.5 h-2.5" />
+                          PLAYLIST
+                        </div>
+                      )}
+                      <div className="absolute inset-0 bg-black/40 group-hover:bg-transparent transition-colors flex items-center justify-center">
+                        <PlayCircle className="w-6 h-6 text-white opacity-80 group-hover:opacity-100 group-hover:scale-110 transition-transform" />
+                      </div>
+                    </div>
+                    <div className="flex-1 min-w-0 flex flex-col justify-center">
+                      <p className="text-xs font-semibold text-slate-200 line-clamp-2 leading-tight group-hover:text-purple-400 transition-colors">
+                        {video.title}
+                      </p>
+                      <p className="text-[10px] text-slate-400 mt-1 truncate">
+                        {video.channelTitle}
+                      </p>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+        </div>
+      </div>
+    ));
+  }, [messages]);
+
   const [videoSummary, setVideoSummary] = useState(null);
   const [summarizing, setSummarizing] = useState(false);
   
@@ -275,90 +361,9 @@ export default function StudyBuddy() {
     setVideoSummary(null);
   };
 
-  const opts = {
-    height: '100%',
-    width: '100%',
-    playerVars: {
-      autoplay: 1,
-    },
-  };
+  
 
-  const memoizedMessages = React.useMemo(() => {
-    return messages.map((msg, idx) => (
-      <div key={idx} className={`flex ${msg.role === 'user' ? 'justify-end' : 'justify-start'}`}>
-        <div className={`flex max-w-[85%] ${msg.role === 'user' ? 'flex-row-reverse' : 'flex-row'} items-end gap-2`}>
-          
-          <div className={`w-8 h-8 rounded-full flex items-center justify-center shrink-0 ${
-            msg.role === 'user' 
-              ? 'bg-sky-500/20 text-sky-400' 
-              : 'bg-purple-500/20 text-purple-400'
-          }`}>
-            {msg.role === 'user' ? <User className="w-4 h-4" /> : <Bot className="w-4 h-4" />}
-          </div>
-
-          <div className={`p-4 rounded-2xl ${
-            msg.role === 'user'
-              ? 'bg-sky-500 text-white rounded-br-none'
-              : 'bg-slate-800 text-slate-200 border border-slate-700 rounded-bl-none'
-          }`}>
-            <div className="prose prose-invert prose-p:leading-relaxed prose-pre:bg-slate-900 prose-pre:border prose-pre:border-slate-700 max-w-none text-sm">
-              <ReactMarkdown remarkPlugins={[remarkGfm, remarkMath]} rehypePlugins={[rehypeKatex]}>
-                {msg.content}
-              </ReactMarkdown>
-            </div>
-
-            {msg.navigate && (
-              <div className="mt-4">
-                <button
-                  onClick={() => navigate(msg.navigate)}
-                  className="flex items-center gap-2 px-4 py-2 bg-indigo-500 hover:bg-indigo-600 text-white rounded-lg transition-colors text-sm font-medium shadow-lg shadow-indigo-500/25"
-                >
-                  <ExternalLink className="w-4 h-4" />
-                  Go to Section
-                </button>
-              </div>
-            )}
-
-            {msg.videos && msg.videos.length > 0 && (
-              <div className="mt-4 space-y-3">
-                <div className="text-xs font-semibold text-purple-400 uppercase tracking-wider mb-2 flex items-center gap-1">
-                  <Video className="w-4 h-4" /> YouTube Results
-                </div>
-                {msg.videos.map((video, vidx) => (
-                  <div 
-                    key={vidx}
-                    onClick={() => setActiveVideo(video)}
-                    className="flex gap-3 bg-slate-900/80 hover:bg-slate-900 p-2 rounded-xl cursor-pointer border border-slate-700/50 hover:border-purple-500/50 transition-all group"
-                  >
-                    <div className="relative w-24 h-16 rounded-lg overflow-hidden shrink-0">
-                      <img src={video.thumbnail} alt="thumbnail" className="w-full h-full object-cover" />
-                      {video.kind === 'youtube#playlist' && (
-                        <div className="absolute top-1 right-1 bg-black/80 px-1.5 py-0.5 rounded text-[9px] font-bold text-white flex items-center gap-1 shadow-md">
-                          <ListVideo className="w-2.5 h-2.5" />
-                          PLAYLIST
-                        </div>
-                      )}
-                      <div className="absolute inset-0 bg-black/40 group-hover:bg-transparent transition-colors flex items-center justify-center">
-                        <PlayCircle className="w-6 h-6 text-white opacity-80 group-hover:opacity-100 group-hover:scale-110 transition-transform" />
-                      </div>
-                    </div>
-                    <div className="flex-1 min-w-0 flex flex-col justify-center">
-                      <p className="text-xs font-semibold text-slate-200 line-clamp-2 leading-tight group-hover:text-purple-400 transition-colors">
-                        {video.title}
-                      </p>
-                      <p className="text-[10px] text-slate-400 mt-1 truncate">
-                        {video.channelTitle}
-                      </p>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            )}
-          </div>
-        </div>
-      </div>
-    ));
-  }, [messages]);
+  
 
   return (
     <div className="space-y-6 h-[calc(100vh-8rem)] flex flex-col">
