@@ -193,6 +193,10 @@ export function AppRoutes() {
         {/* Profile & Account Security */}
         <Route path="/profile" element={<Profile />} />
 
+        {/* AI Features */}
+        <Route path="/ai/study" element={<StudyBuddy />} />
+
+
         {/* Medical & Clearance */}
         <Route path="/dining" element={<FeatureGuard featureKey="dining" title="Dining Tokens"><ProtectedRoute allowedRoles={["student"]}><DiningDashboard /></ProtectedRoute></FeatureGuard>} />
         <Route path="/medical" element={<FeatureGuard featureKey="medical" title="Medical Center"><MedicalCenter /></FeatureGuard>} />

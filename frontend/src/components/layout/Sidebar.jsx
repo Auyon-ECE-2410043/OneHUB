@@ -25,6 +25,7 @@ import {
   ShieldCheck,
   CalendarClock,
   CalendarDays,
+  Bot,
 } from "lucide-react";
 
 export function Sidebar({ isOpen, onClose, features = {} }) {
@@ -52,6 +53,7 @@ export function Sidebar({ isOpen, onClose, features = {} }) {
     "/admin/clearance": "clearance",
     "/clearance": "clearance",
     "/medical": "medical",
+    "/ai/study": "ai",
     "/notices": "notices",
     "/faculty": "faculty",
   };
@@ -70,6 +72,7 @@ export function Sidebar({ isOpen, onClose, features = {} }) {
           { label: "Enter Marks & Grades", path: "/marks/entry", icon: Award },
           { label: "Manage Clearances", path: "/admin/clearance", icon: ShieldCheck },
           { label: "Medical Center", path: "/medical", icon: HeartPulse },
+          { label: "StudyBuddy AI", path: "/ai/study", icon: Bot },
             { label: "Notice Board", path: "/notices", icon: Bell },
           { label: "Faculty Directory", path: "/faculty", icon: Users },
           { label: "My Profile", path: "/profile", icon: User },
@@ -118,6 +121,7 @@ export function Sidebar({ isOpen, onClose, features = {} }) {
           { label: "Attendance Record", path: "/attendance", icon: CalendarCheck },
           { label: "Marks & Grades", path: "/marks", icon: Award },
           { label: "CGPA Analytics", path: "/cgpa", icon: Award },
+          { label: "StudyBuddy AI", path: "/ai/study", icon: Bot },
           { label: "Fees & Payment", path: "/fees", icon: CreditCard },
           { label: "Hall Management", path: "/hall", icon: Building },
           { label: "Clearance Status", path: "/clearance", icon: ShieldCheck },
