@@ -402,8 +402,7 @@ export default function StudyBuddy() {
           </div>
         </div>
       </div>
-    ));
-}
+    ))}
             {loading && (
               <div className="flex justify-start">
                 <div className="flex items-end gap-2">
