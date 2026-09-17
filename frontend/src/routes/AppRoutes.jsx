@@ -45,6 +45,7 @@ import { MedicalCenter } from "../pages/medical/MedicalCenter";
 import { DiningDashboard } from "../pages/dining/DiningDashboard";
 import { ClearanceStatus } from "../pages/clearance/ClearanceStatus";
 import { ClearanceAdmin } from "../pages/clearance/ClearanceAdmin";
+import DiningManagement from "../pages/admin/DiningManagement";
 import AcademicCalendar from "../pages/calendar/AcademicCalendar";
 import Maintenance from "../pages/auth/Maintenance";
 
@@ -203,6 +204,7 @@ export function AppRoutes() {
         <Route path="/medical" element={<FeatureGuard featureKey="medical" title="Medical Center"><MedicalCenter /></FeatureGuard>} />
         <Route path="/clearance" element={<FeatureGuard featureKey="clearance" title="Clearance Status"><ClearanceStatus /></FeatureGuard>} />
         <Route path="/admin/clearance" element={<FeatureGuard featureKey="clearance" title="Manage Clearances"><ProtectedRoute allowedRoles={["admin", "faculty", "hall_admin"]}><ClearanceAdmin /></ProtectedRoute></FeatureGuard>} />
+          <Route path="/admin/dining" element={<FeatureGuard featureKey="dining" title="Dining Management"><ProtectedRoute allowedRoles={["admin", "hall_admin", "faculty"]}><DiningManagement /></ProtectedRoute></FeatureGuard>} />
         
         {/* Calendar */}
         <Route path="/calendar" element={<FeatureGuard featureKey="calendar" title="Academic Calendar"><AcademicCalendar /></FeatureGuard>} />
