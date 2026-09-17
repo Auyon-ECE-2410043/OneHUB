@@ -19,6 +19,7 @@ const markSchema = new mongoose.Schema(
     grade: { type: String, default: null }, // used for final, e.g. "A+"
     gpaPoint: { type: Number, default: null }, // auto-calculated from grade
     enteredBy: { type: mongoose.Schema.Types.ObjectId, ref: "User", required: true },
+    mappedCOs: [{ type: String }], // Array of CO codes (e.g. ["CO1", "CO2"])
   },
   { timestamps: true }
 );

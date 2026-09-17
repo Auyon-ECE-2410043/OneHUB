@@ -11,6 +11,7 @@ import courseService from "../../services/courseService";
 import markService from "../../services/markService";
 import { SEMESTERS, GRADE_POINTS } from "../../utils/constants";
 import { PageLoader } from "../../components/common/Loader";
+import api from "../../services/api";
 import {
   Award,
   CheckCircle2,
@@ -38,6 +39,8 @@ export function MarksEntry() {
   const [students, setStudents] = useState([]);
   const [marksBuffer, setMarksBuffer] = useState({}); // { [studentId]: { marksObtained, grade } }
   const [submitting, setSubmitting] = useState(false);
+  const [courseCOs, setCourseCOs] = useState([]);
+  const [selectedCOs, setSelectedCOs] = useState([]);
   const [statusMsg, setStatusMsg] = useState({ text: "", type: "" });
 
   useEffect(() => {
@@ -64,6 +67,11 @@ export function MarksEntry() {
       try {
         const enrolled = await courseService.getCourseStudents(selectedCourseId);
         setStudents(enrolled);
+        try {
+          const obeRes = await api.get(`/api/obe/course/${selectedCourseId}`);
+          setCourseCOs(obeRes.data.profile?.cos || []);
+          setSelectedCOs([]);
+        } catch(e) {}
 
         // Reset buffer
         const initBuffer = {};

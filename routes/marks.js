@@ -17,7 +17,7 @@ const router = express.Router();
 // POST /api/marks -> Single mark entry
 router.post("/", requireAuth, requireRole("faculty", "admin"), async (req, res) => {
   try {
-    const { studentId, courseId, semester, type, instanceNumber, marksObtained, totalMarks, grade } = req.body;
+    const { studentId, courseId, semester, type, instanceNumber, marksObtained, totalMarks, grade, mappedCOs } = req.body;
 
     const update = {
       studentId,
@@ -26,6 +26,7 @@ router.post("/", requireAuth, requireRole("faculty", "admin"), async (req, res) 
       type,
       instanceNumber: instanceNumber || 1,
       enteredBy: req.user.id,
+      mappedCOs: mappedCOs || [],
     };
 
     if (type === "final") {
@@ -51,7 +52,7 @@ router.post("/", requireAuth, requireRole("faculty", "admin"), async (req, res) 
 // POST /api/marks/bulk -> Teacher submits marks for the whole class
 router.post("/bulk", requireAuth, requireRole("faculty", "admin"), async (req, res) => {
   try {
-    const { courseId, semester, type, instanceNumber, entries } = req.body;
+    const { courseId, semester, type, instanceNumber, mappedCOs, entries } = req.body;
 
     const results = await Promise.all(
       entries.map((entry) => {
@@ -62,7 +63,8 @@ router.post("/bulk", requireAuth, requireRole("faculty", "admin"), async (req, r
           type,
           instanceNumber: instanceNumber || 1,
           enteredBy: req.user.id,
-        };
+      mappedCOs: mappedCOs || [],
+    };
         if (type === "final") {
           update.grade = entry.grade;
           update.gpaPoint = GRADE_POINTS[entry.grade] !== undefined ? GRADE_POINTS[entry.grade] : null;
