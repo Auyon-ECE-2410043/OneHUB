@@ -94,6 +94,7 @@ export function Dashboard() {
   const [notices, setNotices] = useState([]);
   const [facultyStats, setFacultyStats] = useState(null);
   const [hallApplications, setHallApplications] = useState([]);
+  const [activeUsers, setActiveUsers] = useState([]);
 
   useEffect(() => {
     if (user?.role !== "admin") return;
