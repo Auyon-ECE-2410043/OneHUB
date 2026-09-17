@@ -29,6 +29,7 @@ async function scrapeRuetNotices() {
       if (!exists) {
         await LiveFeed.create({
           type: "ruet_news",
+          createdAt: new Date(notice.dateStr.replace(/(\d+)(st|nd|rd|th)/, "$1")),
           title: `[RUET Notice] ${notice.title}`,
           content: `Posted on ${notice.dateStr}. Click to view details.`,
           sourceUrl: notice.href,
