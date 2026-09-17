@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+﻿import React, { useState, useEffect } from 'react';
 import { Calendar, Search, CheckCircle, XCircle, Users, Utensils } from 'lucide-react';
 import api from '../../services/api';
 import { toast } from 'sonner';
@@ -100,10 +100,10 @@ export default function DiningManagement() {
                   <tr key={token._id} className="hover:bg-slate-50 dark:hover:bg-slate-800/50 transition-colors">
                     <td className="p-4">
                       <p className="font-semibold text-slate-800 dark:text-slate-200">{token.studentId?.name}</p>
-                      <p className="text-xs text-slate-500">{token.studentId?.studentId} � {token.studentId?.department}</p>
+                      <p className="text-xs text-slate-500">{token.studentId?.studentId} • {token.studentId?.department}</p>
                     </td>
                     <td className="p-4">
-                      <span className={\px-2 py-1 rounded-full text-xs font-medium \\}>
+                      <span className={'px-2 py-1 rounded-full text-xs font-medium ' + (token.mealType === 'Lunch' ? 'bg-amber-500/10 text-amber-600' : 'bg-indigo-500/10 text-indigo-600')}>
                         {token.mealType}
                       </span>
                     </td>
