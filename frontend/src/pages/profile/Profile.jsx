@@ -9,6 +9,7 @@ import { useState } from "react";
 import { useAuth } from "../../context/AuthContext";
 import authService from "../../services/authService";
 import { getInitials } from "../../utils/helpers";
+import OBERadarChart from "./OBERadarChart";
 import {
   User,
   Mail,
@@ -330,7 +331,10 @@ export function Profile() {
           </form>
         </div>
 
-      {/* Password Change Card */}
+      {/* OBE Radar Chart (Student Only) */}
+        {user?.role === "student" && <OBERadarChart studentId="me" />}
+
+        {/* Password Change Card */}
       <div className="p-6 bg-white rounded-2xl border border-slate-200 shadow-xs space-y-4">
         <div className="flex items-center space-x-2.5 pb-3 border-b border-slate-100">
           <KeyRound className="w-5 h-5 text-sky-600" />
