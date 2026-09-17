@@ -143,7 +143,7 @@ export function LiveSidebar({ onOpenPostModal }) {
                       ? 'bg-amber-500/20 text-amber-400 border-amber-500/30' 
                       : 'bg-sky-500/20 text-sky-400 border-sky-500/30'
                   }`}>
-                    {feed.type === "achievement" ? <Award className="w-6 h-6" /> : feed.type === "ruet_news" ? <Globe className="w-6 h-6" /> : <Bell className="w-6 h-6" />}
+                    {feed.type === "achievement" ? <Award className="w-6 h-6" /> : feed.type === "ruet_news" ? <img src="/ruet-logo.png" className="w-6 h-6 object-contain" alt="RUET" /> : <Bell className="w-6 h-6" />}
                   </div>
                   <div className="flex-1">
                     <h3 className={`font-bold text-base mb-1 ${feed.type === 'achievement' ? 'text-amber-300' : 'text-slate-100'}`}>{feed.title}</h3>
