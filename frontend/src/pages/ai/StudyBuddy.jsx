@@ -339,7 +339,7 @@ export default function StudyBuddy() {
 
           {/* Messages Area */}
           <div className="flex-1 overflow-y-auto p-4 space-y-6 custom-scrollbar">
-            {messages.map((msg, idx) => (
+            {React.useMemo(() => messages.map((msg, idx) => (
       <div key={idx} className={`flex ${msg.role === 'user' ? 'justify-end' : 'justify-start'}`}>
         <div className={`flex max-w-[85%] ${msg.role === 'user' ? 'flex-row-reverse' : 'flex-row'} items-end gap-2`}>
           
@@ -412,7 +412,7 @@ export default function StudyBuddy() {
           </div>
         </div>
       </div>
-    ))}
+    )), [messages, navigate])}
             {loading && (
               <div className="flex justify-start">
                 <div className="flex items-end gap-2">
