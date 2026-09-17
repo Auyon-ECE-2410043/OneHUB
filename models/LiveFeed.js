@@ -14,6 +14,7 @@ const liveFeedSchema = new mongoose.Schema({
     type: String,
     required: true,
   },
+  sourceUrl: { type: String, default: null },
   active: {
     type: Boolean,
     default: true,

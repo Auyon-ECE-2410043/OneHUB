@@ -103,8 +103,8 @@ export function LiveSidebar({ onOpenPostModal }) {
                 initial={{ opacity: 0, x: -20 }}
                 animate={{ opacity: 1, x: 0 }}
                 exit={{ opacity: 0, scale: 0.9 }}
-                className={`relative p-5 rounded-2xl bg-gradient-to-r from-rose-950/80 to-red-900/40 backdrop-blur-md border border-rose-500/50 hover:border-rose-400 transition-colors shadow-lg shadow-rose-900/20 group ${getUrl(feed.content) ? 'cursor-pointer hover:shadow-rose-500/20' : ''}`}
-                onClick={() => { const url = getUrl(feed.content); if(url) window.open(url, '_blank'); }}
+                className={`relative p-5 rounded-2xl bg-gradient-to-r from-rose-950/80 to-red-900/40 backdrop-blur-md border border-rose-500/50 hover:border-rose-400 transition-colors shadow-lg shadow-rose-900/20 group ${getUrl(feed) ? 'cursor-pointer hover:shadow-rose-500/20' : ''}`}
+                onClick={() => { const url = getUrl(feed); if(url) window.open(url, '_blank'); }}
               >
                 <div className="absolute top-0 right-0 p-4 opacity-10">
                   <AlertCircle className="w-24 h-24 text-rose-500" />
@@ -134,8 +134,8 @@ export function LiveSidebar({ onOpenPostModal }) {
                   feed.type === 'achievement' 
                     ? 'bg-gradient-to-br from-amber-900/30 to-orange-900/10 border-amber-500/30 hover:border-amber-400/50' 
                     : 'bg-white/5 border-white/10 hover:border-sky-400/30'
-                } ${getUrl(feed.content) ? 'cursor-pointer hover:-translate-y-0.5' : ''}`}
-                onClick={() => { const url = getUrl(feed.content); if(url) window.open(url, '_blank'); }}
+                } ${getUrl(feed) ? 'cursor-pointer hover:-translate-y-0.5' : ''}`}
+                onClick={() => { const url = getUrl(feed); if(url) window.open(url, '_blank'); }}
               >
                 <div className="flex items-start space-x-4">
                   <div className={`p-3 rounded-2xl border ${
