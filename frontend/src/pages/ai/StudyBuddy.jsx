@@ -26,6 +26,14 @@ export default function StudyBuddy() {
       }
     ];
   });
+
+  const [input, setInput] = useState('');
+  const [loading, setLoading] = useState(false);
+  const [activeVideo, setActiveVideo] = useState(null);
+  const [videoSummary, setVideoSummary] = useState(null);
+  const [summarizing, setSummarizing] = useState(false);
+  const [selectedFile, setSelectedFile] = useState(null);
+  const fileInputRef = useRef(null);
   
   // Load history from API in the background and merge with localStorage cache
   useEffect(() => {
@@ -88,17 +96,10 @@ export default function StudyBuddy() {
     setVideoSummary(null);
   };
 
-  const [input, setInput] = useState('');
-  const [loading, setLoading] = useState(false);
-  const [activeVideo, setActiveVideo] = useState(null);
 
 
   
-  const [videoSummary, setVideoSummary] = useState(null);
-  const [summarizing, setSummarizing] = useState(false);
   
-  const [selectedFile, setSelectedFile] = useState(null);
-  const fileInputRef = useRef(null);
 
   const handleFileSelect = (e) => {
     const file = e.target.files[0];
