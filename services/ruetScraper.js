@@ -44,3 +44,11 @@ async function scrapeRuetNotices() {
 }
 
 module.exports = { scrapeRuetNotices };
+const cron = require('node-cron');
+function initRuetScraper() {
+  console.log('RUET Notice Scraper initialized (running every 6 hours)');
+  cron.schedule('0 */6 * * *', () => {
+    scrapeRuetNotices();
+  });
+}
+module.exports.initRuetScraper = initRuetScraper;
