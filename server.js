@@ -78,6 +78,7 @@ app.use("/api/livefeed", require("./routes/livefeed"));
 app.use("/api/users", require("./routes/users"));
 app.use("/api/dining", require("./routes/dining"));
 app.use("/api/ai", require("./routes/ai"));
+app.use("/api/obe", require("./routes/obe"));
 
 // Global 404 handler
 app.use((req, res) => {

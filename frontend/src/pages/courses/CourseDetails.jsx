@@ -8,6 +8,7 @@
 import { useState, useEffect } from "react";
 import { useParams, Link } from "react-router-dom";
 import courseService from "../../services/courseService";
+import CourseOBEProfile from "./CourseOBEProfile";
 import { PageLoader } from "../../components/common/Loader";
 import {
   Users,
@@ -23,6 +24,8 @@ export function CourseDetails() {
   const [course, setCourse] = useState(null);
   const [students, setStudents] = useState([]);
   const [searchTerm, setSearchTerm] = useState("");
+  const [activeTab, setActiveTab] = useState("roster");
+  const { user } = require("../../context/AuthContext").useAuth();
 
   useEffect(() => {
     const fetchCourseStudents = async () => {
@@ -106,7 +109,25 @@ export function CourseDetails() {
         </div>
       </div>
 
-      {/* Student Roster Table */}
+      
+      <div className="flex border-b border-slate-200 mt-6">
+        <button
+          onClick={() => setActiveTab("roster")}
+          className={`px-6 py-3 font-semibold text-sm transition-colors ${activeTab === "roster" ? "border-b-2 border-sky-500 text-sky-600" : "text-slate-500 hover:text-slate-700"}`}
+        >
+          Approved Roster
+        </button>
+        {(user?.role === 'admin' || user?.role === 'faculty') && (
+          <button
+            onClick={() => setActiveTab("obe")}
+            className={`px-6 py-3 font-semibold text-sm transition-colors ${activeTab === "obe" ? "border-b-2 border-sky-500 text-sky-600" : "text-slate-500 hover:text-slate-700"}`}
+          >
+            OBE Configuration
+          </button>
+        )}
+      </div>
+
+      {activeTab === "roster" ? (
       <div className="bg-white rounded-2xl border border-slate-200 shadow-xs overflow-hidden">
         <div className="p-4 border-b border-slate-100 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
           <h3 className="font-bold text-base text-slate-800">Approved Student Roster</h3>
@@ -163,6 +184,9 @@ export function CourseDetails() {
           </table>
         </div>
       </div>
+      ) : (
+        <CourseOBEProfile courseId={id} />
+      )}
     </div>
   );
 }
