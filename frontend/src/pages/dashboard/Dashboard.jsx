@@ -96,6 +96,22 @@ export function Dashboard() {
   const [hallApplications, setHallApplications] = useState([]);
 
   useEffect(() => {
+    if (user?.role !== "admin") return;
+    const fetchActiveUsers = async () => {
+      try {
+        const { default: api } = await import("../../services/api");
+        const res = await api.get("/users/active");
+        setActiveUsers(res.data.users || []);
+      } catch (e) {
+        console.warn("Failed to fetch active users", e);
+      }
+    };
+    fetchActiveUsers();
+    const interval = setInterval(fetchActiveUsers, 10000);
+    return () => clearInterval(interval);
+  }, [user]);
+
+  useEffect(() => {
     const fetchDashboardData = async () => {
       setLoading(true);
       try {
@@ -624,6 +640,46 @@ export function Dashboard() {
                   </div>
                 )}
   
+                                {/* LIVE ACTIVE USERS */}
+                {user?.role === "admin" && (
+                  <div className="bg-slate-50 dark:bg-slate-800/50 rounded-2xl p-4 border border-slate-100 dark:border-slate-800 mt-6">
+                    <div className="mb-4 flex items-center justify-between">
+                      <div>
+                        <h3 className="text-sm font-bold text-slate-800 dark:text-slate-100 mb-1 flex items-center gap-2">
+                          Live Active Users
+                          <span className="relative flex h-2.5 w-2.5">
+                            <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
+                            <span className="relative inline-flex rounded-full h-2.5 w-2.5 bg-emerald-500"></span>
+                          </span>
+                        </h3>
+                        <p className="text-xs text-slate-500">Users who have been active in the last 5 minutes.</p>
+                      </div>
+                      <div className="bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 px-3 py-1 rounded-full text-xs font-bold">
+                        {activeUsers.length} Online
+                      </div>
+                    </div>
+                    <div className="space-y-2 max-h-48 overflow-y-auto custom-scrollbar pr-2">
+                      {activeUsers.length > 0 ? activeUsers.map(u => (
+                        <div key={u._id} className="flex items-center justify-between bg-white dark:bg-slate-900 p-2.5 rounded-lg border border-slate-100 dark:border-slate-800">
+                          <div className="flex items-center gap-3">
+                            <div className="w-8 h-8 rounded-full bg-indigo-100 dark:bg-indigo-500/20 text-indigo-600 dark:text-indigo-400 flex items-center justify-center font-bold text-xs uppercase">
+                              {u.name.charAt(0)}
+                            </div>
+                            <div>
+                              <p className="text-sm font-semibold text-slate-800 dark:text-slate-200">{u.name}</p>
+                              <p className="text-[10px] text-slate-500 capitalize">{u.role} {u.department ? "� " + u.department : ""}</p>
+                            </div>
+                          </div>
+                          <div className="text-[10px] text-emerald-500 font-medium bg-emerald-500/10 px-2 py-0.5 rounded-full">
+                            Active Now
+                          </div>
+                        </div>
+                      )) : (
+                        <div className="text-center py-4 text-xs text-slate-500">No other users online right now.</div>
+                      )}
+                    </div>
+                  </div>
+                )}
                 {/* ADMIN MODULE ACCESS CONTROL */}
               {user?.role === "admin" && (
                 <div className="bg-slate-50 dark:bg-slate-800/50 rounded-2xl p-4 border border-slate-100 dark:border-slate-800">
