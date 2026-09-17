@@ -11,7 +11,7 @@ export default function DiningManagement() {
   const fetchTokens = async () => {
     try {
       setLoading(true);
-      const res = await api.get('/api/dining/admin/tokens?date=' + date);
+      const res = await api.get('/dining/admin/tokens?date=' + date);
       setTokens(res.data.tokens);
     } catch (err) {
       toast.error('Failed to load dining records');
@@ -26,7 +26,7 @@ export default function DiningManagement() {
 
   const markUsed = async (id) => {
     try {
-      await api.patch('/api/dining/admin/tokens/' + id + '/use');
+      await api.patch('/dining/admin/tokens/' + id + '/use');
       toast.success('Token marked as used!');
       fetchTokens();
     } catch (err) {
