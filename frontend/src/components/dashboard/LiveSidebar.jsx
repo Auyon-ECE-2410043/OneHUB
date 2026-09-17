@@ -6,7 +6,7 @@ import livefeedService from "../../services/livefeedService";
 import { useAuth } from "../../context/AuthContext";
 import { formatDate } from "../../utils/helpers";
 
-const getUrl = (text) => { const match = text.match(/https?:\/\/[^\s]+/); return match ? match[0] : null; };
+const getUrl = (feed) => { if (!feed) return null; if (feed.sourceUrl) return feed.sourceUrl; if (!feed.content) return null; const match = feed.content.match(/https?:\/\/[^\s]+/); return match ? match[0] : null; };
 const renderContent = (text) => {
   if (!text) return "";
   let clean = text.replace(/https?:\/\/[^\s]+/, "").trim();
