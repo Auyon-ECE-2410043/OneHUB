@@ -702,7 +702,8 @@ export function Dashboard() {
                       { key: 'notices', label: 'Notices' },
                       { key: 'faculty', label: 'Faculty' },
                       { key: 'calendar', label: 'Calendar' },
-                      { key: 'clearance', label: 'Clearance' }
+                      { key: 'clearance', label: 'Clearance' },
+                        { key: 'ai', label: 'StudyBuddy AI' }
                     ].map(f => {
                       const isEnabled = features[f.key] !== false;
                       const isToggling = togglingFeature === f.key;
