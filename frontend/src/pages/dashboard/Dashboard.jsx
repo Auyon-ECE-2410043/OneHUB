@@ -716,11 +716,11 @@ export function Dashboard() {
                           disabled={isToggling}
                           className={`p-3 rounded-xl border text-left transition-all relative overflow-hidden ${isEnabled ? 'bg-white dark:bg-slate-800 border-slate-200 dark:border-slate-700 hover:border-sky-300 shadow-sm' : 'bg-slate-50 dark:bg-slate-900/50 border-rose-200 dark:border-rose-900/30'}`}
                         >
-                          <div className="flex justify-between items-start mb-2">
-                            <span className={`text-[10px] font-bold uppercase tracking-wider ${isEnabled ? 'text-slate-500 dark:text-slate-400' : 'text-rose-500 dark:text-rose-400'}`}>
+                          <div className="flex justify-between items-center gap-1 mb-2">
+                            <span className={`text-[10px] font-bold uppercase tracking-wider truncate ${isEnabled ? 'text-slate-500 dark:text-slate-400' : 'text-rose-500 dark:text-rose-400'}`}>
                               {f.label}
                             </span>
-                            <div className={`w-6 h-3 rounded-full flex items-center p-0.5 transition-colors ${isEnabled ? 'bg-emerald-500' : 'bg-slate-300 dark:bg-slate-600'}`}>
+                            <div className={`w-6 h-3 shrink-0 rounded-full flex items-center p-0.5 transition-colors ${isEnabled ? 'bg-emerald-500' : 'bg-slate-300 dark:bg-slate-600'}`}>
                               <div className={`w-2 h-2 bg-white rounded-full shadow-sm transform transition-transform ${isEnabled ? 'translate-x-3' : 'translate-x-0'}`} />
                             </div>
                           </div>
