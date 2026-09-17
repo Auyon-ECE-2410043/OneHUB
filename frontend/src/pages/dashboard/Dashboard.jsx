@@ -668,7 +668,7 @@ export function Dashboard() {
                             </div>
                             <div>
                               <p className="text-sm font-semibold text-slate-800 dark:text-slate-200">{u.name}</p>
-                              <p className="text-[10px] text-slate-500 capitalize">{u.role} {u.department ? "� " + u.department : ""}</p>
+                              <p className="text-[10px] text-slate-500 capitalize">{u.role} {u.department ? ' • ' + u.department : ''}}</p>
                             </div>
                           </div>
                           <div className="text-[10px] text-emerald-500 font-medium bg-emerald-500/10 px-2 py-0.5 rounded-full">
