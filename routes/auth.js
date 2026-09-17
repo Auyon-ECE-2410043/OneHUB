@@ -532,5 +532,5 @@ router.post("/google", async (req, res) => {
   }
 });
 
-module.exports = router;
+router.post('/heartbeat', requireAuth, async (req, res) => { try { await User.findByIdAndUpdate(req.user.id, { lastActiveAt: new Date() }); res.json({ success: true }); } catch (error) { res.status(500).json({ error: 'Heartbeat failed' }); } }); module.exports = router;
 

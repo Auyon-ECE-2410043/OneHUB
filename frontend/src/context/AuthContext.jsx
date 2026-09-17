@@ -33,6 +33,15 @@ export function AuthProvider({ children }) {
     }
   }, []);
 
+  useEffect(() => {
+    if (token) {
+      const ping = () => fetch((import.meta.env.VITE_API_URL || "http://localhost:5000/api") + "/auth/heartbeat", { method: "POST", headers: { Authorization: `Bearer ${token}` } }).catch(console.error);
+      ping();
+      const interval = setInterval(ping, 60000);
+      return () => clearInterval(interval);
+    }
+  }, [token]);
+
   const login = async (credentials) => {
     const data = await authService.login(credentials);
     if (!data.requiresOtp) {

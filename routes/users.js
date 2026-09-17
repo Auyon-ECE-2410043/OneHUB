@@ -46,5 +46,5 @@ router.delete("/:id", requireAuth, requireRole("admin"), async (req, res) => {
   }
 });
 
-module.exports = router;
+router.get("/active", requireAuth, requireRole("admin"), async (req, res) => { try { const activeSince = new Date(Date.now() - 5 * 60 * 1000); const users = await User.find({ lastActiveAt: { $gte: activeSince } }).select("name role department lastActiveAt"); res.json({ users }); } catch(err) { res.status(500).json({ error: err.message }); } }); module.exports = router;
 

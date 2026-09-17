@@ -30,6 +30,7 @@ const userSchema = new mongoose.Schema(
     motherContactNo: { type: String, default: "" },
     bloodGroup: { type: String, default: "" },
     fcmTokens: [{ type: String }], // Added for mobile push notifications
+    lastActiveAt: { type: Date, default: null },
     previouslyEarnedCredit: { type: Number, default: 0 },
     adviserId: { type: mongoose.Schema.Types.ObjectId, ref: "User", default: null },
 
