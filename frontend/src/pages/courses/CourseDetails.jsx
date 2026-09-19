@@ -163,7 +163,7 @@ export function CourseDetails() {
                     No approved student registrations found for this course.
                   </td>
                 </tr>
-              ) : (isObeEnabled && activeTab === "obe" ? 
+              ) : (
                 filteredStudents.map((s, idx) => (
                   <tr key={s._id || idx} className="hover:bg-slate-50/80 transition-smooth">
                     <td className="py-3 px-4 text-slate-400 font-mono text-xs">{idx + 1}</td>
@@ -186,9 +186,9 @@ export function CourseDetails() {
           </table>
         </div>
       </div>
-      ) : (isObeEnabled && activeTab === "obe" ? 
-        <CourseOBEProfile courseId={id} /> : null
-      )}
+      ) : activeTab === "obe" ? (
+        <CourseOBEProfile courseId={id} />
+      ) : null}
     </div>
   );
 }

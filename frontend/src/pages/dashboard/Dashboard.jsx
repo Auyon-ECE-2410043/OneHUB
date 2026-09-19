@@ -690,21 +690,22 @@ export function Dashboard() {
                   </div>
                   <div className="grid grid-cols-2 gap-3">
                     {[
-                      { key: 'routine', label: 'Routine' },
-                      { key: 'courses', label: 'Courses' },
-                      { key: 'registration', label: 'Registration' },
-                      { key: 'attendance', label: 'Attendance' },
-                      { key: 'marks', label: 'Marks' },
-                      { key: 'cgpa', label: 'CGPA' },
-                      { key: 'fees', label: 'Fees' },
-                      { key: 'hall', label: 'Hall' },
-                      { key: 'dining', label: 'Dining' },
-                      { key: 'medical', label: 'Medical' },
-                      { key: 'notices', label: 'Notices' },
-                      { key: 'faculty', label: 'Faculty' },
-                      { key: 'calendar', label: 'Calendar' },
-                      { key: 'clearance', label: 'Clearance' },
-                        { key: 'ai', label: 'StudyBuddy AI' },\n                        { key: 'obe', label: 'OBE Engine' }
+                      { key: "routine", label: "Routine" },
+                      { key: "courses", label: "Courses" },
+                      { key: "registration", label: "Registration" },
+                      { key: "attendance", label: "Attendance" },
+                      { key: "marks", label: "Marks" },
+                      { key: "cgpa", label: "CGPA" },
+                      { key: "fees", label: "Fees" },
+                      { key: "hall", label: "Hall" },
+                      { key: "dining", label: "Dining" },
+                      { key: "medical", label: "Medical" },
+                      { key: "notices", label: "Notices" },
+                      { key: "faculty", label: "Faculty" },
+                      { key: "calendar", label: "Calendar" },
+                      { key: "clearance", label: "Clearance" },
+                      { key: "ai", label: "StudyBuddy AI" },
+                      { key: "obe", label: "OBE Engine" }
                     ].map(f => {
                       const isEnabled = features[f.key] !== false;
                       const isToggling = togglingFeature === f.key;

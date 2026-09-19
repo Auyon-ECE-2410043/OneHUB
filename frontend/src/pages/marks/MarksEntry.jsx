@@ -289,7 +289,6 @@ export function MarksEntry() {
               />
             </div>
           )}
-          </div>
         </div>
 
         {/* OBE CO Mapping */}
