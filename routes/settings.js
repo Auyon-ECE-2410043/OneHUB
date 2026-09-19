@@ -23,7 +23,10 @@ const defaultFeatures = {
   medical: true,
   notices: true,
   faculty: true,
-  calendar: true
+  calendar: true,
+  obe: true,
+  dining: true,
+  ai: true
 };
 
 router.get("/", async (req, res) => {

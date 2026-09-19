@@ -6,7 +6,7 @@
  */
 
 import { useState, useEffect } from "react";
-import { useSearchParams } from "react-router-dom";
+import { useSearchParams, useOutletContext } from "react-router-dom";
 import courseService from "../../services/courseService";
 import markService from "../../services/markService";
 import { SEMESTERS, GRADE_POINTS } from "../../utils/constants";
@@ -22,6 +22,8 @@ import {
 
 export function MarksEntry() {
   const [searchParams] = useSearchParams();
+  const { features = {} } = useOutletContext();
+  const isObeEnabled = features.obe !== false;
   const initialCourseId = searchParams.get("courseId") || "";
   const initialSemester = searchParams.get("semester") || "2-1";
 
@@ -287,7 +289,33 @@ export function MarksEntry() {
               />
             </div>
           )}
+          </div>
         </div>
+
+        {/* OBE CO Mapping */}
+        {isObeEnabled && courseCOs.length > 0 && markType !== "final" && (
+          <div className="pt-4 mt-4 border-t border-slate-100 mb-6 bg-white p-6 rounded-2xl border border-slate-200 shadow-xs">
+            <label className="block text-xs font-semibold uppercase text-slate-600 mb-2">
+              Map Assessment to Course Outcomes (OBE)
+            </label>
+            <div className="flex flex-wrap gap-3">
+              {courseCOs.map(co => (
+                <label key={co.code} className="flex items-center space-x-2 bg-slate-50 border border-slate-200 px-3 py-1.5 rounded-lg cursor-pointer hover:bg-slate-100 transition-colors">
+                  <input
+                    type="checkbox"
+                    checked={selectedCOs.includes(co.code)}
+                    onChange={(e) => {
+                      if (e.target.checked) setSelectedCOs([...selectedCOs, co.code]);
+                      else setSelectedCOs(selectedCOs.filter(c => c !== co.code));
+                    }}
+                    className="rounded border-slate-300 text-sky-600 focus:ring-sky-500"
+                  />
+                  <span className="text-sm font-bold text-slate-700">{co.code}</span>
+                </label>
+              ))}
+            </div>
+          </div>
+        )}
       </div>
 
       {/* Spreadsheet Input Table */}

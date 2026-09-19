@@ -6,7 +6,7 @@
  */
 
 import { useState, useEffect } from "react";
-import { useParams, Link } from "react-router-dom";
+import { useParams, Link, useOutletContext } from "react-router-dom";
 import courseService from "../../services/courseService";
 import CourseOBEProfile from "./CourseOBEProfile";
 import { PageLoader } from "../../components/common/Loader";
@@ -24,6 +24,8 @@ export function CourseDetails() {
   const [course, setCourse] = useState(null);
   const [students, setStudents] = useState([]);
   const [searchTerm, setSearchTerm] = useState("");
+  const { features = {} } = useOutletContext();
+  const isObeEnabled = features.obe !== false;
   const [activeTab, setActiveTab] = useState("roster");
   const { user } = require("../../context/AuthContext").useAuth();
 
@@ -117,7 +119,7 @@ export function CourseDetails() {
         >
           Approved Roster
         </button>
-        {(user?.role === 'admin' || user?.role === 'faculty') && (
+        {(user?.role === 'admin' || user?.role === 'faculty') && isObeEnabled && (
           <button
             onClick={() => setActiveTab("obe")}
             className={`px-6 py-3 font-semibold text-sm transition-colors ${activeTab === "obe" ? "border-b-2 border-sky-500 text-sky-600" : "text-slate-500 hover:text-slate-700"}`}
@@ -161,7 +163,7 @@ export function CourseDetails() {
                     No approved student registrations found for this course.
                   </td>
                 </tr>
-              ) : (
+              ) : (isObeEnabled && activeTab === "obe" ? 
                 filteredStudents.map((s, idx) => (
                   <tr key={s._id || idx} className="hover:bg-slate-50/80 transition-smooth">
                     <td className="py-3 px-4 text-slate-400 font-mono text-xs">{idx + 1}</td>
@@ -184,8 +186,8 @@ export function CourseDetails() {
           </table>
         </div>
       </div>
-      ) : (
-        <CourseOBEProfile courseId={id} />
+      ) : (isObeEnabled && activeTab === "obe" ? 
+        <CourseOBEProfile courseId={id} /> : null
       )}
     </div>
   );

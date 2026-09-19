@@ -1,0 +1,1 @@
+const fs = require("fs"); const file = "frontend/src/pages/dashboard/Dashboard.jsx"; let c = fs.readFileSync(file, "utf8"); c = c.replace(/ï¿½/g, "•"); fs.writeFileSync(file, c); console.log("Fixed Mojibake using regex!");

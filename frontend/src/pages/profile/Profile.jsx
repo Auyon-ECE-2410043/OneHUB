@@ -7,6 +7,7 @@
 
 import { useState } from "react";
 import { useAuth } from "../../context/AuthContext";
+import { useOutletContext } from "react-router-dom";
 import authService from "../../services/authService";
 import { getInitials } from "../../utils/helpers";
 import OBERadarChart from "./OBERadarChart";
@@ -26,6 +27,8 @@ import {
 
 export function Profile() {
   const { user, updateUser } = useAuth();
+  const { features = {} } = useOutletContext();
+  const isObeEnabled = features.obe !== false;
 
   const [passwordForm, setPasswordForm] = useState({
     currentPassword: "",
@@ -332,7 +335,7 @@ export function Profile() {
         </div>
 
       {/* OBE Radar Chart (Student Only) */}
-        {user?.role === "student" && <OBERadarChart studentId="me" />}
+        {isObeEnabled && user?.role === "student" && <OBERadarChart studentId="me" />}
 
         {/* Password Change Card */}
       <div className="p-6 bg-white rounded-2xl border border-slate-200 shadow-xs space-y-4">

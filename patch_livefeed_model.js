@@ -1,0 +1,1 @@
+const fs = require("fs"); const file = "models/LiveFeed.js"; let c = fs.readFileSync(file, "utf8"); c = c.replace("active: {", "sourceUrl: { type: String, default: null },\n  active: {"); fs.writeFileSync(file, c); console.log("Added sourceUrl to LiveFeed");
