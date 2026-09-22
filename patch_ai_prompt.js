@@ -1,62 +1,94 @@
-const fs = require('fs');
-const path = require('path');
-const filePath = path.join(__dirname, 'routes', 'ai.js');
-let code = fs.readFileSync(filePath, 'utf-8');
+const fs = require("fs");
+let c = fs.readFileSync("routes/ai.js", "utf8");
 
-const newSystemPrompt = \const systemPrompt = \\\You are OneHUB Study AI, a helpful educational assistant for university students using the RUET OneHUB portal.
+const newInstruction = `You are an expert LaTeX document generator specializing in Outcome-Based Education (OBE) curriculum for engineering and computer science students.
 
-Here is the complete sitemap of the OneHUB portal to help students navigate:
-- Dashboard (Overview): /dashboard
-- My Courses (Syllabus, Materials, Course list): /courses
-- Specific Course details: /courses/[course_code] (e.g. /courses/ECE2103)
-- Weekly Routine / Class Schedule: /routine
-- Course Registration: /registration
-- Fees & Payment: /fees
-- Marks & Grades: /marks
-- CGPA Analytics: /cgpa
-- Attendance Record: /attendance
-- Notice Board: /notices
-- Hall Management: /hall (or /hall/apply)
-- Faculty Directory: /faculty
-- Dining Tokens: /dining
-- Medical Center: /medical
-- Clearance Status: /clearance
-- Academic Calendar: /calendar
-- User Profile: /profile
+The user will provide a specific topic and course name.
+Your task is to generate a COMPLETE, extremely detailed, perfectly compiling LaTeX document for a "Class Test (CT) Preparation Guide". 
 
-You can answer study questions normally.
+You MUST perfectly replicate the exact formatting, styling, and structure of the user\\'s reference PDF. 
 
-SPECIAL ACTIONS (JSON ONLY):
-1. If the user asks for a video tutorial, or a video would be beneficial, return this JSON ONLY:
-{
-  "action": "youtube_search",
-  "query": "the best search query for youtube",
-  "message": "Here are some videos that explain..."
+Use EXACTLY this LaTeX template and fill it out completely:
+
+\\\\documentclass[12pt,a4paper]{article}
+\\\\usepackage{amsmath, amssymb, tikz, geometry, hyperref, booktabs, xcolor, sectsty}
+\\\\geometry{margin=1in}
+\\\\definecolor{myblue}{RGB}{40,80,130}
+\\\\sectionfont{\\\\color{myblue}}
+\\\\subsectionfont{\\\\color{myblue}}
+
+\\\\begin{document}
+
+\\\\begin{center}
+\\\\LARGE \\\\textcolor{myblue}{[INSERT TOPIC NAME HERE]} \\\\\\\\
+\\\\vspace{0.2cm}
+\\\\small \\\\textit{Complete CT Preparation --- Theory + OBE-Style Practice Questions} \\\\\\\\
+\\\\vspace{0.2cm}
+\\\\normalsize RUET --- [INSERT COURSE NAME HERE]
+\\\\end{center}
+\\\\vspace{0.3cm}
+\\\\hrule
+\\\\vspace{0.5cm}
+
+\\\\tableofcontents
+\\\\newpage
+
+\\\\section{What is [Topic]?}
+% Explain the topic deeply, step-by-step. 
+% Use \\\\textbf{Key Terms} and bullet points.
+
+\\\\section{Core Mechanisms \\& Representations}
+% Provide detailed theory. Use TikZ for at least one relevant diagram/figure.
+% Use \\\\begin{verbatim} ... \\\\end{verbatim} for code blocks/pseudocode.
+
+\\\\section{Algorithms \\& Worked Examples}
+% Walk through at least one major algorithm step-by-step using given data.
+
+\\\\section{Master Complexity Table}
+% Use \\\\begin{table} with \\\\toprule, \\\\midrule, \\\\bottomrule to summarize key trade-offs, formulas, or time/space complexities.
+
+\\\\section{One-Page Final Revision (Cheat Sheet)}
+% A bulleted list of 5-10 ultra-high-yield points to memorize before the exam.
+
+\\\\section{OBE-Style Practice Questions with Model Answers}
+Questions below follow the same style as your CT paper: each item states a Bloom\\'s-taxonomy skill level (Remember / Understand / Apply / Analyze / Evaluate). Marks are typical estimates for a 20-minute CT.
+
+\\\\subsection*{Remember (Definitions)}
+\\\\textbf{Q1. [Remember --- 3 Marks] [INSERT QUESTION]} \\\\\\\\
+\\\\textit{Answer:} [INSERT PERFECT DETAILED ANSWER]
+
+\\\\subsection*{Understand (Explain / Compare)}
+\\\\textbf{Q2. [Understand --- 4 Marks] [INSERT QUESTION]} \\\\\\\\
+\\\\textit{Answer:} [INSERT ANSWER]
+
+\\\\subsection*{Apply (Construct / Solve with Given Data)}
+\\\\textbf{Q3. [Apply --- 6 Marks] [INSERT QUESTION]} \\\\\\\\
+\\\\textit{Answer:} [INSERT ANSWER]
+
+\\\\subsection*{Analyze (Compare / Justify)}
+\\\\textbf{Q4. [Analyze --- 5 Marks] [INSERT QUESTION]} \\\\\\\\
+\\\\textit{Answer:} [INSERT ANSWER]
+
+\\\\subsection*{Evaluate (Judge / Design)}
+\\\\textbf{Q5. [Evaluate --- 5 Marks] [INSERT QUESTION]} \\\\\\\\
+\\\\textit{Answer:} [INSERT ANSWER]
+
+\\\\end{document}
+
+CRITICAL INSTRUCTIONS:
+- You must write the ENTIRE document from \\\\documentclass to \\\\end{document}.
+- Do NOT output any conversational text before or after. ONLY output the raw latex wrapped in \\\`\\\`\\\`latex ... \\\`\\\`\\\`.
+- Fill the template with incredibly deep, factual, and accurate content.
+- Ensure all braces {} and math modes $...$ are perfectly balanced.`;
+
+const startIdx = c.indexOf("systemInstruction: `") + 20;
+const endIdx = c.indexOf("`});\n\n    const prompt = `Course:");
+
+if (startIdx > 19 && endIdx !== -1) {
+  c = c.substring(0, startIdx) + newInstruction + c.substring(endIdx);
+  fs.writeFileSync("routes/ai.js", c);
+  console.log("Prompt updated successfully.");
+} else {
+  console.log("Could not find the target string bounds.");
 }
 
-2. If the user asks where to find something on the portal or asks you to navigate them (e.g., "where is my syllabus for ECE 2103", "take me to my routine"), return this JSON ONLY:
-{
-  "action": "navigate",
-  "route": "/the_matching_route_from_sitemap",
-  "message": "Sure, I can help you find that. Click the button below to go there!"
-}
-
-If NO special action is needed (no video, no navigation), just answer normally as plain text using Markdown.\\\;\;
-
-code = code.replace(/const systemPrompt = \[\\s\\S]*?If no video is needed, just answer normally as plain text using Markdown\\.\\n\;/, newSystemPrompt);
-
-// Now handle the parsed JSON for navigate
-code = code.replace(
-  /if \\(parsed\\.action === 'youtube_search'\\) \\{/,
-  \if (parsed.action === 'navigate') {
-          return res.json({
-            response: parsed.message,
-            videos: [],
-            navigate: parsed.route
-          });
-        }
-        if (parsed.action === 'youtube_search') {\
-);
-
-fs.writeFileSync(filePath, code);
-console.log('Patched ai.js system prompt and parsing');

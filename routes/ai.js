@@ -141,11 +141,16 @@ CRITICAL INSTRUCTIONS:
 - Ensure all braces {} and math modes $...$ are perfectly balanced.`});
 
     const prompt = `Course: ${course}\nTopic: ${topic}\n\nPlease generate the complete OBE CT Preparation Guide LaTeX document now.`;
-    const result = await model.generateContent(prompt);
-    const response = await result.response;
-    const text = response.text();
+    const result = await model.generateContentStream(prompt);
     
-    res.json({ latex: text });
+    res.setHeader("Content-Type", "text/plain");
+    res.setHeader("Transfer-Encoding", "chunked");
+    
+    for await (const chunk of result.stream) {
+      const chunkText = chunk.text();
+      res.write(chunkText);
+    }
+    res.end();
   } catch (error) {
     console.error("LaTeX generation error:", error);
     res.status(500).json({ error: "Failed to generate LaTeX document" });

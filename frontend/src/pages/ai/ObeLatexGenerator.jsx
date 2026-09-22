@@ -20,7 +20,7 @@ export default function ObeLatexGenerator() {
     
     try {
       const res = await api.post("/ai/latex", { topic, course });
-      let code = res.data.latex || "";
+      let code = typeof res.data === "string" ? res.data : (res.data.latex || "");
       
       // Extract from markdown block if present
       if (code.includes("```latex")) {
