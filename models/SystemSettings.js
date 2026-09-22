@@ -15,7 +15,11 @@ const systemSettingsSchema = new mongoose.Schema({
     medical: { type: Boolean, default: true },
     notices: { type: Boolean, default: true },
     faculty: { type: Boolean, default: true },
-    calendar: { type: Boolean, default: true }
+    calendar: { type: Boolean, default: true },
+    obe: { type: Boolean, default: true },
+    dining: { type: Boolean, default: true },
+    ai: { type: Boolean, default: true },
+    latex: { type: Boolean, default: true }
   }
 });
 

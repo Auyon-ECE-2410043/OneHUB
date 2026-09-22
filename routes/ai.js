@@ -146,11 +146,17 @@ CRITICAL INSTRUCTIONS:
     res.setHeader("Content-Type", "text/plain");
     res.setHeader("Transfer-Encoding", "chunked");
     
-    for await (const chunk of result.stream) {
-      const chunkText = chunk.text();
-      res.write(chunkText);
+    try {
+      for await (const chunk of result.stream) {
+        const chunkText = chunk.text();
+        res.write(chunkText);
+      }
+      res.end();
+    } catch (streamErr) {
+      console.error("Stream interrupted:", streamErr);
+      res.write("\n\n% --- ERROR: AI Stream interrupted midway due to API overload ---\n\\end{document}");
+      res.end();
     }
-    res.end();
   } catch (error) {
     console.error("LaTeX generation error:", error);
     res.status(500).json({ error: "Failed to generate LaTeX document" });
