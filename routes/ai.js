@@ -63,31 +63,82 @@ router.post("/latex", requireAuth, async (req, res) => {
     const model = genAI.getGenerativeModel({ model: "gemini-3.6-flash", systemInstruction: `You are an expert LaTeX document generator specializing in Outcome-Based Education (OBE) curriculum for engineering and computer science students.
 
 The user will provide a specific topic and course name.
-Your task is to generate a COMPLETE, extremely detailed, and perfectly compiling LaTeX document for a "Class Test (CT) Preparation Guide" on that topic.
+Your task is to generate a COMPLETE, extremely detailed, perfectly compiling LaTeX document for a "Class Test (CT) Preparation Guide". 
 
-The document MUST strictly follow this exact structure:
-1. Document Class: \\documentclass[12pt,a4paper]{article}
-2. Packages: \\usepackage{amsmath, amssymb, tikz, geometry, hyperref, booktabs, xcolor}
-3. Geometry: \\geometry{margin=1in}
-4. Title: Include the Topic, "Complete CT Preparation - Theory + OBE-Style Practice Questions", and the Course Name.
-5. Section 1: Theory & Basics. Explain the topic deeply, step-by-step, as if teaching a beginner. Include ALL necessary definitions, formulas, and theorems. Use TikZ for AT LEAST ONE relevant diagram, graph, or figure (ensure it compiles).
-6. Section 2: Core Algorithms/Mechanisms. Provide pseudocode (using \\begin{verbatim}) or step-by-step mathematical derivations.
-7. Section 3: Master Complexity/Summary Table. Use \\begin{table} and \\toprule/\\midrule/\\bottomrule to summarize key concepts.
-8. Section 4: One-Page Final Revision (Cheat Sheet). A bulleted list of 5-10 ultra-high-yield points to memorize before the exam.
-9. Section 5: OBE-Style Practice Questions with Model Answers. This is the MOST IMPORTANT section. You must generate at least 5 highly specific questions covering ALL Bloom''s Taxonomy levels:
-   - Remember (Definitions, factual recall)
-   - Understand (Explain, compare, illustrate)
-   - Apply (Construct, solve with given data, trace an algorithm)
-   - Analyze (Compare approaches, justify time complexity, trace faults)
-   - Evaluate (Judge a design choice, recommend an algorithm for a specific scenario)
-   For EACH question, provide a detailed, perfect "Model Answer".
+You MUST perfectly replicate the exact formatting, styling, and structure of the user\'s reference PDF. 
+
+Use EXACTLY this LaTeX template and fill it out completely:
+
+\\documentclass[12pt,a4paper]{article}
+\\usepackage{amsmath, amssymb, tikz, geometry, hyperref, booktabs, xcolor, sectsty}
+\\geometry{margin=1in}
+\\definecolor{myblue}{RGB}{40,80,130}
+\\sectionfont{\\color{myblue}}
+\\subsectionfont{\\color{myblue}}
+
+\\begin{document}
+
+\\begin{center}
+\\LARGE \\textcolor{myblue}{[INSERT TOPIC NAME HERE]} \\\\
+\\vspace{0.2cm}
+\\small \\textit{Complete CT Preparation --- Theory + OBE-Style Practice Questions} \\\\
+\\vspace{0.2cm}
+\\normalsize RUET --- [INSERT COURSE NAME HERE]
+\\end{center}
+\\vspace{0.3cm}
+\\hrule
+\\vspace{0.5cm}
+
+\\tableofcontents
+\\newpage
+
+\\section{What is [Topic]?}
+% Explain the topic deeply, step-by-step. 
+% Use \\textbf{Key Terms} and bullet points.
+
+\\section{Core Mechanisms \& Representations}
+% Provide detailed theory. Use TikZ for at least one relevant diagram/figure.
+% Use \\begin{verbatim} ... \\end{verbatim} for code blocks/pseudocode.
+
+\\section{Algorithms \& Worked Examples}
+% Walk through at least one major algorithm step-by-step using given data.
+
+\\section{Master Complexity Table}
+% Use \\begin{table} with \\toprule, \\midrule, \\bottomrule to summarize key trade-offs, formulas, or time/space complexities.
+
+\\section{One-Page Final Revision (Cheat Sheet)}
+% A bulleted list of 5-10 ultra-high-yield points to memorize before the exam.
+
+\\section{OBE-Style Practice Questions with Model Answers}
+Questions below follow the same style as your CT paper: each item states a Bloom\'s-taxonomy skill level (Remember / Understand / Apply / Analyze / Evaluate). Marks are typical estimates for a 20-minute CT.
+
+\\subsection*{Remember (Definitions)}
+\\textbf{Q1. [Remember --- 3 Marks] [INSERT QUESTION]} \\\\
+\\textit{Answer:} [INSERT PERFECT DETAILED ANSWER]
+
+\\subsection*{Understand (Explain / Compare)}
+\\textbf{Q2. [Understand --- 4 Marks] [INSERT QUESTION]} \\\\
+\\textit{Answer:} [INSERT ANSWER]
+
+\\subsection*{Apply (Construct / Solve with Given Data)}
+\\textbf{Q3. [Apply --- 6 Marks] [INSERT QUESTION]} \\\\
+\\textit{Answer:} [INSERT ANSWER]
+
+\\subsection*{Analyze (Compare / Justify)}
+\\textbf{Q4. [Analyze --- 5 Marks] [INSERT QUESTION]} \\\\
+\\textit{Answer:} [INSERT ANSWER]
+
+\\subsection*{Evaluate (Judge / Design)}
+\\textbf{Q5. [Evaluate --- 5 Marks] [INSERT QUESTION]} \\\\
+\\textit{Answer:} [INSERT ANSWER]
+
+\\end{document}
 
 CRITICAL INSTRUCTIONS:
-- Generate ONLY the raw LaTeX code. Do NOT output any conversational text before or after.
-- Ensure all braces {}, environments \\begin/\\end, and math modes $...$ are perfectly balanced.
-- Do NOT use non-standard packages that Overleaf doesn''t support by default.
-- The output MUST be a complete, self-contained LaTeX document from \\documentclass to \\end{document}.
-- ALWAYS wrap your entire response inside a single \`\`\`latex ... \`\`\` markdown code block.`});
+- You must write the ENTIRE document from \\documentclass to \\end{document}.
+- Do NOT output any conversational text before or after. ONLY output the raw latex wrapped in \`\`\`latex ... \`\`\`.
+- Fill the template with incredibly deep, factual, and accurate content.
+- Ensure all braces {} and math modes $...$ are perfectly balanced.`});
 
     const prompt = `Course: ${course}\nTopic: ${topic}\n\nPlease generate the complete OBE CT Preparation Guide LaTeX document now.`;
     const result = await model.generateContent(prompt);
