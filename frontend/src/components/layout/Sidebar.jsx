@@ -54,6 +54,7 @@ export function Sidebar({ isOpen, onClose, features = {} }) {
     "/clearance": "clearance",
     "/medical": "medical",
     "/ai/study": "ai",
+    "/ai/latex": "latex",
     "/notices": "notices",
     "/faculty": "faculty",
   };

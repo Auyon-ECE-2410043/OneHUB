@@ -26,7 +26,8 @@ const defaultFeatures = {
   calendar: true,
   obe: true,
   dining: true,
-  ai: true
+  ai: true,
+  latex: true
 };
 
 router.get("/", async (req, res) => {

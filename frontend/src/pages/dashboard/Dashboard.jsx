@@ -705,6 +705,7 @@ export function Dashboard() {
                       { key: "calendar", label: "Calendar" },
                       { key: "clearance", label: "Clearance" },
                       { key: "ai", label: "StudyBuddy AI" },
+                      { key: "latex", label: "OBE LaTeX Gen" },
                       { key: "obe", label: "OBE Engine" }
                     ].map(f => {
                       const isEnabled = features[f.key] !== false;
