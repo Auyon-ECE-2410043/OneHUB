@@ -60,7 +60,7 @@ router.post("/latex", requireAuth, async (req, res) => {
 
     const { GoogleGenerativeAI } = require("@google/generative-ai");
     const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
-    const model = genAI.getGenerativeModel({ model: "gemini-3.6-flash", systemInstruction: `You are an expert LaTeX document generator specializing in Outcome-Based Education (OBE) curriculum for engineering and computer science students.
+    const model = genAI.getGenerativeModel({ model: "gemini-flash-latest", systemInstruction: `You are an expert LaTeX document generator specializing in Outcome-Based Education (OBE) curriculum for engineering and computer science students.
 
 The user will provide a specific topic and course name.
 Your task is to generate a COMPLETE, extremely detailed, perfectly compiling LaTeX document for a "Class Test (CT) Preparation Guide". 
