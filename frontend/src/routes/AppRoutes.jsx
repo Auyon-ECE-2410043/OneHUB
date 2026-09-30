@@ -34,6 +34,7 @@ import FeePayment from "../pages/fees/FeePayment";
 import MarksList from "../pages/marks/MarksList";
 import MarksEntry from "../pages/marks/MarksEntry";
 import CGPAAnalytics from "../pages/marks/CGPAAnalytics";
+import CGPACalculator from "../pages/cgpa/CGPACalculator";
 import AttendanceList from "../pages/attendance/AttendanceList";
 import MarkAttendance from "../pages/attendance/MarkAttendance";
 import NoticeList from "../pages/notices/NoticeList";
@@ -155,6 +156,7 @@ export function AppRoutes() {
         {/* Marks & Grading */}
         <Route path="/marks" element={<FeatureGuard featureKey="marks" title="Marks & Grades"><MarksList /></FeatureGuard>} />
         <Route path="/cgpa" element={<FeatureGuard featureKey="cgpa" title="CGPA Analytics"><CGPAAnalytics /></FeatureGuard>} />
+        <Route path="/cgpa/calculator" element={<FeatureGuard featureKey="cgpa" title="CGPA Predictor"><CGPACalculator /></FeatureGuard>} />
         <Route
           path="/marks/entry"
           element={

@@ -1,31 +1,24 @@
-const fs = require('fs');
-const path = require('path');
-const filePath = path.join(__dirname, 'frontend', 'src', 'components', 'layout', 'Sidebar.jsx');
-let code = fs.readFileSync(filePath, 'utf-8');
+const fs = require("fs");
+let c = fs.readFileSync("frontend/src/components/layout/Sidebar.jsx", "utf8");
 
-// add Bot icon
-code = code.replace(
-  'CalendarDays,',
-  'CalendarDays,\n  Bot,'
+// Add Calculator to lucide-react imports if not there
+if (!c.includes("Calculator,")) {
+  c = c.replace(/import {([^}]+)} from "lucide-react";/, (match, p1) => {
+    return `import {${p1}, Calculator} from "lucide-react";`;
+  });
+}
+
+// Add route mapping
+c = c.replace(
+  "\"/cgpa\": \"cgpa\",",
+  "\"/cgpa\": \"cgpa\",\n    \"/cgpa/calculator\": \"cgpa\","
 );
 
-// add to featureKeyMap
-code = code.replace(
-  '/medical": "medical",',
-  '/medical": "medical",\n    "/ai/study": "ai",'
+// Add to sidebar items
+c = c.replace(
+  "{ label: \"CGPA Analytics\", path: \"/cgpa\", icon: Award },",
+  "{ label: \"CGPA Analytics\", path: \"/cgpa\", icon: Award },\n          { label: \"CGPA Predictor\", path: \"/cgpa/calculator\", icon: Calculator },"
 );
 
-// add to student
-code = code.replace(
-  '{ label: "CGPA Analytics", path: "/cgpa", icon: Award },',
-  '{ label: "CGPA Analytics", path: "/cgpa", icon: Award },\n          { label: "StudyBuddy AI", path: "/ai/study", icon: Bot },'
-);
-
-// add to faculty
-code = code.replace(
-  '{ label: "Medical Center", path: "/medical", icon: HeartPulse },',
-  '{ label: "Medical Center", path: "/medical", icon: HeartPulse },\n          { label: "StudyBuddy AI", path: "/ai/study", icon: Bot },'
-);
-
-fs.writeFileSync(filePath, code);
-console.log('Patched Sidebar');
+fs.writeFileSync("frontend/src/components/layout/Sidebar.jsx", c);
+console.log("Sidebar patched");

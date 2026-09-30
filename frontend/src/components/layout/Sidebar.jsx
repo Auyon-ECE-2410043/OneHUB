@@ -26,6 +26,7 @@ import {
   CalendarClock,
   CalendarDays,
   Bot,
+  Calculator
 } from "lucide-react";
 
 export function Sidebar({ isOpen, onClose, features = {} }) {
@@ -45,6 +46,7 @@ export function Sidebar({ isOpen, onClose, features = {} }) {
     "/marks": "marks",
     "/marks/entry": "marks",
     "/cgpa": "cgpa",
+    "/cgpa/calculator": "cgpa",
     "/fees": "fees",
     "/hall": "hall",
     "/hall/review": "hall",
@@ -123,6 +125,7 @@ export function Sidebar({ isOpen, onClose, features = {} }) {
           { label: "Attendance Record", path: "/attendance", icon: CalendarCheck },
           { label: "Marks & Grades", path: "/marks", icon: Award },
           { label: "CGPA Analytics", path: "/cgpa", icon: Award },
+          { label: "CGPA Predictor", path: "/cgpa/calculator", icon: Calculator },
           { label: "StudyBuddy AI", path: "/ai/study", icon: Bot },
           { label: "OBE LaTeX Gen", path: "/ai/latex", icon: Bot },
           { label: "Fees & Payment", path: "/fees", icon: CreditCard },
