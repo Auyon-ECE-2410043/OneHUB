@@ -14,15 +14,437 @@ const GRADES = {
   "F": 0.00
 };
 
+
+const SYLLABUS = {
+  "1-1": [
+    {
+      "name": "ECE 1101",
+      "credit": 3
+    },
+    {
+      "name": "ECE 1102",
+      "credit": 1.5
+    },
+    {
+      "name": "ECE 1103",
+      "credit": 3
+    },
+    {
+      "name": "ECE 1104",
+      "credit": 1.5
+    },
+    {
+      "name": "Math 1117",
+      "credit": 3
+    },
+    {
+      "name": "Phy 1117",
+      "credit": 3
+    },
+    {
+      "name": "Phy 1118",
+      "credit": 0.75
+    },
+    {
+      "name": "Hum 1117",
+      "credit": 3
+    },
+    {
+      "name": "Hum 1118",
+      "credit": 0.75
+    },
+    {
+      "name": "ECE 1100",
+      "credit": 0.75
+    }
+  ],
+  "1-2": [
+    {
+      "name": "ECE 1201",
+      "credit": 3
+    },
+    {
+      "name": "ECE 1202",
+      "credit": 0.75
+    },
+    {
+      "name": "ECE 1203",
+      "credit": 3
+    },
+    {
+      "name": "ECE 1204",
+      "credit": 1.5
+    },
+    {
+      "name": "ECE 1205",
+      "credit": 3
+    },
+    {
+      "name": "ECE 1206",
+      "credit": 0.75
+    },
+    {
+      "name": "Math 1217",
+      "credit": 3
+    },
+    {
+      "name": "Hum 1217",
+      "credit": 3
+    },
+    {
+      "name": "ECE 1200",
+      "credit": 0.75
+    }
+  ],
+  "2-1": [
+    {
+      "name": "ECE 2103",
+      "credit": 3
+    },
+    {
+      "name": "ECE 2104",
+      "credit": 1.5
+    },
+    {
+      "name": "ECE 2105",
+      "credit": 3
+    },
+    {
+      "name": "ECE 2106",
+      "credit": 0.75
+    },
+    {
+      "name": "ECE 2111",
+      "credit": 3
+    },
+    {
+      "name": "ECE 2112",
+      "credit": 0.75
+    },
+    {
+      "name": "Math 2117",
+      "credit": 3
+    },
+    {
+      "name": "Chem 2117",
+      "credit": 3
+    },
+    {
+      "name": "Chem 2118",
+      "credit": 0.75
+    },
+    {
+      "name": "ECE 2100",
+      "credit": 0.75
+    }
+  ],
+  "2-2": [
+    {
+      "name": "ECE 2207",
+      "credit": 3
+    },
+    {
+      "name": "ECE 2208",
+      "credit": 0.75
+    },
+    {
+      "name": "ECE 2213",
+      "credit": 3
+    },
+    {
+      "name": "ECE 2214",
+      "credit": 1.5
+    },
+    {
+      "name": "ECE 2215",
+      "credit": 3
+    },
+    {
+      "name": "ECE 2216",
+      "credit": 1.5
+    },
+    {
+      "name": "Math 2217",
+      "credit": 3
+    },
+    {
+      "name": "Hum 2217",
+      "credit": 3
+    },
+    {
+      "name": "ECE 2200",
+      "credit": 1.5
+    }
+  ],
+  "3-1": [
+    {
+      "name": "ECE 3107",
+      "credit": 3
+    },
+    {
+      "name": "ECE 3108",
+      "credit": 0.75
+    },
+    {
+      "name": "ECE 3111",
+      "credit": 3
+    },
+    {
+      "name": "ECE 3112",
+      "credit": 1.5
+    },
+    {
+      "name": "ECE 3117",
+      "credit": 3
+    },
+    {
+      "name": "ECE 3118",
+      "credit": 0.75
+    },
+    {
+      "name": "ECE 3119",
+      "credit": 3
+    },
+    {
+      "name": "ECE 3121",
+      "credit": 3
+    },
+    {
+      "name": "CE 3100",
+      "credit": 0.75
+    },
+    {
+      "name": "ECE 3100",
+      "credit": 0.75
+    }
+  ],
+  "3-2": [
+    {
+      "name": "ECE 3205",
+      "credit": 3
+    },
+    {
+      "name": "ECE 3206",
+      "credit": 0.75
+    },
+    {
+      "name": "ECE 3207",
+      "credit": 3
+    },
+    {
+      "name": "ECE 3208",
+      "credit": 0.75
+    },
+    {
+      "name": "ECE 3221",
+      "credit": 3
+    },
+    {
+      "name": "ECE 3222",
+      "credit": 0.75
+    },
+    {
+      "name": "ME 3219",
+      "credit": 3
+    },
+    {
+      "name": "ME 3220",
+      "credit": 0.75
+    },
+    {
+      "name": "Hum 3217",
+      "credit": 3
+    },
+    {
+      "name": "ECE 3200",
+      "credit": 1.5
+    }
+  ],
+  "4-1": [
+    {
+      "name": "ECE 4109",
+      "credit": 3
+    },
+    {
+      "name": "MTE 4117",
+      "credit": 3
+    },
+    {
+      "name": "MTE 4118",
+      "credit": 0.75
+    },
+    {
+      "name": "ECE 4123",
+      "credit": 3
+    },
+    {
+      "name": "ECE 4124",
+      "credit": 0.75
+    },
+    {
+      "name": "ECE 4000_1",
+      "credit": 1
+    },
+    {
+      "name": "ECE 4100",
+      "credit": 0.75
+    },
+    {
+      "name": "ECE 4122",
+      "credit": 0.75
+    },
+    {
+      "name": "ECE 4111",
+      "credit": 3
+    },
+    {
+      "name": "ECE 4115",
+      "credit": 3
+    },
+    {
+      "name": "ECE 4117",
+      "credit": 3
+    },
+    {
+      "name": "ECE 4125",
+      "credit": 3
+    },
+    {
+      "name": "ECE 4141",
+      "credit": 3
+    },
+    {
+      "name": "ECE 4143",
+      "credit": 3
+    },
+    {
+      "name": "ECE 4127",
+      "credit": 3
+    },
+    {
+      "name": "ECE 4129",
+      "credit": 3
+    },
+    {
+      "name": "ECE 4131",
+      "credit": 3
+    },
+    {
+      "name": "ECE 4133",
+      "credit": 3
+    },
+    {
+      "name": "ECE 4135",
+      "credit": 3
+    }
+  ],
+  "4-2": [
+    {
+      "name": "ECE 4209",
+      "credit": 3
+    },
+    {
+      "name": "ECE 4211",
+      "credit": 3
+    },
+    {
+      "name": "ECE 4212",
+      "credit": 0.75
+    },
+    {
+      "name": "ECE 4223",
+      "credit": 3
+    },
+    {
+      "name": "ECE 4224",
+      "credit": 1.5
+    },
+    {
+      "name": "ECE 4000_2",
+      "credit": 3
+    },
+    {
+      "name": "ECE 4221",
+      "credit": 3
+    },
+    {
+      "name": "ECE 4227",
+      "credit": 3
+    },
+    {
+      "name": "ECE 4237",
+      "credit": 3
+    },
+    {
+      "name": "ECE 4239",
+      "credit": 3
+    },
+    {
+      "name": "ECE 4241",
+      "credit": 3
+    },
+    {
+      "name": "ECE 4243",
+      "credit": 3
+    },
+    {
+      "name": "ECE 4245",
+      "credit": 3
+    },
+    {
+      "name": "ECE 4247",
+      "credit": 3
+    },
+    {
+      "name": "ECE 4249",
+      "credit": 3
+    },
+    {
+      "name": "ECE 4251",
+      "credit": 3
+    },
+    {
+      "name": "ECE 4253",
+      "credit": 3
+    },
+    {
+      "name": "ECE 4255",
+      "credit": 3
+    },
+    {
+      "name": "ECE 4257",
+      "credit": 3
+    },
+    {
+      "name": "ECE 4259",
+      "credit": 3
+    }
+  ]
+};
+
 export default function CGPACalculator() {
   const [currentCGPA, setCurrentCGPA] = useState("");
   const [currentCredits, setCurrentCredits] = useState("");
+  const [selectedSemester, setSelectedSemester] = useState("Custom");
   
   const [courses, setCourses] = useState([
     { id: 1, name: "", credit: 3.0, grade: "A+" },
-    { id: 2, name: "", credit: 1.5, grade: "A+" },
-    { id: 3, name: "", credit: 0.75, grade: "A+" }
+    { id: 2, name: "", credit: 1.5, grade: "A+" }
   ]);
+
+  const loadSemester = (sem) => {
+    setSelectedSemester(sem);
+    if (sem !== "Custom" && SYLLABUS[sem]) {
+      setCourses(SYLLABUS[sem].map((c, i) => ({
+        id: Date.now() + i,
+        name: c.name,
+        credit: c.credit,
+        grade: "A+"
+      })));
+    } else {
+      resetCalculator();
+    }
+  };
 
   const addCourse = () => {
     setCourses([...courses, { id: Date.now(), name: "", credit: 3.0, grade: "A+" }]);
@@ -94,8 +516,25 @@ export default function CGPACalculator() {
         <div className="md:col-span-2 space-y-4">
           <div className="bg-white dark:bg-slate-800 rounded-2xl p-5 shadow-sm border border-slate-200 dark:border-slate-700">
             <div className="flex justify-between items-center mb-4">
-              <h2 className="text-lg font-semibold text-slate-800 dark:text-white">Semester Courses</h2>
-              <button onClick={resetCalculator} className="text-sm text-slate-500 hover:text-rose-500 flex items-center gap-1">
+              <div className="flex items-center gap-3">
+                <h2 className="text-lg font-semibold text-slate-800 dark:text-white">Semester Courses</h2>
+                <select 
+                  value={selectedSemester} 
+                  onChange={(e) => loadSemester(e.target.value)}
+                  className="px-2 py-1 bg-indigo-50 dark:bg-indigo-900/30 text-indigo-600 dark:text-indigo-400 border border-indigo-200 dark:border-indigo-800 rounded-lg text-sm font-medium focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                >
+                  <option value="Custom">Custom</option>
+                  <option value="1-1">1-1 (ECE)</option>
+                  <option value="1-2">1-2 (ECE)</option>
+                  <option value="2-1">2-1 (ECE)</option>
+                  <option value="2-2">2-2 (ECE)</option>
+                  <option value="3-1">3-1 (ECE)</option>
+                  <option value="3-2">3-2 (ECE)</option>
+                  <option value="4-1">4-1 (ECE)</option>
+                  <option value="4-2">4-2 (ECE)</option>
+                </select>
+              </div>
+              <button onClick={() => loadSemester("Custom")} className="text-sm text-slate-500 hover:text-rose-500 flex items-center gap-1">
                 <RotateCcw className="w-4 h-4" /> Reset
               </button>
             </div>
