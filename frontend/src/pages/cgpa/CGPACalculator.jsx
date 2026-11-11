@@ -425,12 +425,20 @@ const SYLLABUS = {
 export default function CGPACalculator() {
   const [currentCGPA, setCurrentCGPA] = useState("");
   const [currentCredits, setCurrentCredits] = useState("");
-  const [selectedSemester, setSelectedSemester] = useState("Custom");
+  const [selectedSemester, setSelectedSemester] = useState("2-2");
   
-  const [courses, setCourses] = useState([
-    { id: 1, name: "", credit: 3.0, grade: "A+" },
-    { id: 2, name: "", credit: 1.5, grade: "A+" }
-  ]);
+  const [courses, setCourses] = useState(() => {
+    return SYLLABUS["2-2"] ? SYLLABUS["2-2"].map((c, i) => ({
+      id: Date.now() + i,
+      name: c.name,
+      credit: Number(c.credit),
+      grade: "A+",
+      isCustom: false
+    })) : [
+      { id: 1, name: "", credit: 3.0, grade: "A+", isCustom: true },
+      { id: 2, name: "", credit: 1.5, grade: "A+", isCustom: true }
+    ];
+  });
 
   const loadSemester = (sem) => {
     setSelectedSemester(sem);
@@ -440,7 +448,7 @@ export default function CGPACalculator() {
         name: c.name,
         credit: Number(c.credit),
         grade: "A+",
-        isSyllabus: true
+        isCustom: false
       })));
     } else {
       resetCalculator();
@@ -448,7 +456,7 @@ export default function CGPACalculator() {
   };
 
   const addCourse = () => {
-    setCourses([...courses, { id: Date.now(), name: "", credit: 3.0, grade: "A+", isSyllabus: false }]);
+    setCourses([...courses, { id: Date.now(), name: "", credit: 3.0, grade: "A+", isCustom: true }]);
   };
 
   const removeCourse = (id) => {
@@ -461,8 +469,8 @@ export default function CGPACalculator() {
 
   const resetCalculator = () => {
     setCourses([
-      { id: 1, name: "", credit: 3.0, grade: "A+", isSyllabus: false },
-      { id: 2, name: "", credit: 1.5, grade: "A+", isSyllabus: false }
+      { id: 1, name: "", credit: 3.0, grade: "A+", isCustom: true },
+      { id: 2, name: "", credit: 1.5, grade: "A+", isCustom: true }
     ]);
     setCurrentCGPA("");
     setCurrentCredits("");
@@ -560,23 +568,23 @@ export default function CGPACalculator() {
                     />
                   </div>
                   <div className="col-span-3">
-                    {course.isSyllabus && selectedSemester !== "Custom" ? (
-                      <div className="w-full px-3 py-2 bg-slate-100 dark:bg-slate-700/60 border border-slate-200 dark:border-slate-600 rounded-lg text-sm font-semibold text-slate-700 dark:text-slate-200 text-center flex items-center justify-center gap-1 shadow-inner" title="Fixed from syllabus">
+                    {selectedSemester !== "Custom" && !course.isCustom ? (
+                      <div className="w-full px-3 py-2 bg-indigo-50/70 dark:bg-indigo-950/40 border border-indigo-200/80 dark:border-indigo-800/60 rounded-lg text-sm font-bold text-indigo-700 dark:text-indigo-300 text-center flex items-center justify-center gap-1 shadow-xs" title="Fixed from syllabus">
                         <span>{Number(course.credit).toFixed(course.credit % 1 === 0 ? 1 : 2)}</span>
-                        <span className="text-xs text-slate-400 font-normal">Credits</span>
+                        <span className="text-xs font-normal text-indigo-500/80">Credits</span>
                       </div>
                     ) : (
                       <select
-                        value={Number(course.credit)}
+                        value={String(Number(course.credit))}
                         onChange={(e) => updateCourse(course.id, "credit", parseFloat(e.target.value))}
                         className="w-full px-3 py-2 bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-lg text-sm focus:ring-2 focus:ring-indigo-500 outline-none dark:text-white font-medium"
                       >
-                        <option value={4}>4.0</option>
-                        <option value={3}>3.0</option>
-                        <option value={2}>2.0</option>
-                        <option value={1.5}>1.5</option>
-                        <option value={1}>1.0</option>
-                        <option value={0.75}>0.75</option>
+                        <option value="4">4.0 Credits</option>
+                        <option value="3">3.0 Credits</option>
+                        <option value="2">2.0 Credits</option>
+                        <option value="1.5">1.5 Credits</option>
+                        <option value="1">1.0 Credit</option>
+                        <option value="0.75">0.75 Credit</option>
                       </select>
                     )}
                   </div>
