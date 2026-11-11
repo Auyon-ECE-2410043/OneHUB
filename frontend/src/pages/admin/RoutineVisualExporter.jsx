@@ -15,7 +15,7 @@
 
 import { useState, useRef, useMemo } from "react";
 import html2canvas from "html2canvas-pro";
-import { Download, RotateCcw, Plus, Trash2, Calendar, Layers, Users, RefreshCw, Check, Sparkles } from "lucide-react";
+import { Download, RotateCcw, Plus, Trash2, Calendar, Layers, Users, RefreshCw, Check, Sparkles, Type } from "lucide-react";
 import routineService from "../../services/routineService";
 
 // Standard RUET ECE time slots
@@ -45,6 +45,136 @@ const getContrastTextColor = (hexColor) => {
   const yiq = ((r * 299) + (g * 587) + (b * 114)) / 1000;
   return yiq >= 145 ? "#000000" : "#FFFFFF";
 };
+
+// Comprehensive Font Family Options (Academic, Modern, Standard, Fun & Monospace)
+export const FONT_OPTIONS = [
+  // Academic & Traditional Serif
+  {
+    id: "times",
+    name: "Times New Roman",
+    category: "Academic & Serif",
+    family: "'Times New Roman', Times, 'Nimbus Roman No9 L', Georgia, serif",
+    description: "Standard RUET Department academic routine typography"
+  },
+  {
+    id: "georgia",
+    name: "Georgia",
+    category: "Academic & Serif",
+    family: "Georgia, 'Times New Roman', Cambria, serif",
+    description: "Elegant editorial serif with high contrast"
+  },
+  {
+    id: "garamond",
+    name: "Garamond",
+    category: "Academic & Serif",
+    family: "Garamond, 'Baskerville', 'Times New Roman', serif",
+    description: "Classic literary book serif"
+  },
+  {
+    id: "palatino",
+    name: "Palatino",
+    category: "Academic & Serif",
+    family: "'Palatino Linotype', Palatino, Palladio, serif",
+    description: "Distinguished academic heading font"
+  },
+
+  // Modern Sans (Google Fonts)
+  {
+    id: "inter",
+    name: "Inter",
+    category: "Modern Sans",
+    family: "'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif",
+    description: "Modern minimalist UI typeface"
+  },
+  {
+    id: "poppins",
+    name: "Poppins",
+    category: "Modern Sans",
+    family: "'Poppins', 'Segoe UI', Roboto, sans-serif",
+    description: "Modern geometric rounded sans-serif"
+  },
+  {
+    id: "montserrat",
+    name: "Montserrat",
+    category: "Modern Sans",
+    family: "'Montserrat', 'Segoe UI', sans-serif",
+    description: "Bold contemporary geometric sans"
+  },
+  {
+    id: "outfit",
+    name: "Outfit",
+    category: "Modern Sans",
+    family: "'Outfit', 'Segoe UI', sans-serif",
+    description: "Sleek and trendy modern display typeface"
+  },
+  {
+    id: "plus_jakarta",
+    name: "Plus Jakarta Sans",
+    category: "Modern Sans",
+    family: "'Plus Jakarta Sans', system-ui, sans-serif",
+    description: "Refined and clean modern dashboard sans"
+  },
+  {
+    id: "roboto",
+    name: "Roboto",
+    category: "Modern Sans",
+    family: "'Roboto', 'Segoe UI', sans-serif",
+    description: "Google's versatile modern workhorse"
+  },
+
+  // Standard Popular Sans
+  {
+    id: "arial",
+    name: "Arial",
+    category: "Standard Sans",
+    family: "Arial, Helvetica, 'Liberation Sans', sans-serif",
+    description: "Universal clean standard sans-serif"
+  },
+  {
+    id: "calibri",
+    name: "Calibri",
+    category: "Standard Sans",
+    family: "Calibri, Candara, 'Segoe UI', Arial, sans-serif",
+    description: "Warm and clear Microsoft standard"
+  },
+  {
+    id: "trebuchet",
+    name: "Trebuchet MS",
+    category: "Standard Sans",
+    family: "'Trebuchet MS', 'Lucida Sans Unicode', Arial, sans-serif",
+    description: "Humanist clean sans with distinct character"
+  },
+  {
+    id: "verdana",
+    name: "Verdana",
+    category: "Standard Sans",
+    family: "Verdana, Geneva, sans-serif",
+    description: "Exceptionally legible at small sizes"
+  },
+  {
+    id: "century_gothic",
+    name: "Century Gothic",
+    category: "Standard Sans",
+    family: "'Century Gothic', AppleGothic, 'Tw Cen MT', sans-serif",
+    description: "Classic clean geometric modernist sans"
+  },
+
+  // Playful, Casual & Monospace
+  {
+    id: "comic_sans",
+    name: "Comic Sans MS",
+    category: "Casual & Playful",
+    family: "'Comic Sans MS', 'Comic Sans', 'Chalkboard SE', cursive, sans-serif",
+    description: "Casual and friendly informal font"
+  },
+  {
+    id: "courier",
+    name: "Courier New",
+    category: "Monospace",
+    family: "'Courier New', Courier, 'Lucida Console', monospace",
+    description: "Classic typewriter monospace alignment"
+  }
+];
 
 const COLOR_PRESETS = [
   // Classic Department Routine Palette
@@ -292,6 +422,12 @@ export default function RoutineVisualExporter() {
   const [syncingDb, setSyncingDb] = useState(false);
   const [syncSuccessMsg, setSyncSuccessMsg] = useState("");
   const routineRef = useRef(null);
+
+  // Selected Font Family (Default: Times New Roman as used in official RUET routines)
+  const [selectedFontId, setSelectedFontId] = useState("times");
+  const activeFont = useMemo(() => {
+    return FONT_OPTIONS.find(f => f.id === selectedFontId) || FONT_OPTIONS[0];
+  }, [selectedFontId]);
 
   // Calendar Date System States (Default to Saturday 14 Nov 2026 to Wednesday 18 Nov 2026)
   const [calStartDate, setCalStartDate] = useState("2026-11-14");
@@ -542,6 +678,7 @@ export default function RoutineVisualExporter() {
           const el = clonedDoc.querySelector("[data-routine-export='true']");
           if (el) {
             el.style.transform = "none";
+            el.style.fontFamily = activeFont.family;
           }
         }
       });
@@ -636,6 +773,44 @@ export default function RoutineVisualExporter() {
             </button>
           </div>
 
+          {/* Font Family Selector Dropdown */}
+          <div className="flex items-center gap-1.5 bg-slate-100 dark:bg-slate-900 px-2.5 py-1.5 rounded-lg border border-slate-200 dark:border-slate-700">
+            <Type className="w-3.5 h-3.5 text-indigo-500 shrink-0" />
+            <span className="text-xs font-semibold text-slate-500 dark:text-slate-400 hidden sm:inline">Font:</span>
+            <select
+              value={selectedFontId}
+              onChange={(e) => setSelectedFontId(e.target.value)}
+              className="text-xs font-bold bg-transparent border-0 text-slate-800 dark:text-slate-200 focus:outline-none cursor-pointer"
+              title="Change timetable font family"
+            >
+              <optgroup label="Academic & Classic Serif">
+                <option value="times">Times New Roman (Academic)</option>
+                <option value="georgia">Georgia (Editorial Serif)</option>
+                <option value="garamond">Garamond (Classic Book)</option>
+                <option value="palatino">Palatino (Distinguished)</option>
+              </optgroup>
+              <optgroup label="Modern Sans (Google Fonts)">
+                <option value="inter">Inter (Modern Minimal)</option>
+                <option value="poppins">Poppins (Modern Rounded)</option>
+                <option value="montserrat">Montserrat (Geometric)</option>
+                <option value="outfit">Outfit (Contemporary)</option>
+                <option value="plus_jakarta">Plus Jakarta Sans (Sleek)</option>
+                <option value="roboto">Roboto (Google Clean)</option>
+              </optgroup>
+              <optgroup label="Standard Clean Sans">
+                <option value="arial">Arial (Universal Standard)</option>
+                <option value="calibri">Calibri (Clear Sans)</option>
+                <option value="trebuchet">Trebuchet MS (Humanist)</option>
+                <option value="verdana">Verdana (High Legibility)</option>
+                <option value="century_gothic">Century Gothic (Geometric)</option>
+              </optgroup>
+              <optgroup label="Casual & Monospace">
+                <option value="comic_sans">Comic Sans MS (Playful)</option>
+                <option value="courier">Courier New (Monospace)</option>
+              </optgroup>
+            </select>
+          </div>
+
           <button
             onClick={() => handleSelectSemesterPreset(selectedSemKey)}
             className="flex items-center gap-1 text-xs text-slate-500 hover:text-slate-700 dark:hover:text-slate-300 px-2.5 py-1.5 rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800"
@@ -720,7 +895,7 @@ export default function RoutineVisualExporter() {
                 value={data.dateRange}
                 onChange={(e) => setData({ ...data, dateRange: e.target.value })}
                 placeholder="e.g. 14 November, 2026 to November 18, 2026"
-                className="w-full px-3 py-2 border rounded-lg text-sm bg-white dark:bg-slate-800 dark:border-slate-700 dark:text-white font-medium font-serif"
+                className="w-full px-3 py-2 border rounded-lg text-sm bg-white dark:bg-slate-800 dark:border-slate-700 dark:text-white font-medium"
               />
             </div>
           </div>
@@ -974,7 +1149,12 @@ export default function RoutineVisualExporter() {
       {/* Visual Canvas / Printable Document View */}
       <div className="space-y-2">
         <div className="flex items-center justify-between text-xs text-slate-500 dark:text-slate-400 px-1">
-          <span>💡 Tip: Click on any slot in the timetable to edit course, teacher, room, lab group (1st/2nd 30), or add CT (Class Test) black box.</span>
+          <span className="flex items-center gap-1.5">
+            <span>💡 Tip: Click on any slot in the timetable to edit course, teacher, room, lab group (1st/2nd 30), or add CT black box.</span>
+            <span className="hidden md:inline px-2 py-0.5 rounded bg-indigo-50 dark:bg-indigo-900/30 text-indigo-600 dark:text-indigo-400 font-medium text-[11px]">
+              Font: {activeFont.name}
+            </span>
+          </span>
           <span>Click "Download Routine PNG" above to export.</span>
         </div>
 
@@ -983,15 +1163,15 @@ export default function RoutineVisualExporter() {
           <div
             ref={routineRef}
             data-routine-export="true"
-            className="w-[1050px] bg-white text-black p-8 font-sans shadow-lg select-none"
-            style={{ minWidth: "1050px", backgroundColor: "#ffffff", color: "#000000" }}
+            className="w-[1050px] bg-white text-black p-8 shadow-lg select-none"
+            style={{ minWidth: "1050px", backgroundColor: "#ffffff", color: "#000000", fontFamily: activeFont.family }}
           >
             {/* Top header lines */}
-            <div className="flex justify-between items-center text-sm font-serif" style={{ color: "#000000" }}>
+            <div className="flex justify-between items-center text-sm" style={{ color: "#000000" }}>
               <div>
                 This Routine will be followed from <span className="font-bold">{data.dateRange?.split(" to ")[0] || "14 November, 2026"}</span> to <span className="font-bold">{data.dateRange?.split(" to ")[1] || data.dateRange}</span>
               </div>
-              <div className="font-serif">
+              <div>
                 Running Week: <span className="font-bold">{data.runningWeek}</span>
               </div>
             </div>
@@ -1000,7 +1180,7 @@ export default function RoutineVisualExporter() {
             <hr className="border-t border-black my-2" style={{ borderColor: "#000000" }} />
 
             {/* Counts & Records Header */}
-            <div className="space-y-1 text-xs font-serif font-bold mb-5">
+            <div className="space-y-1 text-xs font-bold mb-5">
               <div>
                 <span style={{ color: "#18538a" }}>Total class day count: </span>
                 <span style={{ color: "#000000" }}>
@@ -1069,7 +1249,7 @@ export default function RoutineVisualExporter() {
                       <tr key={day} className="h-[62px]">
                         {/* Day label */}
                         <td
-                          className="border border-black font-serif font-bold text-xs px-2 text-center"
+                          className="border border-black font-bold text-xs px-2 text-center"
                           style={{ backgroundColor: "#d4cc95", borderColor: "#000000", color: "#000000" }}
                         >
                           {day}
@@ -1088,7 +1268,7 @@ export default function RoutineVisualExporter() {
                         {dayIndex === 0 && (
                           <td
                             rowSpan={DAYS.length}
-                            className="border border-black text-[11px] font-sans font-medium text-center p-0 align-middle select-none"
+                            className="border border-black text-[11px] font-medium text-center p-0 align-middle select-none"
                             style={{ backgroundColor: "#ffffff", borderColor: "#000000", color: "#334155" }}
                           >
                             <div style={{ writingMode: "vertical-rl", transform: "rotate(180deg)", margin: "0 auto", textTransform: "uppercase", letterSpacing: "1px" }}>
@@ -1110,7 +1290,7 @@ export default function RoutineVisualExporter() {
                         {dayIndex === 0 && (
                           <td
                             rowSpan={DAYS.length}
-                            className="border border-black text-[11px] font-sans font-medium text-center p-0 align-middle select-none"
+                            className="border border-black text-[11px] font-medium text-center p-0 align-middle select-none"
                             style={{ backgroundColor: "#ffffff", borderColor: "#000000", color: "#334155" }}
                           >
                             <div style={{ writingMode: "vertical-rl", transform: "rotate(180deg)", margin: "0 auto", textTransform: "uppercase", letterSpacing: "1px" }}>
@@ -1136,13 +1316,13 @@ export default function RoutineVisualExporter() {
 
             {/* CT Syllabus Section at the Bottom */}
             {data.ctSyllabus && data.ctSyllabus.length > 0 && (
-              <div className="pt-2 font-serif text-sm">
+              <div className="pt-2 text-sm">
                 <h4 className="font-bold text-[15px] mb-1.5" style={{ color: "#18538a" }}>CT Syllabus</h4>
                 <div className="space-y-1.5 text-[13px] leading-relaxed">
                   {data.ctSyllabus.map((ct, idx) => (
                     <div key={idx}>
                       <span className="font-bold" style={{ color: "#18538a" }}>{ct.courseCode}: </span>
-                      <span className="font-sans font-medium" style={{ color: "#000000" }}>{ct.syllabus}</span>
+                      <span className="font-medium" style={{ color: "#000000" }}>{ct.syllabus}</span>
                     </div>
                   ))}
                 </div>
