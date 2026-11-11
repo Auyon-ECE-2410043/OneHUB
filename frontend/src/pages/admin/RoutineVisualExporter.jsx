@@ -13,9 +13,9 @@
  * - Presets for 2-2, 1-2, 3-1, 3-2, 4-2
  */
 
-import { useState, useRef, useMemo } from "react";
+import { useState, useRef, useMemo, useEffect } from "react";
 import html2canvas from "html2canvas-pro";
-import { Download, RotateCcw, Plus, Trash2, Calendar, Layers, Users, RefreshCw, Check, Sparkles, Type } from "lucide-react";
+import { Download, RotateCcw, Plus, Trash2, Calendar, Layers, Users, RefreshCw, Check, Sparkles, Type, Undo2, History, AlertCircle } from "lucide-react";
 import routineService from "../../services/routineService";
 
 // Standard RUET ECE time slots
@@ -210,7 +210,7 @@ const SEMESTER_PRESETS = {
     seriesName: "2nd Year Even (2024 Series / 2-2)",
     dateRange: "14 November, 2026 to November 18, 2026",
     runningWeek: "01",
-    totalClassDayCount: "05",
+    totalClassDayCount: "00",
     previousClassRecord: "[ECE 2207: 00] [ECE 2213: 00] [ECE 2215: 00] [MATH 2217: 00] [HUM 2217: 00]",
     previousCtRecord: "[ECE 2207: 00] [ECE 2213: 00] [ECE 2215: 00] [MATH 2217: 00] [HUM 2217: 00]",
     schedule: {
@@ -254,7 +254,7 @@ const SEMESTER_PRESETS = {
     seriesName: "1st Year Even (2025 Series / 1-2)",
     dateRange: "14 November, 2026 to November 18, 2026",
     runningWeek: "01",
-    totalClassDayCount: "05",
+    totalClassDayCount: "00",
     previousClassRecord: "[ECE 1201: 00] [ECE 1203: 00] [ECE 1205: 00] [MATH 1217: 00] [HUM 1217: 00]",
     previousCtRecord: "[ECE 1201: 00] [ECE 1203: 00] [ECE 1205: 00] [MATH 1217: 00] [HUM 1217: 00]",
     schedule: {
@@ -296,7 +296,7 @@ const SEMESTER_PRESETS = {
     seriesName: "3rd Year Odd (2023 Series / 3-1)",
     dateRange: "14 November, 2026 to November 18, 2026",
     runningWeek: "01",
-    totalClassDayCount: "05",
+    totalClassDayCount: "00",
     previousClassRecord: "[ECE 3101: 00] [ECE 3103: 00] [ECE 3105: 00] [ECE 3107: 00] [HUM 3117: 00]",
     previousCtRecord: "[ECE 3101: 00] [ECE 3103: 00] [ECE 3105: 00] [ECE 3107: 00] [HUM 3117: 00]",
     schedule: {
@@ -335,7 +335,7 @@ const SEMESTER_PRESETS = {
     seriesName: "3rd Year Even (2022 Series / 3-2)",
     dateRange: "14 November, 2026 to November 18, 2026",
     runningWeek: "01",
-    totalClassDayCount: "05",
+    totalClassDayCount: "00",
     previousClassRecord: "[ECE 3205: 00] [ECE 3207: 00] [ECE 3221: 00] [ME 3219: 00]",
     previousCtRecord: "[ECE 3205: 00] [ECE 3207: 00] [ECE 3221: 00] [ME 3219: 00]",
     schedule: {
@@ -376,7 +376,7 @@ const SEMESTER_PRESETS = {
     seriesName: "4th Year Even (2021 Series / 4-2)",
     dateRange: "14 November, 2026 to November 18, 2026",
     runningWeek: "01",
-    totalClassDayCount: "05",
+    totalClassDayCount: "00",
     previousClassRecord: "[ECE 4201: 00] [ECE 4203: 00] [ECE 4205: 00] [ECE 4209: 00] [ECE 4227: 00]",
     previousCtRecord: "[ECE 4201: 00] [ECE 4203: 00] [ECE 4205: 00] [ECE 4209: 00] [ECE 4227: 00]",
     schedule: {
@@ -428,6 +428,132 @@ export default function RoutineVisualExporter() {
   const activeFont = useMemo(() => {
     return FONT_OPTIONS.find(f => f.id === selectedFontId) || FONT_OPTIONS[0];
   }, [selectedFontId]);
+
+  // Cleared / Cancelled classes history (persisted in localStorage across sessions)
+  const [clearedHistory, setClearedHistory] = useState(() => {
+    try {
+      const stored = localStorage.getItem(`ruet_routine_cleared_${selectedSemKey}`);
+      return stored ? JSON.parse(stored) : {};
+    } catch {
+      return {};
+    }
+  });
+
+  // Undo stack for routine actions (restoring cancelled classes, accidental clears, etc.)
+  const [undoStack, setUndoStack] = useState([]);
+  const [showRecoverModal, setShowRecoverModal] = useState(false);
+
+  // Sync clearedHistory to localStorage
+  useEffect(() => {
+    try {
+      localStorage.setItem(`ruet_routine_cleared_${selectedSemKey}`, JSON.stringify(clearedHistory));
+    } catch (err) {
+      console.warn("Failed to persist cleared history:", err);
+    }
+  }, [clearedHistory, selectedSemKey]);
+
+  // Push current schedule to undo stack before any modification
+  const pushUndo = (currentSchedule) => {
+    setUndoStack(prev => [...prev.slice(-30), JSON.parse(JSON.stringify(currentSchedule))]);
+  };
+
+  // Revert to last schedule state
+  const handleUndo = () => {
+    if (undoStack.length === 0) return;
+    const prevSchedule = undoStack[undoStack.length - 1];
+    setUndoStack(prev => prev.slice(0, -1));
+    setData(prev => ({ ...prev, schedule: prevSchedule }));
+  };
+
+  // Keyboard shortcut: Ctrl+Z / Cmd+Z for undo
+  useEffect(() => {
+    const handleKeyDown = (e) => {
+      if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === "z" && !e.shiftKey) {
+        if (["INPUT", "TEXTAREA", "SELECT"].includes(document.activeElement?.tagName)) return;
+        e.preventDefault();
+        handleUndo();
+      }
+    };
+    window.addEventListener("keydown", handleKeyDown);
+    return () => window.removeEventListener("keydown", handleKeyDown);
+  }, [undoStack]);
+
+  // Look up if a slot has a default scheduled or previously cleared class
+  const getRecoverableSlot = (day, slotId) => {
+    if (!day || !slotId) return null;
+
+    // 1. Direct cleared history
+    const directHist = clearedHistory[`${day}-${slotId}`];
+    if (directHist && directHist.course) {
+      return { ...directHist, targetSlotId: slotId, source: "cleared_history" };
+    }
+
+    // 2. Direct preset slot
+    const presetDay = SEMESTER_PRESETS[selectedSemKey]?.schedule?.[day] || {};
+    if (presetDay[slotId] && presetDay[slotId].course) {
+      return { ...presetDay[slotId], targetSlotId: slotId, source: "preset" };
+    }
+
+    // 3. Spanned preset slot (e.g. slot0 has span: 3 covering slot1 and slot2)
+    const slotIdx = TIME_SLOTS.findIndex(s => s.id === slotId);
+    if (slotIdx > 0) {
+      for (let i = slotIdx - 1; i >= 0; i--) {
+        const prevSlotId = TIME_SLOTS[i].id;
+        const prevPreset = presetDay[prevSlotId];
+        if (prevPreset && prevPreset.course && prevPreset.span && prevPreset.span > (slotIdx - i)) {
+          return { ...prevPreset, targetSlotId: prevSlotId, isParentSpan: true, source: "preset" };
+        }
+      }
+    }
+
+    return null;
+  };
+
+  // Compute all currently cancelled / cleared classes for this semester
+  const cancelledList = useMemo(() => {
+    const list = [];
+    const presetSchedule = SEMESTER_PRESETS[selectedSemKey]?.schedule || {};
+
+    DAYS.forEach(day => {
+      const pDay = presetSchedule[day] || {};
+      Object.keys(pDay).forEach(slotId => {
+        const scheduled = pDay[slotId];
+        const current = data.schedule[day]?.[slotId];
+        if (scheduled && scheduled.course && (!current || !current.course)) {
+          const timeObj = TIME_SLOTS.find(t => t.id === slotId);
+          list.push({
+            day,
+            slotId,
+            time: timeObj ? timeObj.time : slotId,
+            ...scheduled,
+            source: "Official Timetable Schedule"
+          });
+        }
+      });
+    });
+
+    // Also include items from clearedHistory that are not already in list
+    Object.keys(clearedHistory).forEach(key => {
+      const [day, slotId] = key.split("-");
+      const current = data.schedule[day]?.[slotId];
+      const hist = clearedHistory[key];
+      if (hist && hist.course && (!current || !current.course)) {
+        const alreadyIn = list.some(item => item.day === day && item.slotId === slotId);
+        if (!alreadyIn) {
+          const timeObj = TIME_SLOTS.find(t => t.id === slotId);
+          list.push({
+            day,
+            slotId,
+            time: timeObj ? timeObj.time : slotId,
+            ...hist,
+            source: "User Cleared Slot"
+          });
+        }
+      }
+    });
+
+    return list;
+  }, [data.schedule, selectedSemKey, clearedHistory]);
 
   // Calendar Date System States (Default to Saturday 14 Nov 2026 to Wednesday 18 Nov 2026)
   const [calStartDate, setCalStartDate] = useState("2026-11-14");
@@ -495,7 +621,14 @@ export default function RoutineVisualExporter() {
   const handleSelectSemesterPreset = (key) => {
     setSelectedSemKey(key);
     if (SEMESTER_PRESETS[key]) {
+      pushUndo(data.schedule);
       setData(SEMESTER_PRESETS[key]);
+      try {
+        const stored = localStorage.getItem(`ruet_routine_cleared_${key}`);
+        setClearedHistory(stored ? JSON.parse(stored) : {});
+      } catch {
+        setClearedHistory({});
+      }
     }
   };
 
@@ -538,6 +671,7 @@ export default function RoutineVisualExporter() {
 
   // Update a lab slot's target group
   const handleSetSlotGroup = (day, slotId, newGroup) => {
+    pushUndo(data.schedule);
     const updated = { ...data.schedule };
     if (!updated[day] || !updated[day][slotId]) return;
     updated[day][slotId] = {
@@ -551,6 +685,7 @@ export default function RoutineVisualExporter() {
   const handleSwapCourseGroups = (courseCode) => {
     const slots = labsByCourse[courseCode] || [];
     if (slots.length < 2) return;
+    pushUndo(data.schedule);
     const updated = { ...data.schedule };
     const s1 = slots[0];
     const s2 = slots[1];
@@ -565,6 +700,7 @@ export default function RoutineVisualExporter() {
 
   // Auto-alternate all multi-session labs
   const handleAutoAlternateAll = () => {
+    pushUndo(data.schedule);
     const updated = { ...data.schedule };
     Object.keys(labsByCourse).forEach(courseCode => {
       const sessions = labsByCourse[courseCode];
@@ -608,10 +744,18 @@ export default function RoutineVisualExporter() {
   const handleSaveCell = () => {
     if (!selectedCell) return;
     const { day, slotId } = selectedCell;
+    pushUndo(data.schedule);
     const updatedSchedule = { ...data.schedule };
     if (!updatedSchedule[day]) updatedSchedule[day] = {};
 
     if (!cellForm.course.trim()) {
+      const previous = data.schedule[day]?.[slotId];
+      if (previous && previous.course) {
+        setClearedHistory(prev => ({
+          ...prev,
+          [`${day}-${slotId}`]: { ...previous, clearedAt: new Date().toISOString() }
+        }));
+      }
       delete updatedSchedule[day][slotId];
     } else {
       updatedSchedule[day][slotId] = {
@@ -624,21 +768,105 @@ export default function RoutineVisualExporter() {
         bg: cellForm.isCT ? "#000000" : cellForm.bg,
         text: cellForm.isCT ? "#FFFFFF" : cellForm.text,
       };
+
+      // Successfully saved a course, remove from cleared history
+      setClearedHistory(prev => {
+        const next = { ...prev };
+        delete next[`${day}-${slotId}`];
+        return next;
+      });
     }
 
     setData({ ...data, schedule: updatedSchedule });
     setSelectedCell(null);
   };
 
+  // Clear / cancel class in cell and save to recovery history
   const handleClearCell = () => {
     if (!selectedCell) return;
     const { day, slotId } = selectedCell;
+    const previous = data.schedule[day]?.[slotId];
+    pushUndo(data.schedule);
+
+    if (previous && previous.course) {
+      setClearedHistory(prev => ({
+        ...prev,
+        [`${day}-${slotId}`]: { ...previous, clearedAt: new Date().toISOString() }
+      }));
+    }
+
     const updatedSchedule = { ...data.schedule };
     if (updatedSchedule[day]) {
       delete updatedSchedule[day][slotId];
     }
     setData({ ...data, schedule: updatedSchedule });
     setSelectedCell(null);
+  };
+
+  // Recover / restore a single cancelled or cleared class
+  const handleRestoreSlot = (day, slotId, slotToRestore) => {
+    if (!slotToRestore) return;
+    const targetSlot = slotToRestore.targetSlotId || slotId;
+    pushUndo(data.schedule);
+    const updated = { ...data.schedule };
+    if (!updated[day]) updated[day] = {};
+
+    updated[day][targetSlot] = {
+      course: slotToRestore.course,
+      teacher: slotToRestore.teacher || "",
+      note: slotToRestore.note || "",
+      group: slotToRestore.group || "All",
+      span: Number(slotToRestore.span) || 1,
+      isCT: slotToRestore.isCT || false,
+      bg: slotToRestore.bg || (slotToRestore.isCT ? "#000000" : "#FFFFFF"),
+      text: slotToRestore.text || (slotToRestore.isCT ? "#FFFFFF" : "#000000"),
+    };
+
+    setData({ ...data, schedule: updated });
+
+    // Update cellForm if editor is open
+    setCellForm({
+      course: slotToRestore.course,
+      teacher: slotToRestore.teacher || "",
+      note: slotToRestore.note || "",
+      group: slotToRestore.group || "All",
+      span: Number(slotToRestore.span) || 1,
+      isCT: slotToRestore.isCT || false,
+      bg: slotToRestore.bg || (slotToRestore.isCT ? "#000000" : "#FFFFFF"),
+      text: slotToRestore.text || (slotToRestore.isCT ? "#FFFFFF" : "#000000"),
+    });
+
+    // Remove from cleared history
+    setClearedHistory(prev => {
+      const next = { ...prev };
+      delete next[`${day}-${targetSlot}`];
+      delete next[`${day}-${slotId}`];
+      return next;
+    });
+  };
+
+  // Recover all cancelled or cleared classes for the entire week
+  const handleRestoreAllCancelled = () => {
+    if (cancelledList.length === 0) return;
+    pushUndo(data.schedule);
+    const updated = { ...data.schedule };
+    cancelledList.forEach(item => {
+      const targetSlot = item.targetSlotId || item.slotId;
+      if (!updated[item.day]) updated[item.day] = {};
+      updated[item.day][targetSlot] = {
+        course: item.course,
+        teacher: item.teacher || "",
+        note: item.note || "",
+        group: item.group || "All",
+        span: Number(item.span) || 1,
+        isCT: item.isCT || false,
+        bg: item.bg || (item.isCT ? "#000000" : "#FFFFFF"),
+        text: item.text || (item.isCT ? "#FFFFFF" : "#000000"),
+      };
+    });
+    setData({ ...data, schedule: updated });
+    setClearedHistory({});
+    setShowRecoverModal(false);
   };
 
   const handleAddCtSyllabus = () => {
@@ -811,6 +1039,31 @@ export default function RoutineVisualExporter() {
             </select>
           </div>
 
+          {/* Undo Action (Ctrl+Z) */}
+          <button
+            type="button"
+            onClick={handleUndo}
+            disabled={undoStack.length === 0}
+            className="flex items-center gap-1 text-xs font-semibold text-slate-600 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white disabled:opacity-40 disabled:cursor-not-allowed px-2.5 py-1.5 rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 transition shadow-xs"
+            title="Undo last action or cancellation (Ctrl+Z)"
+          >
+            <Undo2 className="w-3.5 h-3.5 text-indigo-500" />
+            <span className="hidden sm:inline">Undo</span>
+          </button>
+
+          {/* Recover Cancelled Classes Badge & Modal Trigger */}
+          {cancelledList.length > 0 && (
+            <button
+              type="button"
+              onClick={() => setShowRecoverModal(true)}
+              className="flex items-center gap-1.5 text-xs font-bold text-amber-700 dark:text-amber-300 bg-amber-50 dark:bg-amber-950/40 hover:bg-amber-100 dark:hover:bg-amber-900/40 px-2.5 py-1.5 rounded-lg border border-amber-300 dark:border-amber-700 transition shadow-xs"
+              title="View and recover cancelled or cleared classes"
+            >
+              <RotateCcw className="w-3.5 h-3.5 text-amber-600" />
+              <span>Recover Cancelled ({cancelledList.length})</span>
+            </button>
+          )}
+
           <button
             onClick={() => handleSelectSemesterPreset(selectedSemKey)}
             className="flex items-center gap-1 text-xs text-slate-500 hover:text-slate-700 dark:hover:text-slate-300 px-2.5 py-1.5 rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800"
@@ -914,15 +1167,46 @@ export default function RoutineVisualExporter() {
               />
             </div>
             <div>
-              <label className="block text-xs font-semibold text-slate-600 dark:text-slate-300 uppercase mb-1">
-                Total Class Day Count
-              </label>
+              <div className="flex justify-between items-center mb-1">
+                <label className="block text-xs font-semibold text-slate-600 dark:text-slate-300 uppercase">
+                  Total Class Day Count
+                </label>
+                <div className="flex items-center gap-1">
+                  {["00", "05", "10", "15"].map(cnt => (
+                    <button
+                      key={cnt}
+                      type="button"
+                      onClick={() => setData({ ...data, totalClassDayCount: cnt })}
+                      className={`text-[10px] font-bold px-1.5 py-0.5 rounded border transition ${
+                        (data.totalClassDayCount === cnt || data.totalClassDayCount === cnt.replace(/^0/, ""))
+                          ? "bg-indigo-600 text-white border-indigo-600 shadow-xs"
+                          : "bg-slate-100 dark:bg-slate-700 text-slate-600 dark:text-slate-300 hover:bg-slate-200"
+                      }`}
+                      title={`Set total count to ${cnt}`}
+                    >
+                      {cnt}
+                    </button>
+                  ))}
+                  <button
+                    type="button"
+                    onClick={() => {
+                      const cur = parseInt(data.totalClassDayCount, 10) || 0;
+                      const next = String(cur + 5).padStart(2, "0");
+                      setData({ ...data, totalClassDayCount: next });
+                    }}
+                    className="text-[10px] font-extrabold px-1.5 py-0.5 rounded bg-emerald-100 text-emerald-800 dark:bg-emerald-950/60 dark:text-emerald-300 hover:bg-emerald-200 border border-emerald-300 transition"
+                    title="Add 5 days (1 finished week)"
+                  >
+                    +5
+                  </button>
+                </div>
+              </div>
               <input
                 type="text"
                 value={data.totalClassDayCount}
                 onChange={(e) => setData({ ...data, totalClassDayCount: e.target.value })}
-                placeholder="e.g. 05"
-                className="w-full px-3 py-2 border rounded-lg text-sm bg-slate-50 dark:bg-slate-900 dark:border-slate-700 dark:text-white"
+                placeholder="e.g. 00 by default, 05 after finishing week 1"
+                className="w-full px-3 py-2 border rounded-lg text-sm bg-slate-50 dark:bg-slate-900 dark:border-slate-700 dark:text-white font-mono"
               />
             </div>
           </div>
@@ -1256,13 +1540,13 @@ export default function RoutineVisualExporter() {
                         </td>
 
                         {/* Slot 0 (8.00 - 8.50) */}
-                        {renderSlotCell(day, "slot0", daySlots.slot0, false, () => openCellEditor(day, "slot0"))}
+                        {renderSlotCell(day, "slot0", daySlots.slot0, false, () => openCellEditor(day, "slot0"), getRecoverableSlot(day, "slot0"))}
 
                         {/* Slot 1 (8.50 - 9.40) */}
-                        {renderSlotCell(day, "slot1", daySlots.slot1, daySlots.slot0?.span >= 2, () => openCellEditor(day, "slot1"))}
+                        {renderSlotCell(day, "slot1", daySlots.slot1, daySlots.slot0?.span >= 2, () => openCellEditor(day, "slot1"), getRecoverableSlot(day, "slot1"))}
 
                         {/* Slot 2 (9.40 - 10.30) */}
-                        {renderSlotCell(day, "slot2", daySlots.slot2, daySlots.slot0?.span >= 3 || daySlots.slot1?.span >= 2, () => openCellEditor(day, "slot2"))}
+                        {renderSlotCell(day, "slot2", daySlots.slot2, daySlots.slot0?.span >= 3 || daySlots.slot1?.span >= 2, () => openCellEditor(day, "slot2"), getRecoverableSlot(day, "slot2"))}
 
                         {/* Middle Class Break Column */}
                         {dayIndex === 0 && (
@@ -1278,13 +1562,13 @@ export default function RoutineVisualExporter() {
                         )}
 
                         {/* Slot 3 (10.50 - 11.40) */}
-                        {renderSlotCell(day, "slot3", daySlots.slot3, false, () => openCellEditor(day, "slot3"))}
+                        {renderSlotCell(day, "slot3", daySlots.slot3, false, () => openCellEditor(day, "slot3"), getRecoverableSlot(day, "slot3"))}
 
                         {/* Slot 4 (11.40 - 12.30) */}
-                        {renderSlotCell(day, "slot4", daySlots.slot4, daySlots.slot3?.span >= 2, () => openCellEditor(day, "slot4"))}
+                        {renderSlotCell(day, "slot4", daySlots.slot4, daySlots.slot3?.span >= 2, () => openCellEditor(day, "slot4"), getRecoverableSlot(day, "slot4"))}
 
                         {/* Slot 5 (12.30 - 1.20) */}
-                        {renderSlotCell(day, "slot5", daySlots.slot5, daySlots.slot3?.span >= 3 || daySlots.slot4?.span >= 2, () => openCellEditor(day, "slot5"))}
+                        {renderSlotCell(day, "slot5", daySlots.slot5, daySlots.slot3?.span >= 3 || daySlots.slot4?.span >= 2, () => openCellEditor(day, "slot5"), getRecoverableSlot(day, "slot5"))}
 
                         {/* Lunch / Prayer Break Column */}
                         {dayIndex === 0 && (
@@ -1300,13 +1584,13 @@ export default function RoutineVisualExporter() {
                         )}
 
                         {/* Slot 6 (2.30 - 3.20) */}
-                        {renderSlotCell(day, "slot6", daySlots.slot6, false, () => openCellEditor(day, "slot6"))}
+                        {renderSlotCell(day, "slot6", daySlots.slot6, false, () => openCellEditor(day, "slot6"), getRecoverableSlot(day, "slot6"))}
 
                         {/* Slot 7 (3.20 - 4.10) */}
-                        {renderSlotCell(day, "slot7", daySlots.slot7, daySlots.slot6?.span >= 2, () => openCellEditor(day, "slot7"))}
+                        {renderSlotCell(day, "slot7", daySlots.slot7, daySlots.slot6?.span >= 2, () => openCellEditor(day, "slot7"), getRecoverableSlot(day, "slot7"))}
 
                         {/* Slot 8 (4.10 - 5.00) */}
-                        {renderSlotCell(day, "slot8", daySlots.slot8, daySlots.slot6?.span >= 3 || daySlots.slot7?.span >= 2, () => openCellEditor(day, "slot8"))}
+                        {renderSlotCell(day, "slot8", daySlots.slot8, daySlots.slot6?.span >= 3 || daySlots.slot7?.span >= 2, () => openCellEditor(day, "slot8"), getRecoverableSlot(day, "slot8"))}
                       </tr>
                     );
                   })}
@@ -1352,6 +1636,38 @@ export default function RoutineVisualExporter() {
             </div>
 
             <div className="space-y-3 text-sm">
+              {/* If slot has a default scheduled class or was cleared, show one-click restore banner */}
+              {(() => {
+                const rec = getRecoverableSlot(selectedCell.day, selectedCell.slotId);
+                if (!rec || !rec.course) return null;
+                return (
+                  <div className="bg-amber-50 dark:bg-amber-950/40 border border-amber-200 dark:border-amber-800 rounded-xl p-3 flex items-center justify-between gap-2.5 shadow-xs">
+                    <div className="min-w-0">
+                      <div className="text-[10px] font-bold text-amber-800 dark:text-amber-300 uppercase tracking-wider flex items-center gap-1.5">
+                        <History className="w-3.5 h-3.5 text-amber-600" />
+                        Scheduled / Cancelled Class
+                      </div>
+                      <div className="text-xs font-semibold text-slate-800 dark:text-slate-100 truncate mt-0.5">
+                        <span className="font-bold text-indigo-600 dark:text-indigo-400">{rec.course}</span> &bull; {rec.teacher || "N/A"} {rec.note && `(${rec.note})`}
+                        {rec.group && rec.group !== "All" && ` • [${rec.group}]`}
+                      </div>
+                    </div>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        handleRestoreSlot(selectedCell.day, selectedCell.slotId, rec);
+                        setSelectedCell(null);
+                      }}
+                      className="px-2.5 py-1.5 bg-amber-600 hover:bg-amber-700 active:scale-95 text-white text-xs font-bold rounded-lg shadow-xs flex items-center gap-1 shrink-0 transition"
+                      title="Recover this scheduled class"
+                    >
+                      <RotateCcw className="w-3.5 h-3.5" />
+                      Recover Class
+                    </button>
+                  </div>
+                );
+              })()}
+
               <div>
                 <label className="block text-xs font-semibold text-slate-600 dark:text-slate-300 uppercase mb-1">
                   Course Code
@@ -1558,13 +1874,34 @@ export default function RoutineVisualExporter() {
             </div>
 
             <div className="flex justify-between items-center pt-3 border-t">
-              <button
-                type="button"
-                onClick={handleClearCell}
-                className="text-xs text-rose-600 hover:underline flex items-center gap-1 font-medium"
-              >
-                <Trash2 className="w-3.5 h-3.5" /> Clear Cell
-              </button>
+              {cellForm.course ? (
+                <button
+                  type="button"
+                  onClick={handleClearCell}
+                  className="text-xs text-rose-600 hover:text-rose-700 hover:underline flex items-center gap-1 font-semibold"
+                  title="Clear or cancel this class (you can recover it anytime)"
+                >
+                  <Trash2 className="w-3.5 h-3.5" /> Cancel Class (Clear Cell)
+                </button>
+              ) : (() => {
+                const rec = getRecoverableSlot(selectedCell.day, selectedCell.slotId);
+                if (rec && rec.course) {
+                  return (
+                    <button
+                      type="button"
+                      onClick={() => {
+                        handleRestoreSlot(selectedCell.day, selectedCell.slotId, rec);
+                        setSelectedCell(null);
+                      }}
+                      className="text-xs text-amber-600 dark:text-amber-400 hover:underline flex items-center gap-1 font-bold"
+                      title="Recover scheduled class"
+                    >
+                      <RotateCcw className="w-3.5 h-3.5" /> Recover {rec.course}
+                    </button>
+                  );
+                }
+                return <span className="text-xs text-slate-400">Empty slot</span>;
+              })()}
               <div className="flex gap-2">
                 <button
                   type="button"
@@ -1585,25 +1922,127 @@ export default function RoutineVisualExporter() {
           </div>
         </div>
       )}
+
+      {/* Recover Cancelled Classes Global Modal */}
+      {showRecoverModal && (
+        <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50 p-4">
+          <div className="bg-white dark:bg-slate-800 rounded-2xl shadow-2xl p-6 w-full max-w-lg border border-slate-200 dark:border-slate-700 space-y-4 max-h-[90vh] flex flex-col">
+            <div className="flex justify-between items-center border-b pb-3">
+              <div className="flex items-center gap-2.5">
+                <div className="p-2 bg-amber-50 dark:bg-amber-900/30 text-amber-600 rounded-lg">
+                  <History className="w-5 h-5" />
+                </div>
+                <div>
+                  <h3 className="text-base font-bold text-slate-800 dark:text-white">
+                    Recover Cancelled / Cleared Classes
+                  </h3>
+                  <p className="text-xs text-slate-500">
+                    {cancelledList.length} class{cancelledList.length === 1 ? "" : "es"} currently missing from this week's routine
+                  </p>
+                </div>
+              </div>
+              <button
+                onClick={() => setShowRecoverModal(false)}
+                className="text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 font-bold text-lg"
+              >
+                ✕
+              </button>
+            </div>
+
+            <div className="flex-1 overflow-y-auto space-y-2.5 pr-1">
+              {cancelledList.length === 0 ? (
+                <div className="py-8 text-center text-sm text-slate-400">
+                  No cancelled or cleared classes found. All scheduled classes are active!
+                </div>
+              ) : (
+                cancelledList.map((item, idx) => (
+                  <div
+                    key={`${item.day}-${item.slotId}-${idx}`}
+                    className="p-3 bg-slate-50 dark:bg-slate-900/60 rounded-xl border border-slate-200 dark:border-slate-700 flex items-center justify-between gap-3 shadow-xs"
+                  >
+                    <div className="min-w-0">
+                      <div className="flex items-center gap-2">
+                        <span className="text-xs font-bold text-slate-800 dark:text-white">
+                          {item.day}
+                        </span>
+                        <span className="text-[11px] font-mono text-slate-500">
+                          ({item.time})
+                        </span>
+                        {item.group && item.group !== "All" && (
+                          <span className="text-[10px] font-extrabold px-1.5 py-0.5 rounded bg-amber-100 text-amber-800 dark:bg-amber-950/60 dark:text-amber-300">
+                            {item.group}
+                          </span>
+                        )}
+                      </div>
+                      <div className="text-xs text-slate-600 dark:text-slate-300 mt-0.5 font-medium">
+                        <span className="font-bold text-indigo-600 dark:text-indigo-400">{item.course}</span> &bull; Teacher: <span className="font-semibold">{item.teacher || "N/A"}</span>
+                        {item.note && <span> &bull; Room: {item.note}</span>}
+                        {item.span > 1 && <span className="ml-1 text-[11px] text-slate-400">({item.span} periods)</span>}
+                      </div>
+                    </div>
+
+                    <button
+                      type="button"
+                      onClick={() => handleRestoreSlot(item.day, item.slotId, item)}
+                      className="px-3 py-1.5 bg-emerald-600 hover:bg-emerald-700 active:scale-95 text-white text-xs font-bold rounded-lg shadow-xs flex items-center gap-1 shrink-0 transition"
+                      title="Restore this class into the timetable"
+                    >
+                      <RotateCcw className="w-3.5 h-3.5" /> Recover
+                    </button>
+                  </div>
+                ))
+              )}
+            </div>
+
+            <div className="flex justify-between items-center pt-3 border-t">
+              <button
+                type="button"
+                onClick={() => setShowRecoverModal(false)}
+                className="px-3 py-1.5 text-sm text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-700 rounded-lg"
+              >
+                Close
+              </button>
+              {cancelledList.length > 0 && (
+                <button
+                  type="button"
+                  onClick={handleRestoreAllCancelled}
+                  className="px-4 py-1.5 text-sm bg-indigo-600 hover:bg-indigo-700 active:scale-95 text-white font-bold rounded-lg shadow-sm flex items-center gap-1.5 transition"
+                >
+                  <RotateCcw className="w-4 h-4" /> Recover All Cancelled Classes
+                </button>
+              )}
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
 
-function renderSlotCell(day, slotId, slotData, isOverriddenBySpan = false, onClick) {
+function renderSlotCell(day, slotId, slotData, isOverriddenBySpan = false, onClick, recoverable = null) {
   if (isOverriddenBySpan) {
     return null;
   }
 
   if (!slotData) {
+    const hasRecoverable = !!(recoverable && recoverable.course);
     return (
       <td
         key={slotId}
         onClick={onClick}
-        className="border border-black p-1 bg-white hover:bg-slate-100 cursor-pointer transition"
+        className="border border-black p-1 bg-white hover:bg-slate-100 cursor-pointer transition group"
         style={{ borderColor: "#000000", backgroundColor: "#ffffff" }}
-        title="Click to add course"
+        title={hasRecoverable ? `Cancelled: ${recoverable.course} (${recoverable.teacher || "N/A"}). Click to recover or edit` : "Click to add course"}
       >
-        <span className="opacity-0 group-hover:opacity-100 text-[10px] text-slate-400">+</span>
+        <div className="flex flex-col items-center justify-center min-h-[36px]">
+          {hasRecoverable ? (
+            <span className="opacity-0 group-hover:opacity-100 text-[10px] text-amber-700 font-bold flex items-center gap-0.5 tracking-tight transition">
+              ↩ {recoverable.course}
+            </span>
+          ) : (
+            <span className="opacity-0 group-hover:opacity-100 text-[10px] text-slate-400 font-bold">+</span>
+          )}
+        </div>
       </td>
     );
   }
