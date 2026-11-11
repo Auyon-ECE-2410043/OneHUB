@@ -9,7 +9,8 @@ import { useState, useEffect } from "react";
 import routineService from "../../services/routineService";
 import userService from "../../services/userService";
 import { PageLoader } from "../../components/common/Loader";
-import { Plus, Edit2, Trash2, Filter } from "lucide-react";
+import { Plus, Edit2, Trash2, Filter, LayoutGrid, List } from "lucide-react";
+import RoutineVisualExporter from "./RoutineVisualExporter";
 
 const eceCourseMapping = {
   "1-1": ["HUM 1117", "PHY 1117", "ECE 1103", "MATH 1117", "ECE 1101", "HUM 1118", "ECE 1104", "PHY 1118"],
@@ -27,6 +28,7 @@ const timeOptions = ["08:00", "08:50", "09:40", "10:30", "10:50", "11:40", "12:3
 
 export default function ManageRoutine() {
   const [loading, setLoading] = useState(true);
+  const [viewMode, setViewMode] = useState("designer"); // "designer" | "database"
   const [slots, setSlots] = useState([]);
   const [facultyList, setFacultyList] = useState([]);
   const [selectedDeptFilter, setSelectedDeptFilter] = useState("ECE");
@@ -156,59 +158,90 @@ export default function ManageRoutine() {
   return (
     <div className="p-6">
       <div className="flex flex-col md:flex-row justify-between md:items-center gap-4 mb-6">
-        <h1 className="text-2xl font-bold text-gray-800">Manage Class Routine</h1>
-        <div className="flex items-center gap-3">
-          <div className="flex items-center bg-white border rounded-lg px-2 py-1 shadow-sm overflow-hidden">
-            <Filter className="w-4 h-4 text-gray-500 ml-2" />
-            <select
-              value={selectedSeriesFilter}
-              onChange={(e) => setSelectedSeriesFilter(e.target.value)}
-              className="outline-none bg-transparent text-sm text-gray-700 p-1 border-r border-gray-200"
-            >
-              <option value="">All Series / Sem</option>
-              <optgroup label="By Semester">
-                {semesterOptions.map(sem => <option key={sem} value={sem}>{sem}</option>)}
-              </optgroup>
-              <optgroup label="By Series">
-                {seriesOptions.map(ser => <option key={ser} value={ser}>{ser}</option>)}
-              </optgroup>
-            </select>
-            <select
-              value={selectedDeptFilter}
-              onChange={(e) => {
-                setSelectedDeptFilter(e.target.value);
-                setSelectedTeacherFilter("");
-              }}
-              className="outline-none bg-transparent text-sm text-gray-700 p-1 border-r border-gray-200"
-            >
-              <option value="">All Depts</option>
-              {departments.map(d => (
-                <option key={d} value={d}>{d}</option>
-              ))}
-            </select>
-            <select
-              value={selectedTeacherFilter}
-              onChange={(e) => setSelectedTeacherFilter(e.target.value)}
-              className="outline-none bg-transparent text-sm text-gray-700 p-1 ml-1"
-            >
-              <option value="">All Teachers</option>
-              {facultyList
-                .filter(f => !selectedDeptFilter || f.department === selectedDeptFilter)
-                .map(faculty => (
-                  <option key={faculty._id} value={faculty.teacherAcronym || faculty.name}>
-                    {faculty.name} ({faculty.teacherAcronym || "N/A"})
-                  </option>
-              ))}
-            </select>
-          </div>
+        <div>
+          <h1 className="text-2xl font-bold text-gray-800">Manage Class Routine</h1>
+          <p className="text-xs text-gray-500 mt-0.5">Design visual weekly routines, export PNGs, or manage database slots.</p>
+        </div>
+
+        <div className="flex bg-slate-100 p-1 rounded-xl w-fit border border-slate-200">
           <button
-            onClick={() => handleOpenModal()}
-            className="flex items-center gap-2 bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition"
+            onClick={() => setViewMode("designer")}
+            className={`flex items-center gap-2 px-3.5 py-1.5 rounded-lg text-sm font-semibold transition ${
+              viewMode === "designer"
+                ? "bg-white text-indigo-600 shadow-sm"
+                : "text-slate-600 hover:text-slate-900"
+            }`}
           >
-            <Plus className="w-4 h-4" /> Add Slot
+            <LayoutGrid className="w-4 h-4" /> Visual Generator (PNG)
+          </button>
+          <button
+            onClick={() => setViewMode("database")}
+            className={`flex items-center gap-2 px-3.5 py-1.5 rounded-lg text-sm font-semibold transition ${
+              viewMode === "database"
+                ? "bg-white text-blue-600 shadow-sm"
+                : "text-slate-600 hover:text-slate-900"
+            }`}
+          >
+            <List className="w-4 h-4" /> Database Slots List
           </button>
         </div>
       </div>
+
+      {viewMode === "designer" ? (
+        <RoutineVisualExporter />
+      ) : (
+        <>
+          <div className="flex justify-end items-center gap-3 mb-4">
+            <div className="flex items-center bg-white border rounded-lg px-2 py-1 shadow-sm overflow-hidden">
+              <Filter className="w-4 h-4 text-gray-500 ml-2" />
+              <select
+                value={selectedSeriesFilter}
+                onChange={(e) => setSelectedSeriesFilter(e.target.value)}
+                className="outline-none bg-transparent text-sm text-gray-700 p-1 border-r border-gray-200"
+              >
+                <option value="">All Series / Sem</option>
+                <optgroup label="By Semester">
+                  {semesterOptions.map(sem => <option key={sem} value={sem}>{sem}</option>)}
+                </optgroup>
+                <optgroup label="By Series">
+                  {seriesOptions.map(ser => <option key={ser} value={ser}>{ser}</option>)}
+                </optgroup>
+              </select>
+              <select
+                value={selectedDeptFilter}
+                onChange={(e) => {
+                  setSelectedDeptFilter(e.target.value);
+                  setSelectedTeacherFilter("");
+                }}
+                className="outline-none bg-transparent text-sm text-gray-700 p-1 border-r border-gray-200"
+              >
+                <option value="">All Depts</option>
+                {departments.map(d => (
+                  <option key={d} value={d}>{d}</option>
+                ))}
+              </select>
+              <select
+                value={selectedTeacherFilter}
+                onChange={(e) => setSelectedTeacherFilter(e.target.value)}
+                className="outline-none bg-transparent text-sm text-gray-700 p-1 ml-1"
+              >
+                <option value="">All Teachers</option>
+                {facultyList
+                  .filter(f => !selectedDeptFilter || f.department === selectedDeptFilter)
+                  .map(faculty => (
+                    <option key={faculty._id} value={faculty.teacherAcronym || faculty.name}>
+                      {faculty.name} ({faculty.teacherAcronym || "N/A"})
+                    </option>
+                ))}
+              </select>
+            </div>
+            <button
+              onClick={() => handleOpenModal()}
+              className="flex items-center gap-2 bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition"
+            >
+              <Plus className="w-4 h-4" /> Add Slot
+            </button>
+          </div>
 
       <div className="bg-white rounded-xl shadow overflow-hidden">
         <div className="overflow-x-auto">
@@ -472,6 +505,8 @@ export default function ManageRoutine() {
             </form>
           </div>
         </div>
+      )}
+        </>
       )}
     </div>
   );
