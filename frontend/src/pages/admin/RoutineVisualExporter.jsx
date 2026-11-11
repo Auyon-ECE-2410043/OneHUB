@@ -1,6 +1,6 @@
 import { useState, useRef } from "react";
 import html2canvas from "html2canvas";
-import { Download, RotateCcw, Plus, Trash2, Edit3, CheckCircle, Calendar, BookOpen, AlertCircle } from "lucide-react";
+import { Download, RotateCcw, Plus, Trash2, Calendar, Layers } from "lucide-react";
 
 // Standard RUET ECE time slots
 const TIME_SLOTS = [
@@ -20,75 +20,246 @@ const TIME_SLOTS = [
 const DAYS = ["Saturday", "Sunday", "Monday", "Tuesday", "Wednesday"];
 
 const COLOR_PRESETS = [
-  { label: "Light Blue (ECE 2105)", bg: "#8EDCE6", text: "#000000" },
-  { label: "Peach (ECE 2103/04)", bg: "#F7AC8E", text: "#000000" },
-  { label: "Yellow (ECE 2111)", bg: "#FFF266", text: "#000000" },
+  { label: "Light Blue", bg: "#8EDCE6", text: "#000000" },
+  { label: "Peach", bg: "#F7AC8E", text: "#000000" },
+  { label: "Yellow", bg: "#FFF266", text: "#000000" },
   { label: "Cyan/Teal (Lab)", bg: "#66D2D6", text: "#000000" },
-  { label: "Periwinkle Blue (ECE 2100)", bg: "#A8C6FA", text: "#000000" },
-  { label: "White (Math/Chem)", bg: "#FFFFFF", text: "#000000" },
+  { label: "Periwinkle Blue", bg: "#A8C6FA", text: "#000000" },
+  { label: "White", bg: "#FFFFFF", text: "#000000" },
   { label: "Black (Class Test)", bg: "#000000", text: "#FFFFFF" },
 ];
 
-// Initial template populated from the user's uploaded routine image
-const INITIAL_TEMPLATE = {
-  dateRange: "18 July, 2026 to July 22, 2026",
-  runningWeek: "05",
-  totalClassDayCount: "20",
-  previousClassRecord: "[ECE 2103: 07] [ECE 2105: 10] [ECE 2111: 06] [MATH 2117: 08] [CHEM 2117: 12]",
-  previousCtRecord: "[ECE 2103: 00] [ECE 2105: 00] [ECE 2111: 00] [MATH 2117: 01] [CHEM 2117: 01]",
-  
-  schedule: {
-    Saturday: {
-      slot3: { course: "ECE 2105", teacher: "MKG+MI", bg: "#8EDCE6", text: "#000000" },
-      slot4: { course: "MATH 2117", teacher: "MZA", bg: "#FFFFFF", text: "#000000" },
-      slot5: { course: "ECE 2111", teacher: "NRP+MNT", bg: "#FFF266", text: "#000000" },
-      slot6: { course: "ECE 2104", teacher: "MFA", note: "1st 30", noteColor: "#8b2000", bg: "#F7AC8E", text: "#000000", span: 3 },
+// Presets for all 5 current semesters based on official RUET Department routine
+const SEMESTER_PRESETS = {
+  "2-2": {
+    seriesName: "2nd Year Even (2024 Series / 2-2)",
+    dateRange: "11 November, 2026 to November 15, 2026",
+    runningWeek: "01",
+    totalClassDayCount: "05",
+    previousClassRecord: "[ECE 2207: 00] [ECE 2213: 00] [ECE 2215: 00] [MATH 2217: 00] [HUM 2217: 00]",
+    previousCtRecord: "[ECE 2207: 00] [ECE 2213: 00] [ECE 2215: 00] [MATH 2217: 00] [HUM 2217: 00]",
+    schedule: {
+      Saturday: {
+        slot0: { course: "ECE 2216", teacher: "MNT+NIS", note: "Lab-2", bg: "#66D2D6", text: "#000000", span: 3 },
+        slot3: { course: "ECE 2215", teacher: "NIS+MNT", note: "R-401", bg: "#8EDCE6", text: "#000000" },
+        slot4: { course: "HUM 2217", teacher: "SI", note: "R-401", bg: "#FFFFFF", text: "#000000" },
+        slot5: { course: "ECE 2207", teacher: "FT+NRP", note: "R-401", bg: "#F7AC8E", text: "#000000" },
+        slot6: { course: "ECE 2214", teacher: "MSA+MI", note: "Lab-1", bg: "#A8C6FA", text: "#000000", span: 3 },
+      },
+      Sunday: {
+        slot0: { course: "ECE 2213", teacher: "MI", note: "R-404", bg: "#FFF266", text: "#000000" },
+        slot1: { course: "Math 2217", teacher: "MRK", note: "R-404", bg: "#FFFFFF", text: "#000000" },
+        slot2: { course: "ECE 2215", teacher: "NIS+MNT", note: "R-404", bg: "#8EDCE6", text: "#000000" },
+        slot3: { course: "ECE 2208", teacher: "MAH (EEE)", note: "LAB-8", bg: "#F7AC8E", text: "#000000", span: 3 },
+      },
+      Monday: {
+        slot0: { course: "ECE 2200", teacher: "MAH+NRP", note: "LAB-4", bg: "#F7AC8E", text: "#000000", span: 3 },
+        slot3: { course: "ECE 2207", teacher: "FT+NRP", note: "R-404", bg: "#F7AC8E", text: "#000000" },
+        slot4: { course: "HUM 2217", teacher: "MRI", note: "R-404", bg: "#FFFFFF", text: "#000000" },
+        slot5: { course: "ECE 2213", teacher: "MI", note: "R-404", bg: "#FFF266", text: "#000000" },
+      },
+      Tuesday: {
+        slot0: { course: "ECE 2200", teacher: "MAH+NRP", note: "LAB-4", bg: "#F7AC8E", text: "#000000", span: 3 },
+        slot3: { course: "Math 2217", teacher: "MZH+MRK", note: "R-404", bg: "#FFFFFF", text: "#000000" },
+        slot4: { course: "HUM 2217", teacher: "MRI", note: "R-404", bg: "#FFFFFF", text: "#000000" },
+        slot5: { course: "ECE 2215", teacher: "NIS+MNT", note: "R-404", bg: "#8EDCE6", text: "#000000" },
+        slot6: { course: "ECE 2214", teacher: "MSA+MI", note: "Lab-2", bg: "#A8C6FA", text: "#000000", span: 3 },
+      },
+      Wednesday: {
+        slot0: { course: "Math 2217", teacher: "MRK+MZH", note: "R-404", bg: "#FFFFFF", text: "#000000" },
+        slot1: { course: "ECE 2213", teacher: "MZA", note: "R-404", bg: "#FFF266", text: "#000000" },
+        slot2: { course: "ECE 2207", teacher: "FT+NRP", note: "R-404", bg: "#F7AC8E", text: "#000000" },
+        slot3: { course: "ECE 2216", teacher: "MNT+NIS", note: "Lab-2", bg: "#66D2D6", text: "#000000", span: 3 },
+      },
     },
-    Sunday: {
-      slot0: { course: "ECE 2106/ECE 2112", teacher: "MKG+MI/NRP+MNT", note: "1st 30 / 2nd 30", noteBg: "#FFF266", bg: "#66D2D6", text: "#000000", span: 3 },
-      slot3: { course: "ECE 2103", teacher: "MFA", bg: "#F7AC8E", text: "#000000" },
-      slot4: { course: "CHEM 2117", teacher: "SR", bg: "#FFFFFF", text: "#000000" },
-      slot5: { course: "MATH 2117", teacher: "Y", bg: "#FFFFFF", text: "#000000" },
-    },
-    Monday: {
-      slot0: { course: "ECE 2104", teacher: "MFA", note: "2nd 30", noteBg: "#FFF266", bg: "#F7AC8E", text: "#000000", span: 3 },
-      slot3: { course: "CHEM 2117", teacher: "SR", bg: "#FFFFFF", text: "#000000" },
-      slot4: { course: "ECE 2105", teacher: "MKG+MI", bg: "#8EDCE6", text: "#000000" },
-      slot5: { course: "ECE 2103", teacher: "MFA", bg: "#F7AC8E", text: "#000000" },
-    },
-    Tuesday: {
-      slot2: { course: "ECE 2111", teacher: "NRP+MNT", bg: "#FFF266", text: "#000000" },
-      slot3: { course: "CHEM 2117", teacher: "AAI", bg: "#FFFFFF", text: "#000000" },
-      slot4: { course: "MATH 2117", teacher: "MZA", bg: "#FFFFFF", text: "#000000" },
-      slot5: { course: "ECE 2103", teacher: "MFA", bg: "#F7AC8E", text: "#000000" },
-      slot6: { course: "ECE 2105", teacher: "MKG (CT)", isCT: true, bg: "#000000", text: "#FFFFFF" },
-    },
-    Wednesday: {
-      slot1: { course: "CHEM 2118", teacher: "SR+AAI", note: "2nd 30", noteBg: "#FFF266", bg: "#FFFFFF", text: "#000000", span: 2 },
-      slot3: { course: "ECE 2111", teacher: "MNT (CT)", isCT: true, bg: "#000000", text: "#FFFFFF" },
-      slot4: { course: "ECE 2105", teacher: "MKG+MI", bg: "#8EDCE6", text: "#000000" },
-      slot6: { course: "ECE 2100", teacher: "ALL FACULTY", note: "Lab- all", noteBg: "#FFF266", bg: "#A8C6FA", text: "#000000", span: 3 },
-    },
+    ctSyllabus: []
   },
 
-  ctSyllabus: [
-    {
-      courseCode: "ECE 2105",
-      syllabus: "Cascade, Cascode, Basic circuit of Darligton, Darlington emitter-follower configuration."
+  "1-2": {
+    seriesName: "1st Year Even (2025 Series / 1-2)",
+    dateRange: "11 November, 2026 to November 15, 2026",
+    runningWeek: "01",
+    totalClassDayCount: "05",
+    previousClassRecord: "[ECE 1201: 00] [ECE 1203: 00] [ECE 1205: 00] [MATH 1217: 00] [HUM 1217: 00]",
+    previousCtRecord: "[ECE 1201: 00] [ECE 1203: 00] [ECE 1205: 00] [MATH 1217: 00] [HUM 1217: 00]",
+    schedule: {
+      Saturday: {
+        slot0: { course: "ECE 1203", teacher: "HBK+NIS", note: "Lab 1", bg: "#66D2D6", text: "#000000", span: 3 },
+        slot3: { course: "HUM 1217", teacher: "TTT", note: "R-404", bg: "#FFFFFF", text: "#000000" },
+        slot4: { course: "ECE 1205", teacher: "MI/MKG", note: "R-404", bg: "#8EDCE6", text: "#000000" },
+        slot5: { course: "ECE 1203", teacher: "HBK+NIS", note: "R-404", bg: "#F7AC8E", text: "#000000" },
+      },
+      Sunday: {
+        slot0: { course: "ECE 1206", teacher: "MI+MKG", note: "LAB-4", bg: "#66D2D6", text: "#000000", span: 3 },
+        slot3: { course: "ECE 1201", teacher: "FT+NRP", note: "R-404", bg: "#FFF266", text: "#000000" },
+        slot4: { course: "Math 1217", teacher: "MSA", note: "R-404", bg: "#FFFFFF", text: "#000000" },
+        slot5: { course: "ECE 1203", teacher: "HBK+NIS", note: "R-404", bg: "#F7AC8E", text: "#000000" },
+      },
+      Monday: {
+        slot0: { course: "ECE 1205", teacher: "MI/MKG", note: "R-404", bg: "#8EDCE6", text: "#000000" },
+        slot1: { course: "Math 1217", teacher: "MI", note: "R-404", bg: "#FFFFFF", text: "#000000" },
+        slot2: { course: "HUM 1217", teacher: "SMK", note: "R-404", bg: "#FFFFFF", text: "#000000" },
+        slot3: { course: "ECE 1202", teacher: "MAH+NIS", note: "Lab-3", bg: "#A8C6FA", text: "#000000", span: 3 },
+      },
+      Tuesday: {
+        slot0: { course: "ECE 1201", teacher: "FT+NRP", note: "R-404", bg: "#FFF266", text: "#000000" },
+        slot1: { course: "HUM 1217", teacher: "TTT", note: "R-404", bg: "#FFFFFF", text: "#000000" },
+        slot2: { course: "ECE 1203", teacher: "HBK+NIS", note: "R-404", bg: "#F7AC8E", text: "#000000" },
+        slot3: { course: "ECE 1200", teacher: "FT", note: "Lab-2", bg: "#F7AC8E", text: "#000000", span: 3 },
+      },
+      Wednesday: {
+        slot0: { course: "ECE 1204", teacher: "HBK+NIS", note: "Lab 2", bg: "#66D2D6", text: "#000000", span: 3 },
+        slot3: { course: "ECE 1201", teacher: "FT+NRP", note: "R-404", bg: "#FFF266", text: "#000000" },
+        slot4: { course: "Math 1217", teacher: "MSA", note: "R-404", bg: "#FFFFFF", text: "#000000" },
+        slot5: { course: "ECE 1205", teacher: "MI+MKG", note: "R-404", bg: "#8EDCE6", text: "#000000" },
+      },
     },
-    {
-      courseCode: "ECE 2111",
-      syllabus: "Chapter 1 (Digital Design by Morris Mano 5th Edition)"
-    }
-  ]
+    ctSyllabus: []
+  },
+
+  "3-1": {
+    seriesName: "3rd Year Odd (2023 Series / 3-1)",
+    dateRange: "11 November, 2026 to November 15, 2026",
+    runningWeek: "01",
+    totalClassDayCount: "05",
+    previousClassRecord: "[ECE 3107: 00] [ECE 3111: 00] [ECE 3117: 00] [ECE 3119: 00] [ECE 3121: 00]",
+    previousCtRecord: "[ECE 3107: 00] [ECE 3111: 00] [ECE 3117: 00] [ECE 3119: 00] [ECE 3121: 00]",
+    schedule: {
+      Saturday: {
+        slot2: { course: "ECE 3107", teacher: "MKG+MNT", note: "R-403", bg: "#8EDCE6", text: "#000000" },
+        slot3: { course: "ECE 3121", teacher: "MMR+RI", note: "R-403", bg: "#FFF266", text: "#000000" },
+        slot4: { course: "ECE 3119", teacher: "NRP", note: "R-403", bg: "#F7AC8E", text: "#000000" },
+        slot5: { course: "ECE 3107", teacher: "MKG+MNT", note: "R-403", bg: "#8EDCE6", text: "#000000" },
+      },
+      Sunday: {
+        slot0: { course: "CE 3100 / ECE 3118", teacher: "ST/HBK+MNT", note: "Seminar Room/ LAB-2", bg: "#66D2D6", text: "#000000", span: 3 },
+        slot3: { course: "ECE 3121", teacher: "MMR+RI", note: "R-403", bg: "#FFF266", text: "#000000" },
+        slot4: { course: "ECE 3117", teacher: "HBK+MNT", note: "R-403", bg: "#A8C6FA", text: "#000000" },
+        slot5: { course: "ECE 3111", teacher: "MFA+RA", note: "R-403", bg: "#F7AC8E", text: "#000000" },
+        slot6: { course: "ECE 3100", teacher: "All Faculty", note: "Lab-All", bg: "#A8C6FA", text: "#000000", span: 3 },
+      },
+      Monday: {
+        slot0: { course: "ECE 3108", teacher: "MKG+GKH", note: "LAB-8", bg: "#66D2D6", text: "#000000", span: 3 },
+        slot3: { course: "ECE 3107", teacher: "MKG+MNT", note: "R-403", bg: "#8EDCE6", text: "#000000" },
+        slot4: { course: "ECE 3111", teacher: "MFA+RA", note: "R-403", bg: "#F7AC8E", text: "#000000" },
+        slot5: { course: "ECE 3119", teacher: "NRP", note: "R-403", bg: "#F7AC8E", text: "#000000" },
+      },
+      Tuesday: {
+        slot0: { course: "ECE 3112", teacher: "MFA+RA", note: "LAB-2", bg: "#66D2D6", text: "#000000", span: 3 },
+        slot3: { course: "ECE 3111", teacher: "MFA+RA", note: "R-403", bg: "#F7AC8E", text: "#000000" },
+        slot4: { course: "ECE 3117", teacher: "HBK+MNT", note: "R-403", bg: "#A8C6FA", text: "#000000" },
+        slot5: { course: "ECE 3121", teacher: "MMR+RI", note: "R-403", bg: "#FFF266", text: "#000000" },
+      },
+      Wednesday: {
+        slot0: { course: "ECE 3112", teacher: "MFA+RA", note: "LAB-1", bg: "#66D2D6", text: "#000000", span: 3 },
+        slot3: { course: "ECE 3107", teacher: "MKG+MNT", note: "R-403", bg: "#8EDCE6", text: "#000000" },
+        slot4: { course: "ECE 3119", teacher: "NRP", note: "R-403", bg: "#F7AC8E", text: "#000000" },
+        slot5: { course: "ECE 3117", teacher: "HBK+MNT", note: "R-403", bg: "#A8C6FA", text: "#000000" },
+      },
+    },
+    ctSyllabus: []
+  },
+
+  "3-2": {
+    seriesName: "3rd Year Even (2022 Series / 3-2)",
+    dateRange: "11 November, 2026 to November 15, 2026",
+    runningWeek: "01",
+    totalClassDayCount: "05",
+    previousClassRecord: "[ECE 3205: 00] [ECE 3207: 00] [ECE 3221: 00] [ME 3219: 00] [HUM 3217: 00]",
+    previousCtRecord: "[ECE 3205: 00] [ECE 3207: 00] [ECE 3221: 00] [ME 3219: 00] [HUM 3217: 00]",
+    schedule: {
+      Saturday: {
+        slot2: { course: "ME 3219", teacher: "MMR/MRP", note: "R-402", bg: "#FFFFFF", text: "#000000" },
+        slot3: { course: "ECE 3221", teacher: "HBK+NIS", note: "R-402", bg: "#8EDCE6", text: "#000000" },
+        slot4: { course: "ECE 3205", teacher: "MFA+MKG", note: "R-402", bg: "#F7AC8E", text: "#000000" },
+        slot5: { course: "ECE 3207", teacher: "MAH+MNT", note: "R-402", bg: "#FFF266", text: "#000000" },
+      },
+      Sunday: {
+        slot0: { course: "ME 3219", teacher: "MMR/MRP", note: "R-402", bg: "#FFFFFF", text: "#000000" },
+        slot1: { course: "HUM 3217", teacher: "TK", note: "R-402", bg: "#FFFFFF", text: "#000000" },
+        slot2: { course: "ECE 3205", teacher: "MFA+MKG", note: "R-402", bg: "#F7AC8E", text: "#000000" },
+        slot3: { course: "ECE 3200", teacher: "GKH+NRP", note: "R-402", bg: "#A8C6FA", text: "#000000", span: 3 },
+      },
+      Monday: {
+        slot2: { course: "ME 3219", teacher: "MMR/MRP", note: "R-402", bg: "#FFFFFF", text: "#000000" },
+        slot3: { course: "ECE 3222", teacher: "HBK+NIS", note: "Lab 2", bg: "#66D2D6", text: "#000000", span: 3 },
+      },
+      Tuesday: {
+        slot2: { course: "ECE 3207", teacher: "MAH+MNT", note: "R-402", bg: "#FFF266", text: "#000000" },
+        slot3: { course: "ECE 3205", teacher: "MFA+MKG", note: "R-402", bg: "#F7AC8E", text: "#000000" },
+        slot4: { course: "HUM 3217", teacher: "KF", note: "R-402", bg: "#FFFFFF", text: "#000000" },
+        slot5: { course: "ECE 3221", teacher: "HBK+NIS", note: "R-402", bg: "#8EDCE6", text: "#000000" },
+        slot6: { course: "ECE 3200", teacher: "GKH+NRP", note: "R-401", bg: "#A8C6FA", text: "#000000", span: 3 },
+      },
+      Wednesday: {
+        slot0: { course: "ECE 3208 / 3206", teacher: "MAH+MNT / MFA+MKG", note: "Lab 10 / Lab-3", bg: "#66D2D6", text: "#000000", span: 3 },
+        slot3: { course: "HUM 3217", teacher: "KF", note: "R-402", bg: "#FFFFFF", text: "#000000" },
+        slot4: { course: "ECE 3207", teacher: "MAH+MNT", note: "R-402", bg: "#FFF266", text: "#000000" },
+        slot5: { course: "ECE 3221", teacher: "HBK+NIS", note: "R-402", bg: "#8EDCE6", text: "#000000" },
+        slot6: { course: "ME 3220", teacher: "MRP", note: "Lab-11", bg: "#A8C6FA", text: "#000000", span: 3 },
+      },
+    },
+    ctSyllabus: []
+  },
+
+  "4-2": {
+    seriesName: "4th Year Even (2021 Series / 4-2)",
+    dateRange: "11 November, 2026 to November 15, 2026",
+    runningWeek: "01",
+    totalClassDayCount: "05",
+    previousClassRecord: "[ECE 4209: 00] [ECE 4211: 00] [ECE 4223: 00] [ECE 4227: 00] [ECE 4245: 00]",
+    previousCtRecord: "[ECE 4209: 00] [ECE 4211: 00] [ECE 4223: 00] [ECE 4227: 00] [ECE 4245: 00]",
+    schedule: {
+      Saturday: {
+        slot0: { course: "ECE 4227", teacher: "RIY", note: "R-401", bg: "#FFF266", text: "#000000" },
+        slot1: { course: "ECE 4251", teacher: "RIS", note: "R-401", bg: "#FFFFFF", text: "#000000" },
+        slot2: { course: "ECE 4209", teacher: "FT", note: "R-401", bg: "#8EDCE6", text: "#000000" },
+        slot3: { course: "ECE 4212", teacher: "MFA", note: "LAB-1", bg: "#66D2D6", text: "#000000", span: 3 },
+        slot6: { course: "ECE 4000", teacher: "ALL Faculty", note: "Lab-ALL", bg: "#A8C6FA", text: "#000000", span: 3 },
+      },
+      Sunday: {
+        slot0: { course: "ECE 4224", teacher: "RIY+MKG", note: "LAB-1", bg: "#66D2D6", text: "#000000", span: 3 },
+        slot3: { course: "ECE 4211", teacher: "MFA", note: "R-401", bg: "#F7AC8E", text: "#000000" },
+        slot4: { course: "ECE 4227", teacher: "RIY", note: "R-401", bg: "#FFF266", text: "#000000" },
+      },
+      Monday: {
+        slot0: { course: "ECE 4245", teacher: "MSZ", note: "R-401", bg: "#8EDCE6", text: "#000000" },
+        slot1: { course: "ECE 4224", teacher: "RIY+MKG", note: "LAB-2", bg: "#66D2D6", text: "#000000", span: 2 },
+        slot3: { course: "ECE 4223", teacher: "MKG+RIY", note: "R-401", bg: "#F7AC8E", text: "#000000" },
+        slot4: { course: "ECE 4209", teacher: "FT", note: "R-401", bg: "#8EDCE6", text: "#000000" },
+      },
+      Tuesday: {
+        slot0: { course: "ECE 4252", teacher: "SH", note: "LAB-1/15", bg: "#66D2D6", text: "#000000", span: 3 },
+        slot3: { course: "ECE 4211", teacher: "MFA", note: "R-401", bg: "#F7AC8E", text: "#000000" },
+        slot4: { course: "ECE 4223", teacher: "MKG+RIY", note: "R-401", bg: "#F7AC8E", text: "#000000" },
+        slot5: { course: "ECE 4227", teacher: "RIY", note: "R-401", bg: "#FFF266", text: "#000000" },
+      },
+      Wednesday: {
+        slot3: { course: "ECE 4211", teacher: "MFA", note: "R-401", bg: "#F7AC8E", text: "#000000" },
+        slot4: { course: "ECE 4223", teacher: "MKG+RIY", note: "R-401", bg: "#F7AC8E", text: "#000000" },
+        slot5: { course: "ECE 4209", teacher: "FT", note: "R-401", bg: "#8EDCE6", text: "#000000" },
+        slot6: { course: "ECE 4228 / 4246", teacher: "RIY+MSZ", note: "LAB-1 / LAB-2", bg: "#66D2D6", text: "#000000", span: 3 },
+      },
+    },
+    ctSyllabus: []
+  }
 };
 
 export default function RoutineVisualExporter() {
-  const [data, setData] = useState(INITIAL_TEMPLATE);
-  const [activeTab, setActiveTab] = useState("preview"); // "preview" | "header" | "schedule" | "ct"
+  const [selectedSemKey, setSelectedSemKey] = useState("2-2"); // Default to user's 2-2 semester
+  const [data, setData] = useState(SEMESTER_PRESETS["2-2"]);
+  const [activeTab, setActiveTab] = useState("preview"); // "preview" | "header" | "ct"
   const [selectedCell, setSelectedCell] = useState(null); // { day, slotId }
   const [downloading, setDownloading] = useState(false);
   const routineRef = useRef(null);
+
+  // Switch between semester presets
+  const handleSelectSemesterPreset = (key) => {
+    setSelectedSemKey(key);
+    if (SEMESTER_PRESETS[key]) {
+      setData(SEMESTER_PRESETS[key]);
+    }
+  };
 
   // Edit cell modal state
   const [cellForm, setCellForm] = useState({
@@ -122,7 +293,6 @@ export default function RoutineVisualExporter() {
     if (!updatedSchedule[day]) updatedSchedule[day] = {};
 
     if (!cellForm.course.trim()) {
-      // If course is empty, remove the slot
       delete updatedSchedule[day][slotId];
     } else {
       updatedSchedule[day][slotId] = {
@@ -171,13 +341,12 @@ export default function RoutineVisualExporter() {
     });
   };
 
-  // High-resolution PNG download using html2canvas
   const handleDownloadPNG = async () => {
     if (!routineRef.current) return;
     setDownloading(true);
     try {
       const canvas = await html2canvas(routineRef.current, {
-        scale: 2.5, // High DPI for crisp text
+        scale: 2.5,
         useCORS: true,
         backgroundColor: "#ffffff",
         logging: false,
@@ -186,7 +355,7 @@ export default function RoutineVisualExporter() {
       const image = canvas.toDataURL("image/png");
       const a = document.createElement("a");
       a.href = image;
-      a.download = `Routine_Week_${data.runningWeek || "01"}.png`;
+      a.download = `Routine_${selectedSemKey}_Week_${data.runningWeek || "01"}.png`;
       a.click();
     } catch (err) {
       console.error("Failed to generate routine image:", err);
@@ -200,12 +369,29 @@ export default function RoutineVisualExporter() {
     <div className="space-y-6">
       {/* Top action header */}
       <div className="flex flex-wrap items-center justify-between gap-4 bg-white dark:bg-slate-800 p-4 rounded-xl border border-slate-200 dark:border-slate-700 shadow-sm">
-        <div className="flex items-center gap-2">
-          <Calendar className="w-5 h-5 text-indigo-600" />
-          <h2 className="text-lg font-bold text-slate-800 dark:text-white">Visual Routine Designer</h2>
-          <span className="text-xs bg-indigo-100 text-indigo-700 font-semibold px-2 py-0.5 rounded-full">
-            Week {data.runningWeek}
-          </span>
+        <div className="flex items-center gap-3">
+          <div className="p-2 bg-indigo-50 dark:bg-indigo-900/30 text-indigo-600 rounded-lg">
+            <Calendar className="w-5 h-5" />
+          </div>
+          <div>
+            <h2 className="text-base font-bold text-slate-800 dark:text-white flex items-center gap-2">
+              Visual Routine Designer
+            </h2>
+            <div className="flex items-center gap-2 mt-0.5">
+              <span className="text-xs text-slate-500">Preset:</span>
+              <select
+                value={selectedSemKey}
+                onChange={(e) => handleSelectSemesterPreset(e.target.value)}
+                className="text-xs font-semibold px-2 py-0.5 bg-indigo-50 text-indigo-700 border border-indigo-200 rounded-md outline-none"
+              >
+                <option value="2-2">2-2 (2024 Series - Current)</option>
+                <option value="1-2">1-2 (2025 Series)</option>
+                <option value="3-1">3-1 (2023 Series)</option>
+                <option value="3-2">3-2 (2022 Series)</option>
+                <option value="4-2">4-2 (2021 Series)</option>
+              </select>
+            </div>
+          </div>
         </div>
 
         <div className="flex items-center gap-2 flex-wrap">
@@ -232,16 +418,16 @@ export default function RoutineVisualExporter() {
                 activeTab === "ct" ? "bg-white dark:bg-slate-800 shadow-sm text-indigo-600 dark:text-indigo-400" : "text-slate-600 dark:text-slate-300"
               }`}
             >
-              CT Syllabus ({data.ctSyllabus.length})
+              CT Syllabus ({data.ctSyllabus?.length || 0})
             </button>
           </div>
 
           <button
-            onClick={() => setData(INITIAL_TEMPLATE)}
+            onClick={() => handleSelectSemesterPreset(selectedSemKey)}
             className="flex items-center gap-1.5 px-3 py-2 text-sm text-slate-600 dark:text-slate-300 hover:text-rose-600 hover:bg-slate-100 dark:hover:bg-slate-700 rounded-lg transition"
-            title="Reset to default template"
+            title="Reset to official schedule"
           >
-            <RotateCcw className="w-4 h-4" /> Reset Template
+            <RotateCcw className="w-4 h-4" /> Reset
           </button>
 
           <button
@@ -268,7 +454,7 @@ export default function RoutineVisualExporter() {
                 type="text"
                 value={data.dateRange}
                 onChange={(e) => setData({ ...data, dateRange: e.target.value })}
-                placeholder="e.g. 18 July, 2026 to July 22, 2026"
+                placeholder="e.g. 11 November, 2026 to November 15, 2026"
                 className="w-full px-3 py-2 border rounded-lg text-sm bg-slate-50 dark:bg-slate-900 dark:border-slate-700 dark:text-white"
               />
             </div>
@@ -280,7 +466,7 @@ export default function RoutineVisualExporter() {
                 type="text"
                 value={data.runningWeek}
                 onChange={(e) => setData({ ...data, runningWeek: e.target.value })}
-                placeholder="e.g. 05"
+                placeholder="e.g. 01"
                 className="w-full px-3 py-2 border rounded-lg text-sm bg-slate-50 dark:bg-slate-900 dark:border-slate-700 dark:text-white"
               />
             </div>
@@ -292,7 +478,7 @@ export default function RoutineVisualExporter() {
                 type="text"
                 value={data.totalClassDayCount}
                 onChange={(e) => setData({ ...data, totalClassDayCount: e.target.value })}
-                placeholder="e.g. 20"
+                placeholder="e.g. 05"
                 className="w-full px-3 py-2 border rounded-lg text-sm bg-slate-50 dark:bg-slate-900 dark:border-slate-700 dark:text-white"
               />
             </div>
@@ -307,7 +493,6 @@ export default function RoutineVisualExporter() {
                 type="text"
                 value={data.previousClassRecord}
                 onChange={(e) => setData({ ...data, previousClassRecord: e.target.value })}
-                placeholder="e.g. [ECE 2103: 07] [ECE 2105: 10] [ECE 2111: 06]..."
                 className="w-full px-3 py-2 border rounded-lg text-sm bg-slate-50 dark:bg-slate-900 dark:border-slate-700 dark:text-white font-mono"
               />
             </div>
@@ -319,7 +504,6 @@ export default function RoutineVisualExporter() {
                 type="text"
                 value={data.previousCtRecord}
                 onChange={(e) => setData({ ...data, previousCtRecord: e.target.value })}
-                placeholder="e.g. [ECE 2103: 00] [ECE 2105: 00] [MATH 2117: 01]..."
                 className="w-full px-3 py-2 border rounded-lg text-sm bg-slate-50 dark:bg-slate-900 dark:border-slate-700 dark:text-white font-mono"
               />
             </div>
@@ -349,7 +533,10 @@ export default function RoutineVisualExporter() {
           </div>
 
           <div className="space-y-3">
-            {data.ctSyllabus.map((item, index) => (
+            {(!data.ctSyllabus || data.ctSyllabus.length === 0) && (
+              <p className="text-sm text-slate-400 py-4 text-center">No CT tests scheduled for this week. Click above to add one.</p>
+            )}
+            {data.ctSyllabus?.map((item, index) => (
               <div key={index} className="flex gap-3 items-start bg-slate-50 dark:bg-slate-900 p-3 rounded-lg border border-slate-200 dark:border-slate-700">
                 <div className="w-32">
                   <label className="block text-xs text-slate-500 uppercase mb-1 font-semibold">Course Code</label>
@@ -357,7 +544,7 @@ export default function RoutineVisualExporter() {
                     type="text"
                     value={item.courseCode}
                     onChange={(e) => handleUpdateCtSyllabus(index, "courseCode", e.target.value)}
-                    placeholder="e.g. ECE 2105"
+                    placeholder="e.g. ECE 2207"
                     className="w-full px-2.5 py-1.5 border rounded text-sm bg-white dark:bg-slate-800 dark:text-white"
                   />
                 </div>
@@ -367,7 +554,7 @@ export default function RoutineVisualExporter() {
                     type="text"
                     value={item.syllabus}
                     onChange={(e) => handleUpdateCtSyllabus(index, "syllabus", e.target.value)}
-                    placeholder="e.g. Cascade, Cascode, Basic circuit of Darlington..."
+                    placeholder="e.g. Chapter 1 & 2..."
                     className="w-full px-2.5 py-1.5 border rounded text-sm bg-white dark:bg-slate-800 dark:text-white"
                   />
                 </div>
@@ -396,7 +583,7 @@ export default function RoutineVisualExporter() {
       {/* Visual Canvas / Printable Document View */}
       <div className="space-y-2">
         <div className="flex items-center justify-between text-xs text-slate-500 dark:text-slate-400 px-1">
-          <span>💡 Tip: Click on any slot in the timetable to edit or change its course, teacher, color, or CT status.</span>
+          <span>💡 Tip: Click on any slot in the timetable to edit its course, teacher, room, or add CT (Class Test) black box.</span>
           <span>Click "Download Routine PNG" above to export.</span>
         </div>
 
@@ -466,7 +653,6 @@ export default function RoutineVisualExporter() {
                 <tbody>
                   {DAYS.map((day, dayIndex) => {
                     const daySlots = data.schedule[day] || {};
-                    let skipCount = 0; // for colSpan handling
 
                     return (
                       <tr key={day} className="h-[62px]">
@@ -476,7 +662,7 @@ export default function RoutineVisualExporter() {
                         </td>
 
                         {/* Slot 0 (8.00 - 8.50) */}
-                        {renderSlotCell(day, "slot0", daySlots.slot0, () => openCellEditor(day, "slot0"))}
+                        {renderSlotCell(day, "slot0", daySlots.slot0, false, () => openCellEditor(day, "slot0"))}
 
                         {/* Slot 1 (8.50 - 9.40) */}
                         {renderSlotCell(day, "slot1", daySlots.slot1, daySlots.slot0?.span >= 2, () => openCellEditor(day, "slot1"))}
@@ -533,7 +719,7 @@ export default function RoutineVisualExporter() {
             </div>
 
             {/* CT Syllabus Section at the Bottom */}
-            {data.ctSyllabus.length > 0 && (
+            {data.ctSyllabus && data.ctSyllabus.length > 0 && (
               <div className="pt-2 font-serif text-sm">
                 <h4 className="font-bold text-[#18538a] text-[15px] mb-1.5">CT Syllabus</h4>
                 <div className="space-y-1.5 text-[13px] leading-relaxed">
@@ -576,7 +762,7 @@ export default function RoutineVisualExporter() {
                 </label>
                 <input
                   type="text"
-                  placeholder="e.g. ECE 2105 or MATH 2117"
+                  placeholder="e.g. ECE 2207 or Math 2217"
                   value={cellForm.course}
                   onChange={(e) => setCellForm({ ...cellForm, course: e.target.value })}
                   className="w-full px-3 py-2 border rounded-lg bg-slate-50 dark:bg-slate-900 dark:border-slate-700 dark:text-white"
@@ -589,7 +775,7 @@ export default function RoutineVisualExporter() {
                 </label>
                 <input
                   type="text"
-                  placeholder="e.g. MKG+MI or MFA"
+                  placeholder="e.g. FT+NRP or MI"
                   value={cellForm.teacher}
                   onChange={(e) => setCellForm({ ...cellForm, teacher: e.target.value })}
                   className="w-full px-3 py-2 border rounded-lg bg-slate-50 dark:bg-slate-900 dark:border-slate-700 dark:text-white"
@@ -598,11 +784,11 @@ export default function RoutineVisualExporter() {
 
               <div>
                 <label className="block text-xs font-semibold text-slate-600 dark:text-slate-300 uppercase mb-1">
-                  Section / Lab Note (Optional)
+                  Room / Lab / Note
                 </label>
                 <input
                   type="text"
-                  placeholder="e.g. 1st 30, 2nd 30, Lab- all"
+                  placeholder="e.g. R-404 or Lab-2"
                   value={cellForm.note}
                   onChange={(e) => setCellForm({ ...cellForm, note: e.target.value })}
                   className="w-full px-3 py-2 border rounded-lg bg-slate-50 dark:bg-slate-900 dark:border-slate-700 dark:text-white"
@@ -708,10 +894,9 @@ export default function RoutineVisualExporter() {
   );
 }
 
-// Helper to render individual schedule cell
 function renderSlotCell(day, slotId, slotData, isOverriddenBySpan = false, onClick) {
   if (isOverriddenBySpan) {
-    return null; // Cell hidden because earlier slot spanned over it
+    return null;
   }
 
   if (!slotData) {
