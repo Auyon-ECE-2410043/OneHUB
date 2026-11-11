@@ -85,36 +85,36 @@ const SEMESTER_PRESETS = {
     previousCtRecord: "[ECE 2207: 00] [ECE 2213: 00] [ECE 2215: 00] [MATH 2217: 00] [HUM 2217: 00]",
     schedule: {
       Saturday: {
-        slot0: { course: "ECE 2216", teacher: "MNT+NIS", note: "Lab-2", group: "1st 30", bg: "#66D2D6", text: "#000000", span: 3 },
+        slot0: { course: "ECE 2216", teacher: "MNT+NIS", note: "Lab-2", group: "2nd 30", bg: "#FFAAA6", text: "#000000", span: 3 },
         slot3: { course: "ECE 2215", teacher: "NIS+MNT", note: "R-401", bg: "#8EDCE6", text: "#000000" },
-        slot4: { course: "HUM 2217", teacher: "SI", note: "R-401", bg: "#FFFFFF", text: "#000000" },
-        slot5: { course: "ECE 2207", teacher: "FT+NRP", note: "R-401", bg: "#F7AC8E", text: "#000000" },
+        slot4: { course: "HUM 2217", teacher: "SI", note: "R-401", bg: "#CBE5FF", text: "#000000" },
+        slot5: { course: "ECE 2207", teacher: "FT+NRP", note: "R-401", bg: "#D4CC95", text: "#000000" },
         slot6: { course: "ECE 2214", teacher: "MSA+MI", note: "Lab-1", group: "1st 30", bg: "#A8C6FA", text: "#000000", span: 3 },
       },
       Sunday: {
         slot0: { course: "ECE 2213", teacher: "MI", note: "R-404", bg: "#FFF266", text: "#000000" },
-        slot1: { course: "Math 2217", teacher: "MRK", note: "R-404", bg: "#FFFFFF", text: "#000000" },
+        slot1: { course: "Math 2217", teacher: "MRK", note: "R-404", bg: "#E8D5FF", text: "#000000" },
         slot2: { course: "ECE 2215", teacher: "NIS+MNT", note: "R-404", bg: "#8EDCE6", text: "#000000" },
-        slot3: { course: "ECE 2208", teacher: "MAH (EEE)", note: "LAB-8", group: "Lab- all", bg: "#F7AC8E", text: "#000000", span: 3 },
+        slot3: { course: "ECE 2208", teacher: "MAH (EEE)", note: "LAB-8", group: "1st 30", bg: "#A7F3D0", text: "#000000", span: 3 },
       },
       Monday: {
-        slot0: { course: "ECE 2200", teacher: "MAH+NRP", note: "LAB-4", group: "1st 30", bg: "#F7AC8E", text: "#000000", span: 3 },
-        slot3: { course: "ECE 2207", teacher: "FT+NRP", note: "R-404", bg: "#F7AC8E", text: "#000000" },
-        slot4: { course: "HUM 2217", teacher: "MRI", note: "R-404", bg: "#FFFFFF", text: "#000000" },
+        slot0: { course: "ECE 2200", teacher: "MAH+NRP", note: "LAB-4", group: "2nd 30", bg: "#F7AC8E", text: "#000000", span: 3 },
+        slot3: { course: "ECE 2207", teacher: "FT+NRP", note: "R-404", bg: "#D4CC95", text: "#000000" },
+        slot4: { course: "HUM 2217", teacher: "MRI", note: "R-404", bg: "#CBE5FF", text: "#000000" },
         slot5: { course: "ECE 2213", teacher: "MI", note: "R-404", bg: "#FFF266", text: "#000000" },
       },
       Tuesday: {
-        slot0: { course: "ECE 2200", teacher: "MAH+NRP", note: "LAB-4", group: "2nd 30", bg: "#F7AC8E", text: "#000000", span: 3 },
-        slot3: { course: "Math 2217", teacher: "MZH+MRK", note: "R-404", bg: "#FFFFFF", text: "#000000" },
-        slot4: { course: "HUM 2217", teacher: "MRI", note: "R-404", bg: "#FFFFFF", text: "#000000" },
+        slot0: { course: "ECE 2200", teacher: "MAH+NRP", note: "LAB-4", group: "1st 30", bg: "#F7AC8E", text: "#000000", span: 3 },
+        slot3: { course: "Math 2217", teacher: "MZH+MRK", note: "R-404", bg: "#E8D5FF", text: "#000000" },
+        slot4: { course: "HUM 2217", teacher: "MRI", note: "R-404", bg: "#CBE5FF", text: "#000000" },
         slot5: { course: "ECE 2215", teacher: "NIS+MNT", note: "R-404", bg: "#8EDCE6", text: "#000000" },
         slot6: { course: "ECE 2214", teacher: "MSA+MI", note: "Lab-2", group: "2nd 30", bg: "#A8C6FA", text: "#000000", span: 3 },
       },
       Wednesday: {
-        slot0: { course: "Math 2217", teacher: "MRK+MZH", note: "R-404", bg: "#FFFFFF", text: "#000000" },
+        slot0: { course: "Math 2217", teacher: "MRK+MZH", note: "R-404", bg: "#E8D5FF", text: "#000000" },
         slot1: { course: "ECE 2213", teacher: "MZA", note: "R-404", bg: "#FFF266", text: "#000000" },
-        slot2: { course: "ECE 2207", teacher: "FT+NRP", note: "R-404", bg: "#F7AC8E", text: "#000000" },
-        slot3: { course: "ECE 2216", teacher: "MNT+NIS", note: "Lab-2", group: "2nd 30", bg: "#66D2D6", text: "#000000", span: 3 },
+        slot2: { course: "ECE 2207", teacher: "FT+NRP", note: "R-404", bg: "#D4CC95", text: "#000000" },
+        slot3: { course: "ECE 2216", teacher: "MNT+NIS", note: "Lab-2", group: "1st 30", bg: "#FFAAA6", text: "#000000", span: 3 },
       },
     },
     ctSyllabus: []
@@ -1003,15 +1003,21 @@ export default function RoutineVisualExporter() {
             <div className="space-y-1 text-xs font-serif font-bold mb-5">
               <div>
                 <span style={{ color: "#18538a" }}>Total class day count: </span>
-                <span style={{ color: "#000000" }}>{data.totalClassDayCount}</span>
+                <span style={{ color: "#000000" }}>
+                  {data.totalClassDayCount?.replace(/^total class day count:\s*/i, "")}
+                </span>
               </div>
               <div>
                 <span style={{ color: "#18538a" }}>Previous Class Record: </span>
-                <span style={{ color: "#000000" }}>{data.previousClassRecord}</span>
+                <span style={{ color: "#000000" }}>
+                  {data.previousClassRecord?.replace(/^previous class record:\s*/i, "")}
+                </span>
               </div>
               <div>
                 <span style={{ color: "#18538a" }}>Previous Class Test Record: </span>
-                <span style={{ color: "#000000" }}>{data.previousCtRecord}</span>
+                <span style={{ color: "#000000" }}>
+                  {data.previousCtRecord?.replace(/^previous class test record:\s*/i, "")}
+                </span>
               </div>
             </div>
 
