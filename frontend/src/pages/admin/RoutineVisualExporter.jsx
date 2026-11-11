@@ -293,6 +293,68 @@ export default function RoutineVisualExporter() {
   const [syncSuccessMsg, setSyncSuccessMsg] = useState("");
   const routineRef = useRef(null);
 
+  // Calendar Date System States (Default to Saturday 14 Nov 2026 to Wednesday 18 Nov 2026)
+  const [calStartDate, setCalStartDate] = useState("2026-11-14");
+  const [calEndDate, setCalEndDate] = useState("2026-11-18");
+
+  const formatDateRangeFromDates = (startStr, endStr) => {
+    if (!startStr || !endStr) return "";
+    const s = new Date(startStr + "T00:00:00");
+    const e = new Date(endStr + "T00:00:00");
+    if (isNaN(s) || isNaN(e)) return "";
+
+    const months = [
+      "January", "February", "March", "April", "May", "June",
+      "July", "August", "September", "October", "November", "December"
+    ];
+
+    const startDay = s.getDate();
+    const startMonth = months[s.getMonth()];
+    const startYear = s.getFullYear();
+
+    const endDay = e.getDate();
+    const endMonth = months[e.getMonth()];
+    const endYear = e.getFullYear();
+
+    if (startMonth === endMonth && startYear === endYear) {
+      return `${startDay} ${startMonth}, ${startYear} to ${endMonth} ${endDay}, ${endYear}`;
+    }
+    return `${startDay} ${startMonth}, ${startYear} to ${endDay} ${endMonth}, ${endYear}`;
+  };
+
+  const handleDatePick = (newStart, newEnd) => {
+    setCalStartDate(newStart);
+    setCalEndDate(newEnd);
+    if (newStart && newEnd) {
+      const formatted = formatDateRangeFromDates(newStart, newEnd);
+      if (formatted) {
+        setData(prev => ({ ...prev, dateRange: formatted }));
+      }
+    }
+  };
+
+  const handleSetWeekPreset = (offsetWeeks = 0) => {
+    const now = new Date();
+    const day = now.getDay(); // 0 is Sunday, 6 is Saturday
+    const diffToSat = (day === 6 ? 0 : -(day + 1)) + (offsetWeeks * 7);
+    const sat = new Date(now);
+    sat.setDate(now.getDate() + diffToSat);
+
+    const wed = new Date(sat);
+    wed.setDate(sat.getDate() + 4);
+
+    const formatIso = (d) => {
+      const y = d.getFullYear();
+      const m = String(d.getMonth() + 1).padStart(2, "0");
+      const dt = String(d.getDate()).padStart(2, "0");
+      return `${y}-${m}-${dt}`;
+    };
+
+    const sStr = formatIso(sat);
+    const eStr = formatIso(wed);
+    handleDatePick(sStr, eStr);
+  };
+
   // Switch between semester presets
   const handleSelectSemesterPreset = (key) => {
     setSelectedSemKey(key);
@@ -595,21 +657,75 @@ export default function RoutineVisualExporter() {
 
       {/* Header & Counts Tab */}
       {activeTab === "header" && (
-        <div className="bg-white dark:bg-slate-800 p-6 rounded-xl border border-slate-200 dark:border-slate-700 shadow-sm space-y-4">
-          <h3 className="font-semibold text-slate-800 dark:text-white border-b pb-2">Routine Header Details</h3>
-          <div className="grid md:grid-cols-3 gap-4">
-            <div>
-              <label className="block text-xs font-semibold text-slate-600 dark:text-slate-300 uppercase mb-1">
-                Date Range (Followed From - To)
+        <div className="bg-white dark:bg-slate-800 p-6 rounded-xl border border-slate-200 dark:border-slate-700 shadow-sm space-y-5">
+          <h3 className="font-semibold text-slate-800 dark:text-white border-b pb-2">Routine Header & Schedule Details</h3>
+
+          {/* Calendar System for Date Range */}
+          <div className="bg-slate-50 dark:bg-slate-900/60 p-4 rounded-xl border border-slate-200 dark:border-slate-700 space-y-3">
+            <div className="flex flex-col sm:flex-row justify-between sm:items-center gap-2">
+              <label className="text-xs font-bold text-slate-700 dark:text-slate-300 uppercase flex items-center gap-1.5">
+                <Calendar className="w-4 h-4 text-indigo-500" />
+                Select Routine Date Range (Calendar System)
               </label>
+              <div className="flex items-center gap-1.5">
+                <button
+                  type="button"
+                  onClick={() => handleSetWeekPreset(0)}
+                  className="text-[11px] font-semibold px-2.5 py-1 rounded-md bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 hover:bg-slate-100 text-slate-700 dark:text-slate-200 shadow-xs"
+                >
+                  📅 Current Week (Sat–Wed)
+                </button>
+                <button
+                  type="button"
+                  onClick={() => handleSetWeekPreset(1)}
+                  className="text-[11px] font-semibold px-2.5 py-1 rounded-md bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 hover:bg-slate-100 text-slate-700 dark:text-slate-200 shadow-xs"
+                >
+                  📅 Next Week (Sat–Wed)
+                </button>
+              </div>
+            </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+              <div>
+                <span className="block text-[11px] font-semibold text-slate-600 dark:text-slate-400 mb-1">
+                  Start Date (Saturday)
+                </span>
+                <input
+                  type="date"
+                  value={calStartDate}
+                  onChange={(e) => handleDatePick(e.target.value, calEndDate)}
+                  className="w-full px-3 py-2 border rounded-lg text-sm bg-white dark:bg-slate-800 dark:border-slate-700 dark:text-white font-medium cursor-pointer"
+                />
+              </div>
+
+              <div>
+                <span className="block text-[11px] font-semibold text-slate-600 dark:text-slate-400 mb-1">
+                  End Date (Wednesday)
+                </span>
+                <input
+                  type="date"
+                  value={calEndDate}
+                  onChange={(e) => handleDatePick(calStartDate, e.target.value)}
+                  className="w-full px-3 py-2 border rounded-lg text-sm bg-white dark:bg-slate-800 dark:border-slate-700 dark:text-white font-medium cursor-pointer"
+                />
+              </div>
+            </div>
+
+            <div>
+              <span className="block text-[11px] font-semibold text-slate-600 dark:text-slate-400 mb-1">
+                Formatted Text on Routine Header (Editable)
+              </span>
               <input
                 type="text"
                 value={data.dateRange}
                 onChange={(e) => setData({ ...data, dateRange: e.target.value })}
                 placeholder="e.g. 14 November, 2026 to November 18, 2026"
-                className="w-full px-3 py-2 border rounded-lg text-sm bg-slate-50 dark:bg-slate-900 dark:border-slate-700 dark:text-white"
+                className="w-full px-3 py-2 border rounded-lg text-sm bg-white dark:bg-slate-800 dark:border-slate-700 dark:text-white font-medium font-serif"
               />
             </div>
+          </div>
+
+          <div className="grid md:grid-cols-2 gap-4">
             <div>
               <label className="block text-xs font-semibold text-slate-600 dark:text-slate-300 uppercase mb-1">
                 Running Week
@@ -636,10 +752,10 @@ export default function RoutineVisualExporter() {
             </div>
           </div>
 
-          <div className="grid md:grid-cols-2 gap-4 pt-2">
+          <div className="grid md:grid-cols-2 gap-4 pt-1">
             <div>
               <label className="block text-xs font-semibold text-slate-600 dark:text-slate-300 uppercase mb-1">
-                Previous Class Record
+                Previous Class Record (Values After Colon Render in Black)
               </label>
               <input
                 type="text"
@@ -650,7 +766,7 @@ export default function RoutineVisualExporter() {
             </div>
             <div>
               <label className="block text-xs font-semibold text-slate-600 dark:text-slate-300 uppercase mb-1">
-                Previous Class Test (CT) Record
+                Previous Class Test (CT) Record (Values After Colon Render in Black)
               </label>
               <input
                 type="text"
@@ -884,10 +1000,19 @@ export default function RoutineVisualExporter() {
             <hr className="border-t border-black my-2" style={{ borderColor: "#000000" }} />
 
             {/* Counts & Records Header */}
-            <div className="space-y-1 text-xs font-serif font-bold mb-5" style={{ color: "#18538a" }}>
-              <div>Total class day count: {data.totalClassDayCount}</div>
-              <div>Previous Class Record: {data.previousClassRecord}</div>
-              <div>Previous Class Test Record: {data.previousCtRecord}</div>
+            <div className="space-y-1 text-xs font-serif font-bold mb-5">
+              <div>
+                <span style={{ color: "#18538a" }}>Total class day count: </span>
+                <span style={{ color: "#000000" }}>{data.totalClassDayCount}</span>
+              </div>
+              <div>
+                <span style={{ color: "#18538a" }}>Previous Class Record: </span>
+                <span style={{ color: "#000000" }}>{data.previousClassRecord}</span>
+              </div>
+              <div>
+                <span style={{ color: "#18538a" }}>Previous Class Test Record: </span>
+                <span style={{ color: "#000000" }}>{data.previousCtRecord}</span>
+              </div>
             </div>
 
             {/* Main Timetable */}
