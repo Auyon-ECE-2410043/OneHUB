@@ -438,8 +438,9 @@ export default function CGPACalculator() {
       setCourses(SYLLABUS[sem].map((c, i) => ({
         id: Date.now() + i,
         name: c.name,
-        credit: c.credit,
-        grade: "A+"
+        credit: Number(c.credit),
+        grade: "A+",
+        isSyllabus: true
       })));
     } else {
       resetCalculator();
@@ -447,7 +448,7 @@ export default function CGPACalculator() {
   };
 
   const addCourse = () => {
-    setCourses([...courses, { id: Date.now(), name: "", credit: 3.0, grade: "A+" }]);
+    setCourses([...courses, { id: Date.now(), name: "", credit: 3.0, grade: "A+", isSyllabus: false }]);
   };
 
   const removeCourse = (id) => {
@@ -460,8 +461,8 @@ export default function CGPACalculator() {
 
   const resetCalculator = () => {
     setCourses([
-      { id: 1, name: "", credit: 3.0, grade: "A+" },
-      { id: 2, name: "", credit: 1.5, grade: "A+" }
+      { id: 1, name: "", credit: 3.0, grade: "A+", isSyllabus: false },
+      { id: 2, name: "", credit: 1.5, grade: "A+", isSyllabus: false }
     ]);
     setCurrentCGPA("");
     setCurrentCredits("");
@@ -559,17 +560,25 @@ export default function CGPACalculator() {
                     />
                   </div>
                   <div className="col-span-3">
-                    <select
-                      value={course.credit}
-                      onChange={(e) => updateCourse(course.id, "credit", e.target.value)}
-                      className="w-full px-3 py-2 bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-lg text-sm focus:ring-2 focus:ring-indigo-500 outline-none dark:text-white"
-                    >
-                      <option value="4.0">4.0</option>
-                      <option value="3.0">3.0</option>
-                      <option value="2.0">2.0</option>
-                      <option value="1.5">1.5</option>
-                      <option value="0.75">0.75</option>
-                    </select>
+                    {course.isSyllabus && selectedSemester !== "Custom" ? (
+                      <div className="w-full px-3 py-2 bg-slate-100 dark:bg-slate-700/60 border border-slate-200 dark:border-slate-600 rounded-lg text-sm font-semibold text-slate-700 dark:text-slate-200 text-center flex items-center justify-center gap-1 shadow-inner" title="Fixed from syllabus">
+                        <span>{Number(course.credit).toFixed(course.credit % 1 === 0 ? 1 : 2)}</span>
+                        <span className="text-xs text-slate-400 font-normal">Credits</span>
+                      </div>
+                    ) : (
+                      <select
+                        value={Number(course.credit)}
+                        onChange={(e) => updateCourse(course.id, "credit", parseFloat(e.target.value))}
+                        className="w-full px-3 py-2 bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-lg text-sm focus:ring-2 focus:ring-indigo-500 outline-none dark:text-white font-medium"
+                      >
+                        <option value={4}>4.0</option>
+                        <option value={3}>3.0</option>
+                        <option value={2}>2.0</option>
+                        <option value={1.5}>1.5</option>
+                        <option value={1}>1.0</option>
+                        <option value={0.75}>0.75</option>
+                      </select>
+                    )}
                   </div>
                   <div className="col-span-3">
                     <select
