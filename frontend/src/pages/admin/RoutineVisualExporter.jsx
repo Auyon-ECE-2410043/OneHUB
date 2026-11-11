@@ -1,6 +1,22 @@
-import { useState, useRef } from "react";
-import html2canvas from "html2canvas";
-import { Download, RotateCcw, Plus, Trash2, Calendar, Layers } from "lucide-react";
+/**
+ * File: RoutineVisualExporter.jsx
+ * Description: Interactive Visual Routine Designer & High-Res PNG Exporter.
+ * Formatted to match the official RUET Departmental Timetable layout and styling.
+ * 
+ * Supports:
+ * - Direct click-to-edit cells
+ * - Sessional Lab course assignment for 1st 30 and 2nd 30 across dates
+ * - Class Test (CT) black box with white text
+ * - CT Syllabus dynamic editor
+ * - Running week, total class day count, and previous class records
+ * - High-res PNG export powered by html2canvas-pro (full Tailwind v4 & oklch support)
+ * - Presets for 2-2, 1-2, 3-1, 3-2, 4-2
+ */
+
+import { useState, useRef, useMemo } from "react";
+import html2canvas from "html2canvas-pro";
+import { Download, RotateCcw, Plus, Trash2, Calendar, Layers, Users, RefreshCw, Check, Sparkles } from "lucide-react";
+import routineService from "../../services/routineService";
 
 // Standard RUET ECE time slots
 const TIME_SLOTS = [
@@ -33,43 +49,43 @@ const COLOR_PRESETS = [
 const SEMESTER_PRESETS = {
   "2-2": {
     seriesName: "2nd Year Even (2024 Series / 2-2)",
-    dateRange: "11 November, 2026 to November 15, 2026",
+    dateRange: "14 November, 2026 to November 18, 2026",
     runningWeek: "01",
     totalClassDayCount: "05",
     previousClassRecord: "[ECE 2207: 00] [ECE 2213: 00] [ECE 2215: 00] [MATH 2217: 00] [HUM 2217: 00]",
     previousCtRecord: "[ECE 2207: 00] [ECE 2213: 00] [ECE 2215: 00] [MATH 2217: 00] [HUM 2217: 00]",
     schedule: {
       Saturday: {
-        slot0: { course: "ECE 2216", teacher: "MNT+NIS", note: "Lab-2", bg: "#66D2D6", text: "#000000", span: 3 },
+        slot0: { course: "ECE 2216", teacher: "MNT+NIS", note: "Lab-2", group: "1st 30", bg: "#66D2D6", text: "#000000", span: 3 },
         slot3: { course: "ECE 2215", teacher: "NIS+MNT", note: "R-401", bg: "#8EDCE6", text: "#000000" },
         slot4: { course: "HUM 2217", teacher: "SI", note: "R-401", bg: "#FFFFFF", text: "#000000" },
         slot5: { course: "ECE 2207", teacher: "FT+NRP", note: "R-401", bg: "#F7AC8E", text: "#000000" },
-        slot6: { course: "ECE 2214", teacher: "MSA+MI", note: "Lab-1", bg: "#A8C6FA", text: "#000000", span: 3 },
+        slot6: { course: "ECE 2214", teacher: "MSA+MI", note: "Lab-1", group: "1st 30", bg: "#A8C6FA", text: "#000000", span: 3 },
       },
       Sunday: {
         slot0: { course: "ECE 2213", teacher: "MI", note: "R-404", bg: "#FFF266", text: "#000000" },
         slot1: { course: "Math 2217", teacher: "MRK", note: "R-404", bg: "#FFFFFF", text: "#000000" },
         slot2: { course: "ECE 2215", teacher: "NIS+MNT", note: "R-404", bg: "#8EDCE6", text: "#000000" },
-        slot3: { course: "ECE 2208", teacher: "MAH (EEE)", note: "LAB-8", bg: "#F7AC8E", text: "#000000", span: 3 },
+        slot3: { course: "ECE 2208", teacher: "MAH (EEE)", note: "LAB-8", group: "Lab- all", bg: "#F7AC8E", text: "#000000", span: 3 },
       },
       Monday: {
-        slot0: { course: "ECE 2200", teacher: "MAH+NRP", note: "LAB-4", bg: "#F7AC8E", text: "#000000", span: 3 },
+        slot0: { course: "ECE 2200", teacher: "MAH+NRP", note: "LAB-4", group: "1st 30", bg: "#F7AC8E", text: "#000000", span: 3 },
         slot3: { course: "ECE 2207", teacher: "FT+NRP", note: "R-404", bg: "#F7AC8E", text: "#000000" },
         slot4: { course: "HUM 2217", teacher: "MRI", note: "R-404", bg: "#FFFFFF", text: "#000000" },
         slot5: { course: "ECE 2213", teacher: "MI", note: "R-404", bg: "#FFF266", text: "#000000" },
       },
       Tuesday: {
-        slot0: { course: "ECE 2200", teacher: "MAH+NRP", note: "LAB-4", bg: "#F7AC8E", text: "#000000", span: 3 },
+        slot0: { course: "ECE 2200", teacher: "MAH+NRP", note: "LAB-4", group: "2nd 30", bg: "#F7AC8E", text: "#000000", span: 3 },
         slot3: { course: "Math 2217", teacher: "MZH+MRK", note: "R-404", bg: "#FFFFFF", text: "#000000" },
         slot4: { course: "HUM 2217", teacher: "MRI", note: "R-404", bg: "#FFFFFF", text: "#000000" },
         slot5: { course: "ECE 2215", teacher: "NIS+MNT", note: "R-404", bg: "#8EDCE6", text: "#000000" },
-        slot6: { course: "ECE 2214", teacher: "MSA+MI", note: "Lab-2", bg: "#A8C6FA", text: "#000000", span: 3 },
+        slot6: { course: "ECE 2214", teacher: "MSA+MI", note: "Lab-2", group: "2nd 30", bg: "#A8C6FA", text: "#000000", span: 3 },
       },
       Wednesday: {
         slot0: { course: "Math 2217", teacher: "MRK+MZH", note: "R-404", bg: "#FFFFFF", text: "#000000" },
         slot1: { course: "ECE 2213", teacher: "MZA", note: "R-404", bg: "#FFF266", text: "#000000" },
         slot2: { course: "ECE 2207", teacher: "FT+NRP", note: "R-404", bg: "#F7AC8E", text: "#000000" },
-        slot3: { course: "ECE 2216", teacher: "MNT+NIS", note: "Lab-2", bg: "#66D2D6", text: "#000000", span: 3 },
+        slot3: { course: "ECE 2216", teacher: "MNT+NIS", note: "Lab-2", group: "2nd 30", bg: "#66D2D6", text: "#000000", span: 3 },
       },
     },
     ctSyllabus: []
@@ -77,20 +93,20 @@ const SEMESTER_PRESETS = {
 
   "1-2": {
     seriesName: "1st Year Even (2025 Series / 1-2)",
-    dateRange: "11 November, 2026 to November 15, 2026",
+    dateRange: "14 November, 2026 to November 18, 2026",
     runningWeek: "01",
     totalClassDayCount: "05",
     previousClassRecord: "[ECE 1201: 00] [ECE 1203: 00] [ECE 1205: 00] [MATH 1217: 00] [HUM 1217: 00]",
     previousCtRecord: "[ECE 1201: 00] [ECE 1203: 00] [ECE 1205: 00] [MATH 1217: 00] [HUM 1217: 00]",
     schedule: {
       Saturday: {
-        slot0: { course: "ECE 1203", teacher: "HBK+NIS", note: "Lab 1", bg: "#66D2D6", text: "#000000", span: 3 },
+        slot0: { course: "ECE 1203", teacher: "HBK+NIS", note: "Lab 1", group: "1st 30", bg: "#66D2D6", text: "#000000", span: 3 },
         slot3: { course: "HUM 1217", teacher: "TTT", note: "R-404", bg: "#FFFFFF", text: "#000000" },
         slot4: { course: "ECE 1205", teacher: "MI/MKG", note: "R-404", bg: "#8EDCE6", text: "#000000" },
         slot5: { course: "ECE 1203", teacher: "HBK+NIS", note: "R-404", bg: "#F7AC8E", text: "#000000" },
       },
       Sunday: {
-        slot0: { course: "ECE 1206", teacher: "MI+MKG", note: "LAB-4", bg: "#66D2D6", text: "#000000", span: 3 },
+        slot0: { course: "ECE 1206", teacher: "MI+MKG", note: "LAB-4", group: "1st 30", bg: "#66D2D6", text: "#000000", span: 3 },
         slot3: { course: "ECE 1201", teacher: "FT+NRP", note: "R-404", bg: "#FFF266", text: "#000000" },
         slot4: { course: "Math 1217", teacher: "MSA", note: "R-404", bg: "#FFFFFF", text: "#000000" },
         slot5: { course: "ECE 1203", teacher: "HBK+NIS", note: "R-404", bg: "#F7AC8E", text: "#000000" },
@@ -98,17 +114,17 @@ const SEMESTER_PRESETS = {
       Monday: {
         slot0: { course: "ECE 1205", teacher: "MI/MKG", note: "R-404", bg: "#8EDCE6", text: "#000000" },
         slot1: { course: "Math 1217", teacher: "MI", note: "R-404", bg: "#FFFFFF", text: "#000000" },
-        slot2: { course: "HUM 1217", teacher: "SMK", note: "R-404", bg: "#FFFFFF", text: "#000000" },
-        slot3: { course: "ECE 1202", teacher: "MAH+NIS", note: "Lab-3", bg: "#A8C6FA", text: "#000000", span: 3 },
+        slot2: { course: "HUM 1217", teacher: "TTT", note: "R-404", bg: "#FFFFFF", text: "#000000" },
+        slot3: { course: "ECE 1202", teacher: "MAH+NIS", note: "Lab-3", group: "2nd 30", bg: "#66D2D6", text: "#000000", span: 3 },
       },
       Tuesday: {
-        slot0: { course: "ECE 1201", teacher: "FT+NRP", note: "R-404", bg: "#FFF266", text: "#000000" },
-        slot1: { course: "HUM 1217", teacher: "TTT", note: "R-404", bg: "#FFFFFF", text: "#000000" },
-        slot2: { course: "ECE 1203", teacher: "HBK+NIS", note: "R-404", bg: "#F7AC8E", text: "#000000" },
-        slot3: { course: "ECE 1200", teacher: "FT", note: "Lab-2", bg: "#F7AC8E", text: "#000000", span: 3 },
+        slot0: { course: "ECE 1200", teacher: "HBK+NIS", note: "Lab-4", group: "Lab- all", bg: "#66D2D6", text: "#000000", span: 3 },
+        slot3: { course: "ECE 1201", teacher: "FT+NRP", note: "R-404", bg: "#FFF266", text: "#000000" },
+        slot4: { course: "HUM 1217", teacher: "TTT", note: "R-404", bg: "#FFFFFF", text: "#000000" },
+        slot5: { course: "ECE 1205", teacher: "MI/MKG", note: "R-404", bg: "#8EDCE6", text: "#000000" },
       },
       Wednesday: {
-        slot0: { course: "ECE 1204", teacher: "HBK+NIS", note: "Lab 2", bg: "#66D2D6", text: "#000000", span: 3 },
+        slot0: { course: "ECE 1204", teacher: "HBK+NIS", note: "Lab 2", group: "1st 30", bg: "#66D2D6", text: "#000000", span: 3 },
         slot3: { course: "ECE 1201", teacher: "FT+NRP", note: "R-404", bg: "#FFF266", text: "#000000" },
         slot4: { course: "Math 1217", teacher: "MSA", note: "R-404", bg: "#FFFFFF", text: "#000000" },
         slot5: { course: "ECE 1205", teacher: "MI+MKG", note: "R-404", bg: "#8EDCE6", text: "#000000" },
@@ -119,42 +135,38 @@ const SEMESTER_PRESETS = {
 
   "3-1": {
     seriesName: "3rd Year Odd (2023 Series / 3-1)",
-    dateRange: "11 November, 2026 to November 15, 2026",
+    dateRange: "14 November, 2026 to November 18, 2026",
     runningWeek: "01",
     totalClassDayCount: "05",
-    previousClassRecord: "[ECE 3107: 00] [ECE 3111: 00] [ECE 3117: 00] [ECE 3119: 00] [ECE 3121: 00]",
-    previousCtRecord: "[ECE 3107: 00] [ECE 3111: 00] [ECE 3117: 00] [ECE 3119: 00] [ECE 3121: 00]",
+    previousClassRecord: "[ECE 3101: 00] [ECE 3103: 00] [ECE 3105: 00] [ECE 3107: 00] [HUM 3117: 00]",
+    previousCtRecord: "[ECE 3101: 00] [ECE 3103: 00] [ECE 3105: 00] [ECE 3107: 00] [HUM 3117: 00]",
     schedule: {
       Saturday: {
-        slot2: { course: "ECE 3107", teacher: "MKG+MNT", note: "R-403", bg: "#8EDCE6", text: "#000000" },
+        slot0: { course: "ME 3119", teacher: "MMR/MRP", note: "R-402", bg: "#FFFFFF", text: "#000000" },
+        slot1: { course: "ECE 3107", teacher: "MKG+MI", note: "R-403", bg: "#8EDCE6", text: "#000000" },
         slot3: { course: "ECE 3121", teacher: "MMR+RI", note: "R-403", bg: "#FFF266", text: "#000000" },
         slot4: { course: "ECE 3119", teacher: "NRP", note: "R-403", bg: "#F7AC8E", text: "#000000" },
-        slot5: { course: "ECE 3107", teacher: "MKG+MNT", note: "R-403", bg: "#8EDCE6", text: "#000000" },
+        slot5: { course: "ECE 3107", teacher: "MKG+MN", note: "R-403", bg: "#8EDCE6", text: "#000000" },
       },
       Sunday: {
-        slot0: { course: "CE 3100 / ECE 3118", teacher: "ST/HBK+MNT", note: "Seminar Room/ LAB-2", bg: "#66D2D6", text: "#000000", span: 3 },
-        slot3: { course: "ECE 3121", teacher: "MMR+RI", note: "R-403", bg: "#FFF266", text: "#000000" },
-        slot4: { course: "ECE 3117", teacher: "HBK+MNT", note: "R-403", bg: "#A8C6FA", text: "#000000" },
-        slot5: { course: "ECE 3111", teacher: "MFA+RA", note: "R-403", bg: "#F7AC8E", text: "#000000" },
-        slot6: { course: "ECE 3100", teacher: "All Faculty", note: "Lab-All", bg: "#A8C6FA", text: "#000000", span: 3 },
+        slot3: { course: "ECE 3108", teacher: "ST/HBK+MNT", note: "ECE Seminar Room / LAB-2", group: "1st 30", bg: "#66D2D6", text: "#000000", span: 3 },
       },
       Monday: {
-        slot0: { course: "ECE 3108", teacher: "MKG+GKH", note: "LAB-8", bg: "#66D2D6", text: "#000000", span: 3 },
-        slot3: { course: "ECE 3107", teacher: "MKG+MNT", note: "R-403", bg: "#8EDCE6", text: "#000000" },
-        slot4: { course: "ECE 3111", teacher: "MFA+RA", note: "R-403", bg: "#F7AC8E", text: "#000000" },
-        slot5: { course: "ECE 3119", teacher: "NRP", note: "R-403", bg: "#F7AC8E", text: "#000000" },
+        slot0: { course: "ME 3119", teacher: "MMR/MRP", note: "R-402", bg: "#FFFFFF", text: "#000000" },
+        slot1: { course: "ECE 3108", teacher: "MKG+GKH", note: "LAB-8", bg: "#66D2D6", text: "#000000" },
+        slot3: { course: "ECE 3100", teacher: "All Faculty", note: "LAB-1 / LAB-2", group: "Lab- all", bg: "#A8C6FA", text: "#000000", span: 3 },
       },
       Tuesday: {
-        slot0: { course: "ECE 3112", teacher: "MFA+RA", note: "LAB-2", bg: "#66D2D6", text: "#000000", span: 3 },
-        slot3: { course: "ECE 3111", teacher: "MFA+RA", note: "R-403", bg: "#F7AC8E", text: "#000000" },
-        slot4: { course: "ECE 3117", teacher: "HBK+MNT", note: "R-403", bg: "#A8C6FA", text: "#000000" },
+        slot0: { course: "ECE 3112", teacher: "MFA+RA", note: "LAB-2", group: "1st 30", bg: "#66D2D6", text: "#000000", span: 3 },
+        slot3: { course: "ME 3119", teacher: "MMR/MRP", note: "R-402", bg: "#FFFFFF", text: "#000000" },
+        slot4: { course: "HUM 3117", teacher: "KF", note: "R-402", bg: "#FFFFFF", text: "#000000" },
         slot5: { course: "ECE 3121", teacher: "MMR+RI", note: "R-403", bg: "#FFF266", text: "#000000" },
       },
       Wednesday: {
-        slot0: { course: "ECE 3112", teacher: "MFA+RA", note: "LAB-1", bg: "#66D2D6", text: "#000000", span: 3 },
+        slot0: { course: "ECE 3112", teacher: "MFA+RA", note: "LAB-1", group: "2nd 30", bg: "#66D2D6", text: "#000000", span: 3 },
         slot3: { course: "ECE 3107", teacher: "MKG+MNT", note: "R-403", bg: "#8EDCE6", text: "#000000" },
         slot4: { course: "ECE 3119", teacher: "NRP", note: "R-403", bg: "#F7AC8E", text: "#000000" },
-        slot5: { course: "ECE 3117", teacher: "HBK+MNT", note: "R-403", bg: "#A8C6FA", text: "#000000" },
+        slot5: { course: "ECE 3117", teacher: "HBK+MNT", note: "R-403", bg: "#FFF266", text: "#000000" },
       },
     },
     ctSyllabus: []
@@ -162,41 +174,40 @@ const SEMESTER_PRESETS = {
 
   "3-2": {
     seriesName: "3rd Year Even (2022 Series / 3-2)",
-    dateRange: "11 November, 2026 to November 15, 2026",
+    dateRange: "14 November, 2026 to November 18, 2026",
     runningWeek: "01",
     totalClassDayCount: "05",
-    previousClassRecord: "[ECE 3205: 00] [ECE 3207: 00] [ECE 3221: 00] [ME 3219: 00] [HUM 3217: 00]",
-    previousCtRecord: "[ECE 3205: 00] [ECE 3207: 00] [ECE 3221: 00] [ME 3219: 00] [HUM 3217: 00]",
+    previousClassRecord: "[ECE 3205: 00] [ECE 3207: 00] [ECE 3221: 00] [ME 3219: 00]",
+    previousCtRecord: "[ECE 3205: 00] [ECE 3207: 00] [ECE 3221: 00] [ME 3219: 00]",
     schedule: {
       Saturday: {
-        slot2: { course: "ME 3219", teacher: "MMR/MRP", note: "R-402", bg: "#FFFFFF", text: "#000000" },
+        slot0: { course: "ME 3220", teacher: "RP", note: "Lab-11", group: "1st 30", bg: "#66D2D6", text: "#000000", span: 3 },
         slot3: { course: "ECE 3221", teacher: "HBK+NIS", note: "R-402", bg: "#8EDCE6", text: "#000000" },
         slot4: { course: "ECE 3205", teacher: "MFA+MKG", note: "R-402", bg: "#F7AC8E", text: "#000000" },
-        slot5: { course: "ECE 3207", teacher: "MAH+MNT", note: "R-402", bg: "#FFF266", text: "#000000" },
+        slot5: { course: "ME 3219", teacher: "MAH+MNT", note: "R-403", bg: "#FFFFFF", text: "#000000" },
       },
       Sunday: {
         slot0: { course: "ME 3219", teacher: "MMR/MRP", note: "R-402", bg: "#FFFFFF", text: "#000000" },
-        slot1: { course: "HUM 3217", teacher: "TK", note: "R-402", bg: "#FFFFFF", text: "#000000" },
+        slot1: { course: "ECE 3217", teacher: "TK", note: "R-403", bg: "#FFF266", text: "#000000" },
         slot2: { course: "ECE 3205", teacher: "MFA+MKG", note: "R-402", bg: "#F7AC8E", text: "#000000" },
-        slot3: { course: "ECE 3200", teacher: "GKH+NRP", note: "R-402", bg: "#A8C6FA", text: "#000000", span: 3 },
+        slot3: { course: "ECE 3200", teacher: "GKH+NRP", note: "LAB-8", group: "Lab- all", bg: "#A8C6FA", text: "#000000", span: 3 },
       },
       Monday: {
-        slot2: { course: "ME 3219", teacher: "MMR/MRP", note: "R-402", bg: "#FFFFFF", text: "#000000" },
-        slot3: { course: "ECE 3222", teacher: "HBK+NIS", note: "Lab 2", bg: "#66D2D6", text: "#000000", span: 3 },
+        slot0: { course: "ME 3219", teacher: "MMR/MRP", note: "R-402", bg: "#FFFFFF", text: "#000000" },
+        slot3: { course: "ECE 3222", teacher: "HBK+NIS", note: "LAB-2", group: "1st 30", bg: "#66D2D6", text: "#000000", span: 3 },
       },
       Tuesday: {
-        slot2: { course: "ECE 3207", teacher: "MAH+MNT", note: "R-402", bg: "#FFF266", text: "#000000" },
+        slot0: { course: "ECE 3207", teacher: "T", note: "R-402", bg: "#FFF266", text: "#000000" },
         slot3: { course: "ECE 3205", teacher: "MFA+MKG", note: "R-402", bg: "#F7AC8E", text: "#000000" },
-        slot4: { course: "HUM 3217", teacher: "KF", note: "R-402", bg: "#FFFFFF", text: "#000000" },
+        slot4: { course: "ECE 3217", teacher: "KF", note: "R-402", bg: "#FFF266", text: "#000000" },
         slot5: { course: "ECE 3221", teacher: "HBK+NIS", note: "R-402", bg: "#8EDCE6", text: "#000000" },
-        slot6: { course: "ECE 3200", teacher: "GKH+NRP", note: "R-401", bg: "#A8C6FA", text: "#000000", span: 3 },
+        slot6: { course: "ECE 3200", teacher: "GKH+NRP", note: "R-401", bg: "#FFFFFF", text: "#000000" },
       },
       Wednesday: {
-        slot0: { course: "ECE 3208 / 3206", teacher: "MAH+MNT / MFA+MKG", note: "Lab 10 / Lab-3", bg: "#66D2D6", text: "#000000", span: 3 },
+        slot0: { course: "ECE 3208 / 3206", teacher: "MAH+MNT / MFA+MKG", note: "Lab-10 / LAB-3", group: "1st 30 / 2nd 30", bg: "#66D2D6", text: "#000000", span: 3 },
         slot3: { course: "HUM 3217", teacher: "KF", note: "R-402", bg: "#FFFFFF", text: "#000000" },
-        slot4: { course: "ECE 3207", teacher: "MAH+MNT", note: "R-402", bg: "#FFF266", text: "#000000" },
-        slot5: { course: "ECE 3221", teacher: "HBK+NIS", note: "R-402", bg: "#8EDCE6", text: "#000000" },
-        slot6: { course: "ME 3220", teacher: "MRP", note: "Lab-11", bg: "#A8C6FA", text: "#000000", span: 3 },
+        slot4: { course: "ECE 3207", teacher: "MAH/MNT", note: "R-402", bg: "#FFF266", text: "#000000" },
+        slot5: { course: "ECE 3221", teacher: "HBK/NIS", note: "R-402", bg: "#8EDCE6", text: "#000000" },
       },
     },
     ctSyllabus: []
@@ -204,32 +215,30 @@ const SEMESTER_PRESETS = {
 
   "4-2": {
     seriesName: "4th Year Even (2021 Series / 4-2)",
-    dateRange: "11 November, 2026 to November 15, 2026",
+    dateRange: "14 November, 2026 to November 18, 2026",
     runningWeek: "01",
     totalClassDayCount: "05",
-    previousClassRecord: "[ECE 4209: 00] [ECE 4211: 00] [ECE 4223: 00] [ECE 4227: 00] [ECE 4245: 00]",
-    previousCtRecord: "[ECE 4209: 00] [ECE 4211: 00] [ECE 4223: 00] [ECE 4227: 00] [ECE 4245: 00]",
+    previousClassRecord: "[ECE 4201: 00] [ECE 4203: 00] [ECE 4205: 00] [ECE 4209: 00] [ECE 4227: 00]",
+    previousCtRecord: "[ECE 4201: 00] [ECE 4203: 00] [ECE 4205: 00] [ECE 4209: 00] [ECE 4227: 00]",
     schedule: {
       Saturday: {
-        slot0: { course: "ECE 4227", teacher: "RIY", note: "R-401", bg: "#FFF266", text: "#000000" },
-        slot1: { course: "ECE 4251", teacher: "RIS", note: "R-401", bg: "#FFFFFF", text: "#000000" },
+        slot0: { course: "ECE 4277", teacher: "RIY", note: "R-401", bg: "#FFF266", text: "#000000" },
+        slot1: { course: "ECE 4251", teacher: "RIS", note: "R-401", bg: "#8EDCE6", text: "#000000" },
         slot2: { course: "ECE 4209", teacher: "FT", note: "R-401", bg: "#8EDCE6", text: "#000000" },
-        slot3: { course: "ECE 4212", teacher: "MFA", note: "LAB-1", bg: "#66D2D6", text: "#000000", span: 3 },
-        slot6: { course: "ECE 4000", teacher: "ALL Faculty", note: "Lab-ALL", bg: "#A8C6FA", text: "#000000", span: 3 },
+        slot3: { course: "ECE 4212", teacher: "MFA", note: "LAB-1", group: "1st 30", bg: "#66D2D6", text: "#000000", span: 3 },
       },
       Sunday: {
-        slot0: { course: "ECE 4224", teacher: "RIY+MKG", note: "LAB-1", bg: "#66D2D6", text: "#000000", span: 3 },
-        slot3: { course: "ECE 4211", teacher: "MFA", note: "R-401", bg: "#F7AC8E", text: "#000000" },
-        slot4: { course: "ECE 4227", teacher: "RIY", note: "R-401", bg: "#FFF266", text: "#000000" },
+        slot0: { course: "ECE 4224", teacher: "RIY/MKG", note: "LAB-1", group: "1st 30", bg: "#66D2D6", text: "#000000", span: 3 },
+        slot3: { course: "ECE 4000", teacher: "ALL Faculty", note: "Lab-ALL", group: "Lab- all", bg: "#A8C6FA", text: "#000000", span: 3 },
       },
       Monday: {
-        slot0: { course: "ECE 4245", teacher: "MSZ", note: "R-401", bg: "#8EDCE6", text: "#000000" },
-        slot1: { course: "ECE 4224", teacher: "RIY+MKG", note: "LAB-2", bg: "#66D2D6", text: "#000000", span: 2 },
-        slot3: { course: "ECE 4223", teacher: "MKG+RIY", note: "R-401", bg: "#F7AC8E", text: "#000000" },
+        slot0: { course: "ECE 4245", teacher: "MSZ", note: "R-401", bg: "#FFF266", text: "#000000" },
+        slot1: { course: "ECE 4224", teacher: "RIY/MKG", note: "LAB-2", group: "2nd 30", bg: "#66D2D6", text: "#000000", span: 3 },
+        slot3: { course: "ECE 4223", teacher: "MKG/RIY", note: "R-401", bg: "#F7AC8E", text: "#000000" },
         slot4: { course: "ECE 4209", teacher: "FT", note: "R-401", bg: "#8EDCE6", text: "#000000" },
       },
       Tuesday: {
-        slot0: { course: "ECE 4252", teacher: "SH", note: "LAB-1/15", bg: "#66D2D6", text: "#000000", span: 3 },
+        slot0: { course: "ECE 4252", teacher: "SH", note: "LAB-1/15", group: "Lab- all", bg: "#66D2D6", text: "#000000", span: 3 },
         slot3: { course: "ECE 4211", teacher: "MFA", note: "R-401", bg: "#F7AC8E", text: "#000000" },
         slot4: { course: "ECE 4223", teacher: "MKG+RIY", note: "R-401", bg: "#F7AC8E", text: "#000000" },
         slot5: { course: "ECE 4227", teacher: "RIY", note: "R-401", bg: "#FFF266", text: "#000000" },
@@ -238,7 +247,7 @@ const SEMESTER_PRESETS = {
         slot3: { course: "ECE 4211", teacher: "MFA", note: "R-401", bg: "#F7AC8E", text: "#000000" },
         slot4: { course: "ECE 4223", teacher: "MKG+RIY", note: "R-401", bg: "#F7AC8E", text: "#000000" },
         slot5: { course: "ECE 4209", teacher: "FT", note: "R-401", bg: "#8EDCE6", text: "#000000" },
-        slot6: { course: "ECE 4228 / 4246", teacher: "RIY+MSZ", note: "LAB-1 / LAB-2", bg: "#66D2D6", text: "#000000", span: 3 },
+        slot6: { course: "ECE 4228 / 4246", teacher: "RIY+MSZ", note: "LAB-1 / LAB-2", group: "1st 30 / 2nd 30", bg: "#66D2D6", text: "#000000", span: 3 },
       },
     },
     ctSyllabus: []
@@ -248,9 +257,11 @@ const SEMESTER_PRESETS = {
 export default function RoutineVisualExporter() {
   const [selectedSemKey, setSelectedSemKey] = useState("2-2"); // Default to user's 2-2 semester
   const [data, setData] = useState(SEMESTER_PRESETS["2-2"]);
-  const [activeTab, setActiveTab] = useState("preview"); // "preview" | "header" | "ct"
+  const [activeTab, setActiveTab] = useState("preview"); // "preview" | "header" | "labs" | "ct"
   const [selectedCell, setSelectedCell] = useState(null); // { day, slotId }
   const [downloading, setDownloading] = useState(false);
+  const [syncingDb, setSyncingDb] = useState(false);
+  const [syncSuccessMsg, setSyncSuccessMsg] = useState("");
   const routineRef = useRef(null);
 
   // Switch between semester presets
@@ -261,11 +272,91 @@ export default function RoutineVisualExporter() {
     }
   };
 
+  // Extract all lab slots across the week from the current schedule
+  const labSlots = useMemo(() => {
+    const list = [];
+    DAYS.forEach(day => {
+      const daySlots = data.schedule[day] || {};
+      Object.keys(daySlots).forEach(slotId => {
+        const slot = daySlots[slotId];
+        if (slot) {
+          const isLab = (slot.span && slot.span >= 2) ||
+            (slot.note && slot.note.toLowerCase().includes("lab")) ||
+            (slot.group && slot.group !== "All");
+          if (isLab) {
+            const timeObj = TIME_SLOTS.find(t => t.id === slotId);
+            list.push({
+              day,
+              slotId,
+              time: timeObj ? timeObj.time : slotId,
+              ...slot
+            });
+          }
+        }
+      });
+    });
+    return list;
+  }, [data.schedule]);
+
+  // Group lab slots by courseCode
+  const labsByCourse = useMemo(() => {
+    const map = {};
+    labSlots.forEach(slot => {
+      const c = slot.course || "Other Lab";
+      if (!map[c]) map[c] = [];
+      map[c].push(slot);
+    });
+    return map;
+  }, [labSlots]);
+
+  // Update a lab slot's target group
+  const handleSetSlotGroup = (day, slotId, newGroup) => {
+    const updated = { ...data.schedule };
+    if (!updated[day] || !updated[day][slotId]) return;
+    updated[day][slotId] = {
+      ...updated[day][slotId],
+      group: newGroup
+    };
+    setData({ ...data, schedule: updated });
+  };
+
+  // Swap 1st 30 and 2nd 30 between two sessions of a lab course
+  const handleSwapCourseGroups = (courseCode) => {
+    const slots = labsByCourse[courseCode] || [];
+    if (slots.length < 2) return;
+    const updated = { ...data.schedule };
+    const s1 = slots[0];
+    const s2 = slots[1];
+    const g1 = s1.group || "1st 30";
+    const g2 = s2.group || "2nd 30";
+
+    updated[s1.day][s1.slotId] = { ...updated[s1.day][s1.slotId], group: g2 };
+    updated[s2.day][s2.slotId] = { ...updated[s2.day][s2.slotId], group: g1 };
+
+    setData({ ...data, schedule: updated });
+  };
+
+  // Auto-alternate all multi-session labs
+  const handleAutoAlternateAll = () => {
+    const updated = { ...data.schedule };
+    Object.keys(labsByCourse).forEach(courseCode => {
+      const sessions = labsByCourse[courseCode];
+      if (sessions.length >= 2) {
+        sessions.forEach((s, idx) => {
+          const grp = idx % 2 === 0 ? "1st 30" : "2nd 30";
+          updated[s.day][s.slotId] = { ...updated[s.day][s.slotId], group: grp };
+        });
+      }
+    });
+    setData({ ...data, schedule: updated });
+  };
+
   // Edit cell modal state
   const [cellForm, setCellForm] = useState({
     course: "",
     teacher: "",
     note: "",
+    group: "All",
     span: 1,
     isCT: false,
     bg: "#FFFFFF",
@@ -279,6 +370,7 @@ export default function RoutineVisualExporter() {
       course: existing.course || "",
       teacher: existing.teacher || "",
       note: existing.note || "",
+      group: existing.group || (existing.span >= 2 ? "1st 30" : "All"),
       span: existing.span || 1,
       isCT: existing.isCT || false,
       bg: existing.bg || (existing.isCT ? "#000000" : "#FFFFFF"),
@@ -299,6 +391,7 @@ export default function RoutineVisualExporter() {
         course: cellForm.course.trim(),
         teacher: cellForm.teacher.trim(),
         note: cellForm.note.trim(),
+        group: cellForm.group || "All",
         span: Number(cellForm.span) || 1,
         isCT: cellForm.isCT,
         bg: cellForm.isCT ? "#000000" : cellForm.bg,
@@ -324,7 +417,7 @@ export default function RoutineVisualExporter() {
   const handleAddCtSyllabus = () => {
     setData({
       ...data,
-      ctSyllabus: [...data.ctSyllabus, { courseCode: "", syllabus: "" }]
+      ctSyllabus: [...(data.ctSyllabus || []), { courseCode: "", syllabus: "" }]
     });
   };
 
@@ -341,25 +434,37 @@ export default function RoutineVisualExporter() {
     });
   };
 
+  // High-Res PNG Export using html2canvas-pro
   const handleDownloadPNG = async () => {
     if (!routineRef.current) return;
     setDownloading(true);
     try {
+      // html2canvas-pro natively parses oklch and modern Tailwind CSS v4 variables
       const canvas = await html2canvas(routineRef.current, {
         scale: 2.5,
         useCORS: true,
+        allowTaint: true,
         backgroundColor: "#ffffff",
         logging: false,
+        windowWidth: 1200,
+        onclone: (clonedDoc) => {
+          const el = clonedDoc.querySelector("[data-routine-export='true']");
+          if (el) {
+            el.style.transform = "none";
+          }
+        }
       });
 
-      const image = canvas.toDataURL("image/png");
+      const image = canvas.toDataURL("image/png", 1.0);
       const a = document.createElement("a");
       a.href = image;
       a.download = `Routine_${selectedSemKey}_Week_${data.runningWeek || "01"}.png`;
+      document.body.appendChild(a);
       a.click();
+      document.body.removeChild(a);
     } catch (err) {
       console.error("Failed to generate routine image:", err);
-      alert("Error generating PNG. Please try again.");
+      alert(`Error generating PNG: ${err?.message || "Please try again."}`);
     } finally {
       setDownloading(false);
     }
@@ -378,11 +483,11 @@ export default function RoutineVisualExporter() {
               Visual Routine Designer
             </h2>
             <div className="flex items-center gap-2 mt-0.5">
-              <span className="text-xs text-slate-500">Preset:</span>
+              <span className="text-xs text-slate-500 dark:text-slate-400">Preset:</span>
               <select
                 value={selectedSemKey}
                 onChange={(e) => handleSelectSemesterPreset(e.target.value)}
-                className="text-xs font-semibold px-2 py-0.5 bg-indigo-50 text-indigo-700 border border-indigo-200 rounded-md outline-none"
+                className="text-xs font-semibold bg-slate-100 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded px-2 py-0.5 text-indigo-600 dark:text-indigo-400 focus:outline-none"
               >
                 <option value="2-2">2-2 (2024 Series - Current)</option>
                 <option value="1-2">1-2 (2025 Series)</option>
@@ -394,28 +499,46 @@ export default function RoutineVisualExporter() {
           </div>
         </div>
 
-        <div className="flex items-center gap-2 flex-wrap">
-          <div className="flex bg-slate-100 dark:bg-slate-700 p-1 rounded-lg text-sm">
+        {/* View mode & action buttons */}
+        <div className="flex flex-wrap items-center gap-2">
+          <div className="flex bg-slate-100 dark:bg-slate-900 p-1 rounded-lg border border-slate-200 dark:border-slate-700 text-xs font-medium">
             <button
               onClick={() => setActiveTab("preview")}
-              className={`px-3 py-1.5 rounded-md font-medium transition ${
-                activeTab === "preview" ? "bg-white dark:bg-slate-800 shadow-sm text-indigo-600 dark:text-indigo-400" : "text-slate-600 dark:text-slate-300"
+              className={`px-3 py-1.5 rounded-md transition ${
+                activeTab === "preview"
+                  ? "bg-white dark:bg-slate-800 text-indigo-600 dark:text-white shadow-xs font-bold"
+                  : "text-slate-600 dark:text-slate-400 hover:text-slate-900"
               }`}
             >
               Visual Preview
             </button>
             <button
               onClick={() => setActiveTab("header")}
-              className={`px-3 py-1.5 rounded-md font-medium transition ${
-                activeTab === "header" ? "bg-white dark:bg-slate-800 shadow-sm text-indigo-600 dark:text-indigo-400" : "text-slate-600 dark:text-slate-300"
+              className={`px-3 py-1.5 rounded-md transition ${
+                activeTab === "header"
+                  ? "bg-white dark:bg-slate-800 text-indigo-600 dark:text-white shadow-xs font-bold"
+                  : "text-slate-600 dark:text-slate-400 hover:text-slate-900"
               }`}
             >
               Header & Counts
             </button>
             <button
+              onClick={() => setActiveTab("labs")}
+              className={`px-3 py-1.5 rounded-md transition flex items-center gap-1.5 ${
+                activeTab === "labs"
+                  ? "bg-white dark:bg-slate-800 text-indigo-600 dark:text-white shadow-xs font-bold"
+                  : "text-slate-600 dark:text-slate-400 hover:text-slate-900"
+              }`}
+            >
+              <Users className="w-3.5 h-3.5 text-amber-500" />
+              Lab Allocations (1st / 2nd 30)
+            </button>
+            <button
               onClick={() => setActiveTab("ct")}
-              className={`px-3 py-1.5 rounded-md font-medium transition ${
-                activeTab === "ct" ? "bg-white dark:bg-slate-800 shadow-sm text-indigo-600 dark:text-indigo-400" : "text-slate-600 dark:text-slate-300"
+              className={`px-3 py-1.5 rounded-md transition flex items-center gap-1 ${
+                activeTab === "ct"
+                  ? "bg-white dark:bg-slate-800 text-indigo-600 dark:text-white shadow-xs font-bold"
+                  : "text-slate-600 dark:text-slate-400 hover:text-slate-900"
               }`}
             >
               CT Syllabus ({data.ctSyllabus?.length || 0})
@@ -424,16 +547,16 @@ export default function RoutineVisualExporter() {
 
           <button
             onClick={() => handleSelectSemesterPreset(selectedSemKey)}
-            className="flex items-center gap-1.5 px-3 py-2 text-sm text-slate-600 dark:text-slate-300 hover:text-rose-600 hover:bg-slate-100 dark:hover:bg-slate-700 rounded-lg transition"
-            title="Reset to official schedule"
+            className="flex items-center gap-1 text-xs text-slate-500 hover:text-slate-700 dark:hover:text-slate-300 px-2.5 py-1.5 rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800"
+            title="Reset to default timetable preset"
           >
-            <RotateCcw className="w-4 h-4" /> Reset
+            <RotateCcw className="w-3.5 h-3.5" /> Reset
           </button>
 
           <button
             onClick={handleDownloadPNG}
             disabled={downloading}
-            className="flex items-center gap-2 bg-emerald-600 hover:bg-emerald-700 text-white font-medium text-sm px-4 py-2 rounded-lg shadow-sm transition disabled:opacity-50 cursor-pointer"
+            className="flex items-center gap-2 bg-emerald-600 hover:bg-emerald-700 disabled:opacity-50 text-white text-xs font-semibold px-4 py-2 rounded-lg shadow-sm transition"
           >
             <Download className="w-4 h-4" />
             {downloading ? "Rendering PNG..." : "Download Routine PNG"}
@@ -454,7 +577,7 @@ export default function RoutineVisualExporter() {
                 type="text"
                 value={data.dateRange}
                 onChange={(e) => setData({ ...data, dateRange: e.target.value })}
-                placeholder="e.g. 11 November, 2026 to November 15, 2026"
+                placeholder="e.g. 14 November, 2026 to November 18, 2026"
                 className="w-full px-3 py-2 border rounded-lg text-sm bg-slate-50 dark:bg-slate-900 dark:border-slate-700 dark:text-white"
               />
             </div>
@@ -514,6 +637,129 @@ export default function RoutineVisualExporter() {
               className="bg-indigo-600 text-white px-4 py-2 rounded-lg text-sm font-medium hover:bg-indigo-700 transition"
             >
               Save & View Routine
+            </button>
+          </div>
+        </div>
+      )}
+
+      {/* Lab Sessional Allocations Tab (1st 30 / 2nd 30) */}
+      {activeTab === "labs" && (
+        <div className="bg-white dark:bg-slate-800 p-6 rounded-xl border border-slate-200 dark:border-slate-700 shadow-sm space-y-5">
+          <div className="flex flex-col md:flex-row justify-between md:items-center gap-3 border-b pb-3">
+            <div>
+              <h3 className="font-bold text-slate-800 dark:text-white flex items-center gap-2">
+                <Users className="w-5 h-5 text-amber-500" />
+                Assign Sessional Lab Batches (1st 30 vs 2nd 30)
+              </h3>
+              <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">
+                Select which student group performs lab experiments on each scheduled date. Changes immediately appear on the printable routine.
+              </p>
+            </div>
+
+            <button
+              onClick={handleAutoAlternateAll}
+              className="flex items-center gap-1.5 text-xs font-semibold bg-amber-50 dark:bg-amber-950/40 text-amber-700 dark:text-amber-300 border border-amber-300/80 dark:border-amber-700/60 px-3.5 py-2 rounded-lg hover:bg-amber-100 transition shadow-xs self-start md:self-auto"
+            >
+              <Sparkles className="w-4 h-4 text-amber-500" /> Auto-Alternate All Multi-Session Labs
+            </button>
+          </div>
+
+          <div className="space-y-4">
+            {Object.keys(labsByCourse).length === 0 ? (
+              <p className="text-sm text-slate-400 py-6 text-center">No sessional lab slots detected in this routine preset.</p>
+            ) : (
+              Object.keys(labsByCourse).map(courseCode => {
+                const sessions = labsByCourse[courseCode];
+                return (
+                  <div key={courseCode} className="bg-slate-50 dark:bg-slate-900/70 p-4 rounded-xl border border-slate-200 dark:border-slate-700 space-y-3">
+                    <div className="flex justify-between items-center">
+                      <div className="flex items-center gap-2">
+                        <span className="font-bold text-sm text-slate-800 dark:text-white bg-indigo-100 dark:bg-indigo-900/40 text-indigo-700 dark:text-indigo-300 px-2 py-0.5 rounded">
+                          {courseCode}
+                        </span>
+                        <span className="text-xs text-slate-500">
+                          ({sessions.length} weekly session{sessions.length > 1 ? "s" : ""})
+                        </span>
+                      </div>
+
+                      {sessions.length >= 2 && (
+                        <button
+                          type="button"
+                          onClick={() => handleSwapCourseGroups(courseCode)}
+                          className="flex items-center gap-1 text-xs text-indigo-600 dark:text-indigo-400 hover:underline font-semibold bg-white dark:bg-slate-800 px-2.5 py-1 rounded border border-slate-200 dark:border-slate-700"
+                          title="Swap groups between session dates"
+                        >
+                          <RefreshCw className="w-3 h-3" /> Swap Dates (1st ⇄ 2nd 30)
+                        </button>
+                      )}
+                    </div>
+
+                    <div className="grid md:grid-cols-2 gap-3">
+                      {sessions.map((session, sIdx) => {
+                        const currentGrp = session.group || "1st 30";
+                        return (
+                          <div
+                            key={`${session.day}-${session.slotId}`}
+                            className="bg-white dark:bg-slate-800 p-3 rounded-lg border border-slate-200 dark:border-slate-700 flex flex-col justify-between gap-2 shadow-xs"
+                          >
+                            <div className="flex justify-between items-start">
+                              <div>
+                                <span className="text-xs font-bold text-slate-800 dark:text-white">
+                                  {session.day}
+                                </span>
+                                <span className="text-[11px] text-slate-500 ml-1.5 font-mono">
+                                  ({session.time})
+                                </span>
+                                <div className="text-[11px] text-slate-500 mt-0.5">
+                                  Room: <span className="font-semibold text-slate-700 dark:text-slate-300">{session.note || "Lab"}</span> &bull; Teacher: <span className="font-semibold text-slate-700 dark:text-slate-300">{session.teacher}</span>
+                                </div>
+                              </div>
+                              <span
+                                className="text-[11px] font-extrabold px-2 py-0.5 rounded border"
+                                style={{
+                                  color: currentGrp === "1st 30" ? "#b45309" : currentGrp === "2nd 30" ? "#0284c7" : "#475569",
+                                  backgroundColor: currentGrp === "1st 30" ? "#fef3c7" : currentGrp === "2nd 30" ? "#e0f2fe" : "#f1f5f9",
+                                  borderColor: currentGrp === "1st 30" ? "#fde68a" : currentGrp === "2nd 30" ? "#bae6fd" : "#cbd5e1"
+                                }}
+                              >
+                                {currentGrp}
+                              </span>
+                            </div>
+
+                            {/* Group selector buttons */}
+                            <div className="flex flex-wrap gap-1.5 pt-1 border-t border-slate-100 dark:border-slate-700">
+                              {["1st 30", "2nd 30", "1st 30 / 2nd 30", "Lab- all", "All"].map(grp => (
+                                <button
+                                  key={grp}
+                                  type="button"
+                                  onClick={() => handleSetSlotGroup(session.day, session.slotId, grp)}
+                                  className={`px-2 py-1 text-[11px] font-bold rounded transition ${
+                                    currentGrp === grp
+                                      ? "bg-amber-500 text-white shadow-xs"
+                                      : "bg-slate-100 dark:bg-slate-700 text-slate-600 dark:text-slate-300 hover:bg-slate-200"
+                                  }`}
+                                >
+                                  {grp}
+                                </button>
+                              ))}
+                            </div>
+                          </div>
+                        );
+                      })}
+                    </div>
+                  </div>
+                );
+              })
+            )}
+          </div>
+
+          <div className="flex justify-between items-center pt-3 border-t">
+            <span className="text-xs text-slate-500">All changes reflect in the printable routine in real-time.</span>
+            <button
+              onClick={() => setActiveTab("preview")}
+              className="bg-indigo-600 text-white px-4 py-2 rounded-lg text-sm font-medium hover:bg-indigo-700 transition"
+            >
+              Done & View Preview
             </button>
           </div>
         </div>
@@ -583,7 +829,7 @@ export default function RoutineVisualExporter() {
       {/* Visual Canvas / Printable Document View */}
       <div className="space-y-2">
         <div className="flex items-center justify-between text-xs text-slate-500 dark:text-slate-400 px-1">
-          <span>💡 Tip: Click on any slot in the timetable to edit its course, teacher, room, or add CT (Class Test) black box.</span>
+          <span>💡 Tip: Click on any slot in the timetable to edit course, teacher, room, lab group (1st/2nd 30), or add CT (Class Test) black box.</span>
           <span>Click "Download Routine PNG" above to export.</span>
         </div>
 
@@ -591,13 +837,14 @@ export default function RoutineVisualExporter() {
         <div className="overflow-x-auto bg-slate-200 dark:bg-slate-900/60 p-4 rounded-xl border border-slate-300 dark:border-slate-800 flex justify-center">
           <div
             ref={routineRef}
+            data-routine-export="true"
             className="w-[1050px] bg-white text-black p-8 font-sans shadow-lg select-none"
-            style={{ minWidth: "1050px" }}
+            style={{ minWidth: "1050px", backgroundColor: "#ffffff", color: "#000000" }}
           >
             {/* Top header lines */}
-            <div className="flex justify-between items-center text-sm font-serif">
+            <div className="flex justify-between items-center text-sm font-serif" style={{ color: "#000000" }}>
               <div>
-                This Routine will be followed from <span className="font-bold">{data.dateRange.split(" to ")[0]}</span> to <span className="font-bold">{data.dateRange.split(" to ")[1] || data.dateRange}</span>
+                This Routine will be followed from <span className="font-bold">{data.dateRange?.split(" to ")[0] || "14 November, 2026"}</span> to <span className="font-bold">{data.dateRange?.split(" to ")[1] || data.dateRange}</span>
               </div>
               <div className="font-serif">
                 Running Week: <span className="font-bold">{data.runningWeek}</span>
@@ -605,48 +852,52 @@ export default function RoutineVisualExporter() {
             </div>
 
             {/* Solid separator line */}
-            <hr className="border-t border-black my-2" />
+            <hr className="border-t border-black my-2" style={{ borderColor: "#000000" }} />
 
             {/* Counts & Records Header */}
-            <div className="space-y-1 text-xs font-serif font-bold text-[#18538a] mb-5">
+            <div className="space-y-1 text-xs font-serif font-bold mb-5" style={{ color: "#18538a" }}>
               <div>Total class day count: {data.totalClassDayCount}</div>
               <div>Previous Class Record: {data.previousClassRecord}</div>
               <div>Previous Class Test Record: {data.previousCtRecord}</div>
             </div>
 
             {/* Main Timetable */}
-            <div className="border border-black overflow-hidden mb-6">
-              <table className="w-full border-collapse text-center">
+            <div className="border border-black overflow-hidden mb-6" style={{ borderColor: "#000000" }}>
+              <table className="w-full border-collapse text-center" style={{ borderCollapse: "collapse" }}>
                 <thead>
-                  <tr className="bg-[#8cd57e] text-black text-xs font-bold font-sans">
+                  <tr style={{ backgroundColor: "#8cd57e", color: "#000000", fontSize: "11px", fontWeight: "bold" }}>
                     {/* Corner Cell: TIME / DAY */}
-                    <th className="border border-black p-2 w-[90px] relative text-left">
+                    <th className="border border-black p-2 w-[90px] relative text-left" style={{ borderColor: "#000000" }}>
                       <div className="text-right text-[11px] leading-tight pr-1">TIME</div>
                       <div className="text-left text-[11px] leading-tight pl-1 -mt-1">DAY</div>
                     </th>
 
                     {/* Period Columns */}
-                    <th className="border border-black p-1.5 w-[75px] leading-tight text-[11px]">8.00<br/>8.50</th>
-                    <th className="border border-black p-1.5 w-[75px] leading-tight text-[11px]">8.50<br/>9.40</th>
-                    <th className="border border-black p-1.5 w-[75px] leading-tight text-[11px]">9.40<br/>10.30</th>
+                    <th className="border border-black p-1.5 w-[75px] leading-tight text-[11px]" style={{ borderColor: "#000000" }}>8.00<br/>8.50</th>
+                    <th className="border border-black p-1.5 w-[75px] leading-tight text-[11px]" style={{ borderColor: "#000000" }}>8.50<br/>9.40</th>
+                    <th className="border border-black p-1.5 w-[75px] leading-tight text-[11px]" style={{ borderColor: "#000000" }}>9.40<br/>10.30</th>
                     
                     {/* Vertical Break 1 */}
-                    <th className="border border-black p-1 w-[26px] text-[10px] leading-none select-none bg-[#8cd57e]">
-                      <div className="rotate-180 [writing-mode:vertical-rl] mx-auto py-1 tracking-tighter">10.30-10.50</div>
+                    <th className="border border-black p-1 w-[26px] text-[10px] leading-none select-none" style={{ backgroundColor: "#8cd57e", borderColor: "#000000" }}>
+                      <div style={{ writingMode: "vertical-rl", transform: "rotate(180deg)", margin: "0 auto", padding: "4px 0", letterSpacing: "-0.5px" }}>
+                        10.30-10.50
+                      </div>
                     </th>
 
-                    <th className="border border-black p-1.5 w-[75px] leading-tight text-[11px]">10.50<br/>11.40</th>
-                    <th className="border border-black p-1.5 w-[75px] leading-tight text-[11px]">11.40<br/>12.30</th>
-                    <th className="border border-black p-1.5 w-[75px] leading-tight text-[11px]">12.30<br/>1.20</th>
+                    <th className="border border-black p-1.5 w-[75px] leading-tight text-[11px]" style={{ borderColor: "#000000" }}>10.50<br/>11.40</th>
+                    <th className="border border-black p-1.5 w-[75px] leading-tight text-[11px]" style={{ borderColor: "#000000" }}>11.40<br/>12.30</th>
+                    <th className="border border-black p-1.5 w-[75px] leading-tight text-[11px]" style={{ borderColor: "#000000" }}>12.30<br/>1.20</th>
 
                     {/* Vertical Break 2 */}
-                    <th className="border border-black p-1 w-[26px] text-[10px] leading-none select-none bg-[#8cd57e]">
-                      <div className="rotate-180 [writing-mode:vertical-rl] mx-auto py-1 tracking-tighter">1.20-2.30</div>
+                    <th className="border border-black p-1 w-[26px] text-[10px] leading-none select-none" style={{ backgroundColor: "#8cd57e", borderColor: "#000000" }}>
+                      <div style={{ writingMode: "vertical-rl", transform: "rotate(180deg)", margin: "0 auto", padding: "4px 0", letterSpacing: "-0.5px" }}>
+                        1.20-2.30
+                      </div>
                     </th>
 
-                    <th className="border border-black p-1.5 w-[75px] leading-tight text-[11px]">2.30<br/>3.20</th>
-                    <th className="border border-black p-1.5 w-[75px] leading-tight text-[11px]">3.20<br/>4.10</th>
-                    <th className="border border-black p-1.5 w-[75px] leading-tight text-[11px]">4.10<br/>5.00</th>
+                    <th className="border border-black p-1.5 w-[75px] leading-tight text-[11px]" style={{ borderColor: "#000000" }}>2.30<br/>3.20</th>
+                    <th className="border border-black p-1.5 w-[75px] leading-tight text-[11px]" style={{ borderColor: "#000000" }}>3.20<br/>4.10</th>
+                    <th className="border border-black p-1.5 w-[75px] leading-tight text-[11px]" style={{ borderColor: "#000000" }}>4.10<br/>5.00</th>
                   </tr>
                 </thead>
 
@@ -657,7 +908,10 @@ export default function RoutineVisualExporter() {
                     return (
                       <tr key={day} className="h-[62px]">
                         {/* Day label */}
-                        <td className="border border-black font-serif font-bold text-xs bg-[#d4cc95] px-2 text-center">
+                        <td
+                          className="border border-black font-serif font-bold text-xs px-2 text-center"
+                          style={{ backgroundColor: "#d4cc95", borderColor: "#000000", color: "#000000" }}
+                        >
                           {day}
                         </td>
 
@@ -674,9 +928,10 @@ export default function RoutineVisualExporter() {
                         {dayIndex === 0 && (
                           <td
                             rowSpan={DAYS.length}
-                            className="border border-black bg-white text-[11px] font-sans font-medium text-center p-0 align-middle select-none"
+                            className="border border-black text-[11px] font-sans font-medium text-center p-0 align-middle select-none"
+                            style={{ backgroundColor: "#ffffff", borderColor: "#000000", color: "#334155" }}
                           >
-                            <div className="rotate-180 [writing-mode:vertical-rl] tracking-wider uppercase text-slate-700 mx-auto">
+                            <div style={{ writingMode: "vertical-rl", transform: "rotate(180deg)", margin: "0 auto", textTransform: "uppercase", letterSpacing: "1px" }}>
                               Class Break
                             </div>
                           </td>
@@ -695,9 +950,10 @@ export default function RoutineVisualExporter() {
                         {dayIndex === 0 && (
                           <td
                             rowSpan={DAYS.length}
-                            className="border border-black bg-white text-[11px] font-sans font-medium text-center p-0 align-middle select-none"
+                            className="border border-black text-[11px] font-sans font-medium text-center p-0 align-middle select-none"
+                            style={{ backgroundColor: "#ffffff", borderColor: "#000000", color: "#334155" }}
                           >
-                            <div className="rotate-180 [writing-mode:vertical-rl] tracking-wider uppercase text-slate-700 mx-auto">
+                            <div style={{ writingMode: "vertical-rl", transform: "rotate(180deg)", margin: "0 auto", textTransform: "uppercase", letterSpacing: "1px" }}>
                               Class Break
                             </div>
                           </td>
@@ -721,12 +977,12 @@ export default function RoutineVisualExporter() {
             {/* CT Syllabus Section at the Bottom */}
             {data.ctSyllabus && data.ctSyllabus.length > 0 && (
               <div className="pt-2 font-serif text-sm">
-                <h4 className="font-bold text-[#18538a] text-[15px] mb-1.5">CT Syllabus</h4>
+                <h4 className="font-bold text-[15px] mb-1.5" style={{ color: "#18538a" }}>CT Syllabus</h4>
                 <div className="space-y-1.5 text-[13px] leading-relaxed">
                   {data.ctSyllabus.map((ct, idx) => (
                     <div key={idx}>
-                      <span className="font-bold text-[#18538a]">{ct.courseCode}: </span>
-                      <span className="font-sans text-black font-medium">{ct.syllabus}</span>
+                      <span className="font-bold" style={{ color: "#18538a" }}>{ct.courseCode}: </span>
+                      <span className="font-sans font-medium" style={{ color: "#000000" }}>{ct.syllabus}</span>
                     </div>
                   ))}
                 </div>
@@ -792,6 +1048,36 @@ export default function RoutineVisualExporter() {
                   value={cellForm.note}
                   onChange={(e) => setCellForm({ ...cellForm, note: e.target.value })}
                   className="w-full px-3 py-2 border rounded-lg bg-slate-50 dark:bg-slate-900 dark:border-slate-700 dark:text-white"
+                />
+              </div>
+
+              {/* Target Group (1st 30 / 2nd 30) */}
+              <div>
+                <label className="block text-xs font-semibold text-slate-600 dark:text-slate-300 uppercase mb-1">
+                  Target Group / Sessional Batch
+                </label>
+                <div className="grid grid-cols-4 gap-1.5 mb-2">
+                  {["1st 30", "2nd 30", "1st 30 / 2nd 30", "All"].map(grp => (
+                    <button
+                      key={grp}
+                      type="button"
+                      onClick={() => setCellForm({ ...cellForm, group: grp })}
+                      className={`px-2 py-1.5 text-xs font-bold rounded-lg border transition ${
+                        cellForm.group === grp
+                          ? "bg-amber-500 text-white border-amber-600 shadow-xs"
+                          : "bg-slate-100 dark:bg-slate-700 text-slate-700 dark:text-slate-200 border-slate-300 dark:border-slate-600 hover:bg-slate-200"
+                      }`}
+                    >
+                      {grp}
+                    </button>
+                  ))}
+                </div>
+                <input
+                  type="text"
+                  placeholder="Or enter custom group, e.g. Lab- all"
+                  value={cellForm.group || ""}
+                  onChange={(e) => setCellForm({ ...cellForm, group: e.target.value })}
+                  className="w-full px-3 py-1.5 border rounded-lg bg-slate-50 dark:bg-slate-900 dark:border-slate-700 dark:text-white text-xs"
                 />
               </div>
 
@@ -905,6 +1191,7 @@ function renderSlotCell(day, slotId, slotData, isOverriddenBySpan = false, onCli
         key={slotId}
         onClick={onClick}
         className="border border-black p-1 bg-white hover:bg-slate-100 cursor-pointer transition"
+        style={{ borderColor: "#000000", backgroundColor: "#ffffff" }}
         title="Click to add course"
       >
         <span className="opacity-0 group-hover:opacity-100 text-[10px] text-slate-400">+</span>
@@ -912,7 +1199,7 @@ function renderSlotCell(day, slotId, slotData, isOverriddenBySpan = false, onCli
     );
   }
 
-  const { course, teacher, note, noteBg, noteColor, bg, text, span = 1, isCT } = slotData;
+  const { course, teacher, note, noteBg, noteColor, bg, text, span = 1, isCT, group } = slotData;
 
   return (
     <td
@@ -920,7 +1207,11 @@ function renderSlotCell(day, slotId, slotData, isOverriddenBySpan = false, onCli
       colSpan={span}
       onClick={onClick}
       className="border border-black p-1 text-center align-middle cursor-pointer hover:brightness-95 transition"
-      style={{ backgroundColor: bg || "#FFFFFF", color: text || "#000000" }}
+      style={{
+        backgroundColor: bg || "#FFFFFF",
+        color: text || "#000000",
+        borderColor: "#000000"
+      }}
       title="Click to edit slot"
     >
       <div className="flex flex-col items-center justify-center leading-tight py-0.5">
@@ -935,6 +1226,19 @@ function renderSlotCell(day, slotId, slotData, isOverriddenBySpan = false, onCli
             }}
           >
             {note}
+          </span>
+        )}
+        {/* Target Group: 1st 30 / 2nd 30 in distinct yellow/amber styling */}
+        {group && group !== "All" && (
+          <span
+            className="text-[11px] font-black mt-0.5 px-1.5 py-0.2 rounded"
+            style={{
+              color: isCT ? "#fef08a" : "#b45309",
+              backgroundColor: isCT ? "#18181b" : "#fef3c7",
+              letterSpacing: "-0.2px"
+            }}
+          >
+            {group}
           </span>
         )}
       </div>

@@ -12,7 +12,7 @@ import feeService from "../../services/feeService";
 import { formatCurrency, formatDate, formatDateTime, getStatusBadge, getStatusLabel } from "../../utils/helpers";
 import { PageLoader } from "../../components/common/Loader";
 import Modal from "../../components/common/Modal";
-import html2canvas from "html2canvas";
+import html2canvas from "html2canvas-pro";
 import { jsPDF } from "jspdf";
 import {
   CreditCard,
