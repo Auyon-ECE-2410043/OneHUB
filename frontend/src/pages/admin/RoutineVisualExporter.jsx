@@ -35,14 +35,43 @@ const TIME_SLOTS = [
 
 const DAYS = ["Saturday", "Sunday", "Monday", "Tuesday", "Wednesday"];
 
+const getContrastTextColor = (hexColor) => {
+  if (!hexColor || hexColor === "#000000") return "#FFFFFF";
+  const hex = hexColor.replace("#", "");
+  if (hex.length < 6) return "#000000";
+  const r = parseInt(hex.substr(0, 2), 16);
+  const g = parseInt(hex.substr(2, 2), 16);
+  const b = parseInt(hex.substr(4, 2), 16);
+  const yiq = ((r * 299) + (g * 587) + (b * 114)) / 1000;
+  return yiq >= 145 ? "#000000" : "#FFFFFF";
+};
+
 const COLOR_PRESETS = [
+  // Classic Department Routine Palette
   { label: "Light Blue", bg: "#8EDCE6", text: "#000000" },
   { label: "Peach", bg: "#F7AC8E", text: "#000000" },
-  { label: "Yellow", bg: "#FFF266", text: "#000000" },
-  { label: "Cyan/Teal (Lab)", bg: "#66D2D6", text: "#000000" },
-  { label: "Periwinkle Blue", bg: "#A8C6FA", text: "#000000" },
-  { label: "White", bg: "#FFFFFF", text: "#000000" },
-  { label: "Black (Class Test)", bg: "#000000", text: "#FFFFFF" },
+  { label: "Bright Yellow", bg: "#FFF266", text: "#000000" },
+  { label: "Cyan/Teal Lab", bg: "#66D2D6", text: "#000000" },
+  { label: "Periwinkle", bg: "#A8C6FA", text: "#000000" },
+  { label: "Mint Green", bg: "#A7F3D0", text: "#000000" },
+  { label: "Soft Lavender", bg: "#DDD6FE", text: "#000000" },
+  { label: "Rose Pink", bg: "#FECDD3", text: "#000000" },
+  { label: "Warm Amber", bg: "#FDE68A", text: "#000000" },
+  { label: "Sky Blue", bg: "#BAE6FD", text: "#000000" },
+  { label: "Spring Lime", bg: "#D9F99D", text: "#000000" },
+  { label: "Lilac Violet", bg: "#E9D5FF", text: "#000000" },
+  { label: "Turquoise", bg: "#99F6E4", text: "#000000" },
+  { label: "Soft Coral", bg: "#FCA5A5", text: "#000000" },
+  { label: "Sage Green", bg: "#DCFCE7", text: "#000000" },
+  { label: "Warm Beige", bg: "#F5E6CC", text: "#000000" },
+  { label: "Timetable Olive", bg: "#D4CC95", text: "#000000" },
+  { label: "Header Green", bg: "#8CD57E", text: "#000000" },
+  { label: "Light Slate", bg: "#E2E8F0", text: "#000000" },
+  { label: "Pure White", bg: "#FFFFFF", text: "#000000" },
+  { label: "Deep Indigo", bg: "#3730A3", text: "#FFFFFF" },
+  { label: "Forest Green", bg: "#166534", text: "#FFFFFF" },
+  { label: "Wine Red", bg: "#991B1B", text: "#FFFFFF" },
+  { label: "Class Test Black", bg: "#000000", text: "#FFFFFF" },
 ];
 
 // Presets for all 5 current semesters based on official RUET Department routine
@@ -1125,24 +1154,93 @@ export default function RoutineVisualExporter() {
               </div>
 
               {!cellForm.isCT && (
-                <div>
-                  <label className="block text-xs font-semibold text-slate-600 dark:text-slate-300 uppercase mb-1.5">
-                    Box Background Color
-                  </label>
-                  <div className="grid grid-cols-4 gap-2">
-                    {COLOR_PRESETS.filter(p => !p.bg.includes("#000000")).map(preset => (
+                <div className="space-y-2">
+                  <div className="flex justify-between items-center">
+                    <label className="block text-xs font-semibold text-slate-600 dark:text-slate-300 uppercase">
+                      Box Background Color
+                    </label>
+                    <span className="text-[11px] font-mono font-medium text-slate-500">
+                      {cellForm.bg.toUpperCase()}
+                    </span>
+                  </div>
+
+                  {/* 23 Preset Colors Grid */}
+                  <div className="grid grid-cols-6 gap-1.5 max-h-36 overflow-y-auto p-1 bg-slate-50 dark:bg-slate-900 rounded-lg border border-slate-200 dark:border-slate-700">
+                    {COLOR_PRESETS.filter(p => !p.bg.includes("#000000")).map(preset => {
+                      const isSelected = cellForm.bg.toUpperCase() === preset.bg.toUpperCase();
+                      return (
+                        <button
+                          key={preset.bg}
+                          type="button"
+                          title={preset.label}
+                          onClick={() => setCellForm({ ...cellForm, bg: preset.bg, text: preset.text })}
+                          className={`h-7 rounded-md border flex items-center justify-center transition shadow-xs ${
+                            isSelected ? "ring-2 ring-indigo-500 scale-105 z-10" : "hover:scale-105"
+                          }`}
+                          style={{
+                            backgroundColor: preset.bg,
+                            color: preset.text,
+                            borderColor: isSelected ? "#6366f1" : "rgba(0,0,0,0.15)"
+                          }}
+                        >
+                          {isSelected && <span className="text-[10px] font-black">✓</span>}
+                        </button>
+                      );
+                    })}
+                  </div>
+
+                  {/* Custom Color Wheel & Hex Picker */}
+                  <div className="flex items-center gap-2 pt-1">
+                    <div className="flex items-center gap-1.5 flex-1 bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-lg px-2 py-1">
+                      <input
+                        type="color"
+                        value={cellForm.bg.length === 7 ? cellForm.bg : "#FFFFFF"}
+                        onChange={(e) => {
+                          const hex = e.target.value.toUpperCase();
+                          setCellForm({ ...cellForm, bg: hex, text: getContrastTextColor(hex) });
+                        }}
+                        className="w-6 h-6 rounded cursor-pointer border-0 bg-transparent p-0"
+                        title="Pick custom color from palette wheel"
+                      />
+                      <input
+                        type="text"
+                        value={cellForm.bg}
+                        onChange={(e) => {
+                          const val = e.target.value;
+                          setCellForm({
+                            ...cellForm,
+                            bg: val,
+                            text: val.length === 7 ? getContrastTextColor(val) : cellForm.text
+                          });
+                        }}
+                        placeholder="#HEX"
+                        className="w-full text-xs font-mono uppercase bg-transparent outline-none dark:text-white"
+                      />
+                    </div>
+
+                    {/* Font contrast switcher */}
+                    <div className="flex bg-slate-100 dark:bg-slate-900 p-0.5 rounded-lg border border-slate-200 dark:border-slate-700 text-xs">
                       <button
-                        key={preset.bg}
                         type="button"
-                        onClick={() => setCellForm({ ...cellForm, bg: preset.bg, text: preset.text })}
-                        className={`h-8 rounded-lg border text-xs font-medium flex items-center justify-center transition ${
-                          cellForm.bg.toUpperCase() === preset.bg.toUpperCase() ? "ring-2 ring-indigo-500 font-bold scale-105" : "hover:opacity-80"
+                        onClick={() => setCellForm({ ...cellForm, text: "#000000" })}
+                        className={`px-2 py-1 rounded transition text-[10px] font-bold ${
+                          cellForm.text === "#000000" ? "bg-white text-black shadow-xs" : "text-slate-400"
                         }`}
-                        style={{ backgroundColor: preset.bg, color: preset.text }}
+                        title="Black text font"
                       >
-                        {preset.bg === "#FFFFFF" ? "White" : ""}
+                        Black
                       </button>
-                    ))}
+                      <button
+                        type="button"
+                        onClick={() => setCellForm({ ...cellForm, text: "#FFFFFF" })}
+                        className={`px-2 py-1 rounded transition text-[10px] font-bold ${
+                          cellForm.text === "#FFFFFF" ? "bg-black text-white shadow-xs" : "text-slate-400"
+                        }`}
+                        title="White text font"
+                      >
+                        White
+                      </button>
+                    </div>
                   </div>
                 </div>
               )}
