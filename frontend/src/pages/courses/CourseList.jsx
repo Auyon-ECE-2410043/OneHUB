@@ -11,6 +11,7 @@ import { useAuth } from "../../context/AuthContext";
 import courseService from "../../services/courseService";
 import registrationService from "../../services/registrationService";
 import { DEPARTMENTS, SEMESTERS } from "../../utils/constants";
+import { formatDate, getStatusBadge, getStatusLabel } from "../../utils/helpers";
 import { PageLoader } from "../../components/common/Loader";
 import Modal from "../../components/common/Modal";
 import {
@@ -28,7 +29,9 @@ export function CourseList() {
   const [loading, setLoading] = useState(true);
 
   // Data states
-  const [registration, setRegistration] = useState(null);
+  const [studentRegistrations, setStudentRegistrations] = useState([]);
+  const [currentBatchSemester, setCurrentBatchSemester] = useState("2-2");
+  const [activeSemester, setActiveSemester] = useState("2-2");
   const [catalog, setCatalog] = useState([]);
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedDept, setSelectedDept] = useState("all");
@@ -89,11 +92,20 @@ export function CourseList() {
     try {
       if (user?.role === "student") {
         try {
-          // Import registrationService inside useEffect or component to avoid cyclic dependencies if any,
-          // but we can just import it at the top
-          
-          const res = await registrationService.getMyRegistration();
-          setRegistration(res);
+          const [regs, assigned] = await Promise.allSettled([
+            registrationService.getAllMyRegistrations(),
+            courseService.getAssignedCourses(),
+          ]);
+
+          const list = regs.status === "fulfilled" ? (regs.value || []) : [];
+          setStudentRegistrations(list);
+
+          const defaultSem = assigned.status === "fulfilled" && assigned.value?.semester
+            ? assigned.value.semester
+            : (user?.batch === "24" ? "2-2" : user?.batch === "25" ? "1-2" : "2-2");
+
+          setCurrentBatchSemester(defaultSem);
+          setActiveSemester(defaultSem);
         } catch (e) {
           console.warn("No registration found", e);
         }
@@ -189,29 +201,73 @@ export function CourseList() {
       </div>
 
       {/* STUDENT VIEW: Enrolled Courses */}
-      {user?.role === "student" && (
-        <div className="space-y-6">
-          {!registration || registration.status !== "approved" ? (
-            <div className="p-12 bg-white rounded-2xl border border-slate-200 text-center">
-              <BookOpen className="w-12 h-12 text-slate-300 mx-auto mb-3" />
-              <h3 className="text-base font-semibold text-slate-700">
-                {!registration
-                  ? "No Active Registration Found"
-                  : `Registration Status: ${registration.status.toUpperCase()}`}
-              </h3>
-              <p className="text-sm text-slate-500 max-w-md mx-auto mt-1">
-                {!registration
-                  ? "You haven't submitted your course registration for the current semester yet, or your registration was rejected."
-                  : "Your course registration is pending approval by your academic adviser. Please wait for it to be approved before viewing your enrolled courses."}
-              </p>
-              <Link
-                to="/registration"
-                className="mt-6 inline-flex px-5 py-2.5 bg-sky-600 hover:bg-sky-700 text-white font-semibold rounded-xl text-sm transition-smooth shadow-sm"
-              >
-                Go to Course Registration
-              </Link>
+      {user?.role === "student" && (() => {
+        const registration = studentRegistrations.find((r) => r.semester === activeSemester);
+
+        return (
+          <div className="space-y-6">
+            {/* Semester Switcher Header for Student */}
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 bg-white p-4 rounded-2xl border border-slate-200 shadow-xs">
+              <div className="flex items-center gap-3">
+                <label className="text-xs font-semibold uppercase text-slate-500">
+                  Select Semester:
+                </label>
+                <select
+                  value={activeSemester}
+                  onChange={(e) => setActiveSemester(e.target.value)}
+                  className="px-3.5 py-2 bg-slate-50 border border-slate-200 rounded-xl text-sm font-bold text-slate-800 focus:ring-2 focus:ring-sky-500 cursor-pointer"
+                >
+                  {SEMESTERS.map((sem) => (
+                    <option key={sem} value={sem}>
+                      Semester {sem} {sem === currentBatchSemester ? "(Current Session)" : ""}
+                    </option>
+                  ))}
+                </select>
+              </div>
+
+              <div className="text-xs text-slate-500 sm:text-right">
+                <span className="mr-1.5">Registration Status:</span>
+                {registration ? (
+                  <span className={`font-bold px-2.5 py-0.5 rounded-full border ${getStatusBadge(registration.status)}`}>
+                    {getStatusLabel(registration.status)}
+                  </span>
+                ) : (
+                  <span className="font-bold text-slate-600 bg-slate-100 px-2.5 py-0.5 rounded-full border border-slate-200">
+                    Not Registered
+                  </span>
+                )}
+              </div>
             </div>
-          ) : (
+
+            {!registration || registration.status !== "approved" ? (
+              <div className="p-12 bg-white rounded-2xl border border-slate-200 text-center shadow-xs">
+                <BookOpen className="w-12 h-12 text-slate-300 mx-auto mb-3" />
+                <h3 className="text-base font-bold text-slate-800">
+                  {!registration
+                    ? `No Approved Registration for Semester ${activeSemester}`
+                    : registration.status === "pending_approval"
+                    ? `Registration Pending Approval (Semester ${activeSemester})`
+                    : `Registration ${getStatusLabel(registration.status)} (Semester ${activeSemester})`}
+                </h3>
+                <p className="text-sm text-slate-500 max-w-lg mx-auto mt-2 leading-relaxed">
+                  {!registration
+                    ? `You haven't submitted course registration for Semester ${activeSemester} yet. Every student must apply for course registration and have it approved by their academic adviser before enrolled courses appear.`
+                    : registration.status === "pending_approval"
+                    ? `Your registration application for Semester ${activeSemester} was submitted on ${formatDate(registration.createdAt)} and is waiting for adviser review and fee assessment. Once approved, all courses for Semester ${activeSemester} will be unlocked here.`
+                    : `Your course registration was rejected by your adviser${registration.adviserComment ? `: "${registration.adviserComment}"` : ""}. Please review and re-apply.`}
+                </p>
+                <Link
+                  to="/registration"
+                  className="mt-6 inline-flex px-5 py-2.5 bg-sky-600 hover:bg-sky-700 text-white font-semibold rounded-xl text-sm transition-smooth shadow-sm"
+                >
+                  {!registration
+                    ? `Apply for Semester ${activeSemester} Registration`
+                    : registration.status === "pending_approval"
+                    ? "Track Registration Status"
+                    : "Re-Apply for Course Registration"}
+                </Link>
+              </div>
+            ) : (
             <>
               {/* Summary Box */}
               <div className="p-6 bg-gradient-to-r from-slate-900 to-slate-800 text-white rounded-2xl flex flex-col md:flex-row md:items-center justify-between gap-4">
@@ -306,8 +362,9 @@ export function CourseList() {
               </div>
             </>
           )}
-        </div>
-      )}
+          </div>
+        );
+      })()}
 
       {/* FACULTY / ADMIN VIEW: Full Course Catalog */}
       {user?.role !== "student" && (

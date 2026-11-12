@@ -124,7 +124,11 @@ router.get("/", requireAuth, async (req, res) => {
 // GET /api/registrations/active -> Latest registration
 router.get("/active", requireAuth, async (req, res) => {
   try {
-    const registration = await Registration.findOne({ studentId: req.user.id })
+    const filter = { studentId: req.user.id };
+    if (req.query.semester) {
+      filter.semester = req.query.semester;
+    }
+    const registration = await Registration.findOne(filter)
       .populate("courseIds")
       .populate("backlogCourseIds")
       .sort({ createdAt: -1 });

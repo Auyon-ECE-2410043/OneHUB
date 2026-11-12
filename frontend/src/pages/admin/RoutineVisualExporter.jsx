@@ -14,7 +14,8 @@
  */
 
 import { useState, useRef, useMemo, useEffect } from "react";
-import html2canvas from "html2canvas-pro";
+import html2canvasPro from "html2canvas-pro";
+import html2canvasStd from "html2canvas";
 import { Download, RotateCcw, Plus, Trash2, Calendar, Layers, Users, RefreshCw, Check, Sparkles, Type, Undo2, History, AlertCircle } from "lucide-react";
 import routineService from "../../services/routineService";
 
@@ -889,38 +890,83 @@ export default function RoutineVisualExporter() {
     });
   };
 
-  // High-Res PNG Export using html2canvas-pro
+  // Bulletproof High-Res PNG Export with dual engines (html2canvas-pro with fallback to html2canvas)
   const handleDownloadPNG = async () => {
     if (!routineRef.current) return;
     setDownloading(true);
     try {
-      // html2canvas-pro natively parses oklch and modern Tailwind CSS v4 variables
-      const canvas = await html2canvas(routineRef.current, {
+      const targetElement = routineRef.current;
+
+      const renderConfig = {
         scale: 2.5,
         useCORS: true,
-        allowTaint: true,
+        allowTaint: false,
         backgroundColor: "#ffffff",
         logging: false,
-        windowWidth: 1200,
+        scrollX: 0,
+        scrollY: 0,
         onclone: (clonedDoc) => {
           const el = clonedDoc.querySelector("[data-routine-export='true']");
           if (el) {
             el.style.transform = "none";
             el.style.fontFamily = activeFont.family;
+            el.style.width = "1050px";
+            el.style.minWidth = "1050px";
+            el.style.maxWidth = "1050px";
+            el.style.margin = "0";
+            el.style.boxShadow = "none";
+            el.style.position = "static";
           }
         }
-      });
+      };
 
-      const image = canvas.toDataURL("image/png", 1.0);
-      const a = document.createElement("a");
-      a.href = image;
-      a.download = `Routine_${selectedSemKey}_Week_${data.runningWeek || "01"}.png`;
-      document.body.appendChild(a);
-      a.click();
-      document.body.removeChild(a);
+      let canvas;
+      try {
+        canvas = await html2canvasPro(targetElement, renderConfig);
+      } catch (proErr) {
+        console.warn("html2canvas-pro encountered an issue, falling back to standard html2canvas:", proErr);
+        canvas = await html2canvasStd(targetElement, { ...renderConfig, scale: 2.0 });
+      }
+
+      if (!canvas) {
+        throw new Error("Unable to create canvas from routine view.");
+      }
+
+      const filename = `Routine_${selectedSemKey}_Week_${data.runningWeek || "01"}.png`;
+
+      // Safe export supporting both toBlob (preferred for large high-res canvas) and toDataURL
+      if (typeof canvas.toBlob === "function") {
+        await new Promise((resolve, reject) => {
+          canvas.toBlob((blob) => {
+            if (!blob) {
+              reject(new Error("Canvas blob export returned null."));
+              return;
+            }
+            const blobUrl = URL.createObjectURL(blob);
+            const a = document.createElement("a");
+            a.href = blobUrl;
+            a.download = filename;
+            document.body.appendChild(a);
+            a.click();
+            setTimeout(() => {
+              document.body.removeChild(a);
+              URL.revokeObjectURL(blobUrl);
+              resolve();
+            }, 1000);
+          }, "image/png", 1.0);
+        });
+      } else {
+        const dataUrl = canvas.toDataURL("image/png", 1.0);
+        const a = document.createElement("a");
+        a.href = dataUrl;
+        a.download = filename;
+        document.body.appendChild(a);
+        a.click();
+        setTimeout(() => document.body.removeChild(a), 1000);
+      }
     } catch (err) {
       console.error("Failed to generate routine image:", err);
-      alert(`Error generating PNG: ${err?.message || "Please try again."}`);
+      alert(`Error generating PNG: ${err?.message || "Please check browser permissions and try again."}`);
     } finally {
       setDownloading(false);
     }
@@ -2076,13 +2122,26 @@ function renderSlotCell(day, slotId, slotData, isOverriddenBySpan = false, onCli
             {note}
           </span>
         )}
-        {/* Target Group: 1st 30 / 2nd 30 in distinct yellow/amber styling */}
+        {/* Target Group: 1st 30 / 2nd 30 in distinct styling matching official routine template */}
         {group && group !== "All" && (
           <span
-            className="text-[11px] font-black mt-0.5 px-1.5 py-0.2 rounded"
+            className="text-[10px] font-black mt-0.5 px-2 py-0.5 rounded shadow-xs inline-block"
             style={{
-              color: isCT ? "#fef08a" : "#b45309",
-              backgroundColor: isCT ? "#18181b" : "#fef3c7",
+              color: isCT
+                ? "#fef08a"
+                : group.toLowerCase().includes("2nd") || group.includes("2")
+                ? "#c2410c"
+                : "#a16207",
+              backgroundColor: isCT
+                ? "#18181b"
+                : group.toLowerCase().includes("2nd") || group.includes("2")
+                ? "#ffedd5"
+                : "#fef9c3",
+              border: isCT
+                ? "1px solid #3f3f46"
+                : group.toLowerCase().includes("2nd") || group.includes("2")
+                ? "1px solid #fed7aa"
+                : "1px solid #fde047",
               letterSpacing: "-0.2px"
             }}
           >

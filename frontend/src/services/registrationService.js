@@ -14,10 +14,17 @@ export const registrationService = {
     return res.data.registration;
   },
 
-  // Student fetches their active registration
-  getMyRegistration: async () => {
-    const res = await api.get("/registrations/active");
+  // Student fetches their active registration (optionally for a specific semester)
+  getMyRegistration: async (semester) => {
+    const url = semester ? `/registrations/active?semester=${semester}` : "/registrations/active";
+    const res = await api.get(url);
     return res.data.registration;
+  },
+
+  // Student fetches all their registrations across semesters
+  getAllMyRegistrations: async () => {
+    const res = await api.get("/registrations");
+    return res.data.registrations || [];
   },
 
   // Faculty/Admin fetches all pending registrations awaiting review

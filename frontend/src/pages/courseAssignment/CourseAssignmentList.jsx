@@ -58,9 +58,7 @@ export function CourseAssignmentList() {
   };
 
   const handleSelectAllSemester = () => {
-    const semCourses = courses
-      .filter((c) => c.department === selectedDept && c.semester === selectedSemester)
-      .map((c) => c._id);
+    const semCourses = filteredCourses.map((c) => c._id);
     setSelectedCourseIds(Array.from(new Set([...selectedCourseIds, ...semCourses])));
   };
 
@@ -98,12 +96,20 @@ export function CourseAssignmentList() {
     return <PageLoader text="Loading course catalog..." />;
   }
 
+  const ALLIED_DEPTS = ["Math", "Chemistry", "Humanities", "Physics", "Civil", "Mechanical"];
+
+  const matchesDepartment = (courseDept, targetDept) => {
+    if (!courseDept || courseDept === targetDept) return true;
+    if (targetDept === "ECE" && ALLIED_DEPTS.includes(courseDept)) return true;
+    return false;
+  };
+
   // Filter courses by department/semester/search
   const filteredCourses = courses.filter((c) => {
     const matchSearch =
       c.courseCode.toLowerCase().includes(search.toLowerCase()) ||
       c.courseName.toLowerCase().includes(search.toLowerCase());
-    const matchDept = c.department === selectedDept;
+    const matchDept = matchesDepartment(c.department, selectedDept);
     const matchSem = c.semester === selectedSemester;
     return matchSearch && matchDept && matchSem;
   });

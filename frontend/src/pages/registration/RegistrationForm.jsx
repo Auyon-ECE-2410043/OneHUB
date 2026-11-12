@@ -27,10 +27,10 @@ export function RegistrationForm() {
   const [loading, setLoading] = useState(true);
 
   // Student States
-  const [myRegistration, setMyRegistration] = useState(null);
+  const [allMyRegistrations, setAllMyRegistrations] = useState([]);
   const [assignedData, setAssignedData] = useState(null);
   const [allCourses, setAllCourses] = useState([]);
-  const [selectedSemester, setSelectedSemester] = useState("2-1");
+  const [selectedSemester, setSelectedSemester] = useState("2-2");
   const [selectedBacklogIds, setSelectedBacklogIds] = useState([]);
   const [submittingReg, setSubmittingReg] = useState(false);
 
@@ -52,10 +52,10 @@ export function RegistrationForm() {
     try {
       if (user?.role === "student") {
         try {
-          const reg = await registrationService.getMyRegistration();
-          setMyRegistration(reg);
+          const regs = await registrationService.getAllMyRegistrations();
+          setAllMyRegistrations(regs || []);
         } catch {
-          setMyRegistration(null);
+          setAllMyRegistrations([]);
         }
 
         try {
@@ -63,11 +63,11 @@ export function RegistrationForm() {
             courseService.getAssignedCourses(),
             courseService.getAllCourses(),
           ]);
-          if (assigned.status === "fulfilled") {
+          if (assigned.status === "fulfilled" && assigned.value) {
             setAssignedData(assigned.value);
             if (assigned.value.semester) setSelectedSemester(assigned.value.semester);
           }
-          if (catalog.status === "fulfilled") setAllCourses(catalog.value);
+          if (catalog.status === "fulfilled") setAllCourses(catalog.value || []);
         } catch (e) {
           console.warn("Could not fetch assigned courses", e);
         }
@@ -112,9 +112,10 @@ export function RegistrationForm() {
         semester: selectedSemester,
         backlogCourseIds: selectedBacklogIds,
       });
-      setMyRegistration(reg);
+      // Update local state with the submitted registration
+      setAllMyRegistrations((prev) => [reg, ...prev.filter((r) => r.semester !== selectedSemester)]);
       setFeedbackMsg({
-        text: "Course registration submitted successfully! Your adviser will review and generate the semester fees.",
+        text: `Course registration for Semester ${selectedSemester} submitted successfully! Your academic adviser will review your application and generate your semester fees.`,
         type: "success",
       });
     } catch (err) {
@@ -239,85 +240,22 @@ export function RegistrationForm() {
       )}
 
       {/* STUDENT INTERFACE */}
-      {user?.role === "student" && (
-        <div className="space-y-6">
-          {/* Active Registration Status Card */}
-          {myRegistration && (
-            <div className="p-6 bg-white rounded-2xl border border-slate-200 shadow-xs space-y-4">
-              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-4 border-b border-slate-100">
-                <div>
-                  <span className="text-xs uppercase font-semibold text-slate-400">Current Status</span>
-                  <div className="flex items-center space-x-2 mt-1">
-                    <span
-                      className={`px-3 py-1 text-xs font-semibold rounded-full border ${getStatusBadge(
-                        myRegistration.status
-                      )}`}
-                    >
-                      {getStatusLabel(myRegistration.status)}
-                    </span>
-                    <span className="text-xs text-slate-500 font-medium">
-                      Submitted on {formatDate(myRegistration.createdAt)}
-                    </span>
-                  </div>
-                </div>
+      {user?.role === "student" && (() => {
+        const currentSemReg = allMyRegistrations.find((r) => r.semester === selectedSemester);
 
-                <div className="text-left sm:text-right">
-                  <span className="text-xs uppercase font-semibold text-slate-400">Semester</span>
-                  <p className="text-sm font-bold text-slate-800">
-                    Semester {myRegistration.semester} ({myRegistration.academicSession || `Batch '${user?.batch}`})
-                  </p>
-                </div>
-              </div>
-
-              {myRegistration.adviserComment && (
-                <div className="p-4 bg-slate-50 border border-slate-200 rounded-xl text-xs">
-                  <span className="font-semibold text-slate-700 block mb-1">Adviser Remark:</span>
-                  <p className="text-slate-600 italic">"{myRegistration.adviserComment}"</p>
-                </div>
-              )}
-
-              {/* Registered Courses Table */}
+        return (
+          <div className="space-y-6">
+            {/* Semester Switcher Bar */}
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 bg-white p-4 rounded-2xl border border-slate-200 shadow-xs">
               <div>
-                <h4 className="text-xs font-semibold uppercase tracking-wider text-slate-500 mb-3">
-                  Registered Courses ({myRegistration.courseIds?.length || 0} Courses •{" "}
-                  {myRegistration.totalCredit} Credits)
-                </h4>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-                  {myRegistration.courseIds?.map((c) => (
-                    <div
-                      key={c._id}
-                      className="p-3.5 bg-slate-50 border border-slate-200 rounded-xl flex items-center justify-between"
-                    >
-                      <div>
-                        <span className="font-mono font-bold text-xs text-sky-700 block">
-                          {c.courseCode}
-                        </span>
-                        <span className="text-xs font-semibold text-slate-800">{c.courseName}</span>
-                      </div>
-                      <span className="text-xs font-bold text-slate-600 bg-white px-2 py-1 rounded border border-slate-200">
-                        {c.credit} Cr
-                      </span>
-                    </div>
-                  ))}
-                </div>
-              </div>
-            </div>
-          )}
-
-          {/* New Registration Submission Form */}
-          {(!myRegistration || myRegistration.status === "rejected") && (
-            <form onSubmit={handleSubmitRegistration} className="p-6 bg-white rounded-2xl border border-slate-200 shadow-xs space-y-6">
-              <h3 className="text-lg font-bold text-slate-800">Submit New Registration</h3>
-
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                <div>
-                  <label className="block text-xs font-semibold uppercase text-slate-600 mb-1.5">
-                    Target Semester
-                  </label>
+                <label className="block text-xs font-semibold uppercase text-slate-500 mb-1">
+                  Academic Semester
+                </label>
+                <div className="flex items-center gap-2">
                   <select
                     value={selectedSemester}
                     onChange={(e) => setSelectedSemester(e.target.value)}
-                    className="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm font-semibold text-slate-800 focus:ring-2 focus:ring-sky-500 focus:outline-none"
+                    className="px-3.5 py-2 bg-slate-50 border border-slate-200 rounded-xl text-sm font-bold text-slate-800 focus:ring-2 focus:ring-sky-500 focus:outline-none cursor-pointer"
                   >
                     {SEMESTERS.map((s) => (
                       <option key={s} value={s}>
@@ -325,8 +263,114 @@ export function RegistrationForm() {
                       </option>
                     ))}
                   </select>
+                  {assignedData?.semester === selectedSemester && (
+                    <span className="text-xs bg-sky-50 text-sky-700 font-bold px-2.5 py-1 rounded-full border border-sky-200">
+                      Current Batch Session
+                    </span>
+                  )}
                 </div>
               </div>
+
+              <div className="text-xs text-slate-500 sm:text-right">
+                <span className="mr-1.5">Registration:</span>
+                {currentSemReg ? (
+                  <span className={`font-bold px-2.5 py-1 rounded-full border ${getStatusBadge(currentSemReg.status)}`}>
+                    {getStatusLabel(currentSemReg.status)}
+                  </span>
+                ) : (
+                  <span className="font-bold text-slate-600 bg-slate-100 px-2.5 py-1 rounded-full border border-slate-200">
+                    Not Applied
+                  </span>
+                )}
+              </div>
+            </div>
+
+            {/* Active Registration Status Card for selected semester */}
+            {currentSemReg && (
+              <div className="p-6 bg-white rounded-2xl border border-slate-200 shadow-xs space-y-4">
+                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-4 border-b border-slate-100">
+                  <div>
+                    <span className="text-xs uppercase font-semibold text-slate-400">Current Status</span>
+                    <div className="flex items-center space-x-2 mt-1">
+                      <span
+                        className={`px-3 py-1 text-xs font-semibold rounded-full border ${getStatusBadge(
+                          currentSemReg.status
+                        )}`}
+                      >
+                        {getStatusLabel(currentSemReg.status)}
+                      </span>
+                      <span className="text-xs text-slate-500 font-medium">
+                        Submitted on {formatDate(currentSemReg.createdAt)}
+                      </span>
+                    </div>
+                  </div>
+
+                  <div className="text-left sm:text-right">
+                    <span className="text-xs uppercase font-semibold text-slate-400">Semester</span>
+                    <p className="text-sm font-bold text-slate-800">
+                      Semester {currentSemReg.semester} ({currentSemReg.academicSession || `Batch '${user?.batch}`})
+                    </p>
+                  </div>
+                </div>
+
+                {currentSemReg.status === "pending_approval" && (
+                  <div className="p-4 bg-amber-50 border border-amber-200 rounded-xl text-xs text-amber-800">
+                    <span className="font-bold block mb-1">Application Under Review:</span>
+                    Your course registration for Semester {selectedSemester} has been submitted. Your academic adviser or administrator will review your application, calculate required tuition, examination, and hall fees, and accept or decline the registration.
+                  </div>
+                )}
+
+                {currentSemReg.status === "approved" && (
+                  <div className="p-4 bg-emerald-50 border border-emerald-200 rounded-xl text-xs text-emerald-800">
+                    <span className="font-bold block mb-1">Registration Approved:</span>
+                    Your course registration for Semester {selectedSemester} has been approved by your adviser! Semester fees have been billed. Enrolled courses are now active and viewable under <strong>My Courses</strong>.
+                  </div>
+                )}
+
+                {currentSemReg.adviserComment && (
+                  <div className="p-4 bg-slate-50 border border-slate-200 rounded-xl text-xs">
+                    <span className="font-semibold text-slate-700 block mb-1">Adviser Remark:</span>
+                    <p className="text-slate-600 italic">"{currentSemReg.adviserComment}"</p>
+                  </div>
+                )}
+
+                {/* Registered Courses Table */}
+                <div>
+                  <h4 className="text-xs font-semibold uppercase tracking-wider text-slate-500 mb-3">
+                    Registered Courses ({currentSemReg.courseIds?.length || 0} Courses •{" "}
+                    {currentSemReg.totalCredit} Credits)
+                  </h4>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                    {currentSemReg.courseIds?.map((c) => (
+                      <div
+                        key={c._id}
+                        className="p-3.5 bg-slate-50 border border-slate-200 rounded-xl flex items-center justify-between"
+                      >
+                        <div>
+                          <span className="font-mono font-bold text-xs text-sky-700 block">
+                            {c.courseCode}
+                          </span>
+                          <span className="text-xs font-semibold text-slate-800">{c.courseName}</span>
+                        </div>
+                        <span className="text-xs font-bold text-slate-600 bg-white px-2 py-1 rounded border border-slate-200">
+                          {c.credit} Cr
+                        </span>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {/* New Registration Submission Form */}
+            {(!currentSemReg || currentSemReg.status === "rejected") && (
+              <form onSubmit={handleSubmitRegistration} className="p-6 bg-white rounded-2xl border border-slate-200 shadow-xs space-y-6">
+                <div>
+                  <h3 className="text-lg font-bold text-slate-800">Submit Registration for Semester {selectedSemester}</h3>
+                  <p className="text-xs text-slate-500 mt-0.5">
+                    Select your academic courses and optional backlog courses for adviser review and fee assessment.
+                  </p>
+                </div>
 
               {/* Fixed Batch Courses Preview */}
               <div>
@@ -411,8 +455,9 @@ export function RegistrationForm() {
               </div>
             </form>
           )}
-        </div>
-      )}
+          </div>
+        );
+      })()}
 
       {/* FACULTY / ADMIN INTERFACE */}
       {user?.role !== "student" && (
