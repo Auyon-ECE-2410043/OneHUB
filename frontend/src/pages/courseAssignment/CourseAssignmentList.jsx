@@ -31,12 +31,44 @@ export function CourseAssignmentList() {
   const [search, setSearch] = useState("");
   const [submitting, setSubmitting] = useState(false);
   const [message, setMessage] = useState({ text: "", type: "" });
+  const [loadingAssignment, setLoadingAssignment] = useState(false);
+
+  // Automatically load existing assignment for the selected batch, dept, and semester
+  useEffect(() => {
+    let isMounted = true;
+    const fetchAssignment = async () => {
+      setLoadingAssignment(true);
+      try {
+        const assignment = await courseService.getBatchAssignment(
+          selectedBatch,
+          selectedDept,
+          selectedSemester
+        );
+        if (isMounted) {
+          if (assignment && assignment.courseIds && assignment.courseIds.length > 0) {
+            setSelectedCourseIds(assignment.courseIds.map((c) => (c._id || c)));
+          } else {
+            setSelectedCourseIds([]);
+          }
+        }
+      } catch (err) {
+        console.error("Failed to load assignment:", err);
+      } finally {
+        if (isMounted) setLoadingAssignment(false);
+      }
+    };
+
+    fetchAssignment();
+    return () => {
+      isMounted = false;
+    };
+  }, [selectedBatch, selectedDept, selectedSemester]);
 
   useEffect(() => {
     const fetchCatalog = async () => {
         setLoading(true);
         try {
-          const catalog = await courseService.getAllCourses(1, 100); 
+          const catalog = await courseService.getAllCourses(1, 500); 
           setCourses(catalog);
           if (catalog.length === 0) toast.error("Catalog fetched but is empty!");
         } catch (err) {
@@ -59,7 +91,7 @@ export function CourseAssignmentList() {
 
   const handleSelectAllSemester = () => {
     const semCourses = filteredCourses.map((c) => c._id);
-    setSelectedCourseIds(Array.from(new Set([...selectedCourseIds, ...semCourses])));
+    setSelectedCourseIds(semCourses);
   };
 
   const handleClearSelection = () => {
@@ -96,11 +128,22 @@ export function CourseAssignmentList() {
     return <PageLoader text="Loading course catalog..." />;
   }
 
-  const ALLIED_DEPTS = ["Math", "Chemistry", "Humanities", "Physics", "Civil", "Mechanical"];
+  const ALLIED_DEPTS = [
+    "math", "mathematics",
+    "chemistry", "chem",
+    "humanities", "hum",
+    "physics", "phy",
+    "civil", "ce",
+    "mechanical", "me",
+    "mte", "mechatronics"
+  ];
 
   const matchesDepartment = (courseDept, targetDept) => {
-    if (!courseDept || courseDept === targetDept) return true;
-    if (targetDept === "ECE" && ALLIED_DEPTS.includes(courseDept)) return true;
+    if (!courseDept) return true;
+    const cDept = courseDept.trim().toLowerCase();
+    const tDept = (targetDept || "").trim().toLowerCase();
+    if (cDept === tDept) return true;
+    if (tDept === "ece" && ALLIED_DEPTS.includes(cDept)) return true;
     return false;
   };
 
@@ -228,7 +271,7 @@ export function CourseAssignmentList() {
                 onClick={handleSelectAllSemester}
                 className="px-3 py-1.5 bg-sky-50 text-sky-700 hover:bg-sky-100 rounded-lg text-xs font-semibold transition-smooth"
               >
-                Auto-Select {selectedDept} ({selectedSemester})
+                Auto-Select {selectedDept} ({selectedSemester}) ({filteredCourses.length})
               </button>
               <button
                 type="button"

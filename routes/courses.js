@@ -30,6 +30,19 @@ router.get("/all", requireAuth, async (req, res) => {
   try {
     const page = parseInt(req.query.page) || 1;
     const limit = parseInt(req.query.limit) || 20;
+    const isAll = req.query.limit === "all" || parseInt(req.query.limit) >= 500;
+    if (isAll) {
+      const courses = await Course.find().sort({ courseCode: 1 });
+      return res.json({
+        courses,
+        pagination: {
+          total: courses.length,
+          page: 1,
+          pages: 1
+        }
+      });
+    }
+
     const skip = (page - 1) * limit;
 
     const courses = await Course.find()
@@ -109,6 +122,22 @@ router.put("/:id", requireAuth, requireRole("admin"), async (req, res) => {
 });
 
 // POST /api/courses/admin/assignments -> Admin assigns course list to batch & semester
+// GET /api/courses/admin/assignments -> Admin retrieves assigned course list for a batch, department & semester
+router.get("/admin/assignments", requireAuth, requireRole("faculty", "admin"), async (req, res) => {
+  try {
+    const { batch, department, semester } = req.query;
+    const filter = {};
+    if (batch) filter.batch = batch;
+    if (department) filter.department = department;
+    if (semester) filter.semester = semester;
+
+    const assignment = await CourseAssignment.findOne(filter).populate("courseIds");
+    res.json({ assignment });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
 router.post("/admin/assignments", requireAuth, requireRole("admin"), async (req, res) => {
   try {
     const { batch, department, semester, courseIds } = req.body;

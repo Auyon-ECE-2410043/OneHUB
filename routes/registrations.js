@@ -55,11 +55,19 @@ router.post("/", requireAuth, requireRole("student"), async (req, res) => {
       semester,
     }).populate("courseIds");
 
-    if (!assignment) {
-      return res.status(404).json({ error: "No fixed course list found for your batch and semester" });
+    let registeredCourses = [];
+    if (assignment && assignment.courseIds && assignment.courseIds.length > 0) {
+      registeredCourses = assignment.courseIds;
+    } else {
+      // Fallback: automatically fetch courses for this department and semester from the global catalog
+      registeredCourses = await Course.find({ department: student.department, semester });
     }
 
-    const totalCredit = assignment.courseIds.reduce((sum, c) => sum + (c.credit || 0), 0);
+    if (!registeredCourses || registeredCourses.length === 0) {
+      return res.status(404).json({ error: `No course package found for ${student.department} Semester ${semester}` });
+    }
+
+    const totalCredit = registeredCourses.reduce((sum, c) => sum + (c.credit || 0), 0);
 
     const registration = await Registration.create({
       studentId: student._id,
@@ -67,7 +75,7 @@ router.post("/", requireAuth, requireRole("student"), async (req, res) => {
       academicSession: student.batch,
       previouslyEarnedCredit: student.previouslyEarnedCredit || 0,
       backlogCourseIds: backlogCourseIds || [],
-      courseIds: assignment.courseIds.map((c) => c._id),
+      courseIds: registeredCourses.map((c) => c._id),
       totalCredit,
       status: "pending_approval",
     });

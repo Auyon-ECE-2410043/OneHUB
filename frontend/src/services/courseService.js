@@ -9,9 +9,15 @@ import api from "./api";
 
 export const courseService = {
   // Get all courses in catalog (Faculty, Admin)
-  getAllCourses: async (page = 1, limit = 100) => {
+  getAllCourses: async (page = 1, limit = 500) => {
     const res = await api.get(`/courses/all?page=${page}&limit=${limit}`);
     return Array.isArray(res.data) ? res.data : (res.data.courses || []);
+  },
+
+  // Get current assignment for batch, department, semester (Admin)
+  getBatchAssignment: async (batch, department, semester) => {
+    const res = await api.get(`/courses/admin/assignments?batch=${batch}&department=${department}&semester=${semester}`);
+    return res.data.assignment;
   },
 
   // Get assigned courses for logged-in student
