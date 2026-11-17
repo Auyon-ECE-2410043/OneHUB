@@ -97,7 +97,9 @@ export function Sidebar({ isOpen, onClose, features = {} }) {
           { label: "Fee Management", path: "/fees", icon: CreditCard },
           { label: "Manage Clearances", path: "/admin/clearance", icon: ShieldCheck },
           { label: "Medical Center", path: "/medical", icon: HeartPulse },
-            { label: "Notice Board", path: "/notices", icon: Bell },
+          { label: "StudyBuddy AI", path: "/ai/study", icon: Bot },
+          { label: "OBE LaTeX Gen", path: "/ai/latex", icon: Bot },
+          { label: "Notice Board", path: "/notices", icon: Bell },
           { label: "Faculty Management", path: "/faculty", icon: Users },
           { label: "My Profile", path: "/profile", icon: User },
         ];
@@ -109,7 +111,9 @@ export function Sidebar({ isOpen, onClose, features = {} }) {
           { label: "Dining Management", path: "/admin/dining", icon: Utensils },
           { label: "Manage Clearances", path: "/admin/clearance", icon: ShieldCheck },
           { label: "Medical Center", path: "/medical", icon: HeartPulse },
-            { label: "Notice Board", path: "/notices", icon: Bell },
+          { label: "StudyBuddy AI", path: "/ai/study", icon: Bot },
+          { label: "OBE LaTeX Gen", path: "/ai/latex", icon: Bot },
+          { label: "Notice Board", path: "/notices", icon: Bell },
           { label: "Faculty Directory", path: "/faculty", icon: Users },
           { label: "My Profile", path: "/profile", icon: User },
         ];

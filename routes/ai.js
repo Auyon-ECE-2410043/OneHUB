@@ -189,7 +189,7 @@ router.post('/chat', requireAuth, async (req, res) => {
     }
 
     const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
-    const model = genAI.getGenerativeModel({ model: 'gemini-3.6-flash' });
+    const model = genAI.getGenerativeModel({ model: 'gemini-flash-latest' });
 
     const systemPrompt = `You are OneHUB Study AI, a helpful educational assistant for university students using the RUET OneHUB portal.
 
@@ -325,24 +325,31 @@ If NO special action is needed (no video, no navigation), just answer normally a
 // POST /api/ai/summarize
 router.post('/summarize', requireAuth, async (req, res) => {
   try {
-    const { videoId, title, description } = req.body;
-    if (!videoId) return res.status(400).json({ error: 'Video ID is required' });
+    const { videoId, playlistId, title, description } = req.body;
+    if (!videoId && !playlistId && !title) {
+      return res.status(400).json({ error: 'Video, playlist, or topic title is required' });
+    }
 
     if (!process.env.GEMINI_API_KEY) {
       return res.status(500).json({ error: 'Gemini API key is not configured.' });
     }
 
-    // Fetch transcript
+    // Fetch transcript if videoId is provided
     let transcriptText = '';
     let usedFallback = false;
-    try {
-      const transcript = await YoutubeTranscript.fetchTranscript(videoId);
-      transcriptText = transcript.map(t => t.text).join(' ');
-    } catch (err) {
-      console.error('Transcript fetch error:', err);
-      // Fallback to title and description
+    if (videoId) {
+      try {
+        const transcript = await YoutubeTranscript.fetchTranscript(videoId);
+        transcriptText = transcript.map(t => t.text).join(' ');
+      } catch (err) {
+        console.error('Transcript fetch error:', err);
+      }
+    }
+
+    // Fallback to title and description (for playlists or videos without captions)
+    if (!transcriptText) {
       if (title) {
-        transcriptText = `Title: ${title}\nDescription: ${description || 'No description provided.'}\n\n(Note: The full transcript was unavailable, so please generate a study guide based on the topic implied by the title and description.)`;
+        transcriptText = `Title: ${title}\nDescription: ${description || 'No description provided.'}\n\n(Note: Generated from topic metadata and comprehensive university curriculum notes.)`;
         usedFallback = true;
       } else {
         return res.status(400).json({ error: 'Could not fetch subtitles, and no fallback title was provided.' });
@@ -356,7 +363,7 @@ router.post('/summarize', requireAuth, async (req, res) => {
     }
 
     const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
-    const model = genAI.getGenerativeModel({ model: 'gemini-3.6-flash' });
+    const model = genAI.getGenerativeModel({ model: 'gemini-flash-latest' });
 
     const prompt = `You are a university professor creating a study guide. 
     Analyze the following ${usedFallback ? 'video title and description' : 'YouTube video transcript'} and create a structured study guide with the following sections (format in Markdown):

@@ -199,8 +199,8 @@ export function AppRoutes() {
         <Route path="/profile" element={<Profile />} />
 
         {/* AI Features */}
-        <Route path="/ai/study" element={<ProtectedRoute allowedRoles={["student", "faculty"]}><StudyBuddy /></ProtectedRoute>} />
-        <Route path="/ai/latex" element={<FeatureGuard featureKey="latex" title="OBE LaTeX Generator"><ProtectedRoute allowedRoles={["student", "faculty", "admin"]}><ObeLatexGenerator /></ProtectedRoute></FeatureGuard>} />
+        <Route path="/ai/study" element={<FeatureGuard featureKey="ai" title="StudyBuddy AI"><ProtectedRoute allowedRoles={["student", "faculty", "admin", "hall_admin"]}><StudyBuddy /></ProtectedRoute></FeatureGuard>} />
+        <Route path="/ai/latex" element={<FeatureGuard featureKey="latex" title="OBE LaTeX Generator"><ProtectedRoute allowedRoles={["student", "faculty", "admin", "hall_admin"]}><ObeLatexGenerator /></ProtectedRoute></FeatureGuard>} />
 
 
         {/* Medical & Clearance */}
