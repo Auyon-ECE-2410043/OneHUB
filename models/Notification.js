@@ -10,12 +10,11 @@ const mongoose = require("mongoose");
 const notificationSchema = new mongoose.Schema(
   {
     recipientId: { type: mongoose.Schema.Types.ObjectId, ref: "User", required: true },
-    recipientRole: { type: String, enum: ["student", "faculty", "admin"], required: true },
+    recipientRole: { type: String, default: "student" },
     title: { type: String, required: true },
     message: { type: String, required: true },
     type: {
       type: String,
-      enum: ["class_reminder", "exam_notice", "fee_due", "general", "payment", "registration_request", "hall_application"],
       default: "general",
     },
     link: { type: String }, // e.g. /admin/registrations or /admin/hall-applications
