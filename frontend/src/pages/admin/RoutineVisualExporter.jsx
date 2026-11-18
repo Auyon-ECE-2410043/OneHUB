@@ -16,7 +16,7 @@
 import { useState, useRef, useMemo, useEffect } from "react";
 import html2canvasPro from "html2canvas-pro";
 import html2canvasStd from "html2canvas";
-import { Download, RotateCcw, Plus, Trash2, Calendar, Layers, Users, RefreshCw, Check, Sparkles, Type, Undo2, History, AlertCircle, Sun, CalendarRange } from "lucide-react";
+import { Download, RotateCcw, Plus, Trash2, Calendar, Layers, Users, RefreshCw, Check, Sparkles, Type, Undo2, History, AlertCircle, Sun, CalendarRange , FileText, FlaskConical, BookOpen } from "lucide-react";
 import { toast } from "sonner";
 import routineService from "../../services/routineService";
 
@@ -263,7 +263,8 @@ const SEMESTER_PRESETS = {
         slot3: { course: "ECE 2216", teacher: "MNT+NIS", note: "Lab-2", group: "1st 30", bg: "#FFAAA6", text: "#000000", span: 3 },
       },
     },
-    ctSyllabus: []
+    ctSyllabus: [],
+    quizSyllabus: []
   },
 
   "1-2": {
@@ -305,7 +306,8 @@ const SEMESTER_PRESETS = {
         slot5: { course: "ECE 1205", teacher: "MI+MKG", note: "R-404", bg: "#8EDCE6", text: "#000000" },
       },
     },
-    ctSyllabus: []
+    ctSyllabus: [],
+    quizSyllabus: []
   },
 
   "3-1": {
@@ -344,7 +346,8 @@ const SEMESTER_PRESETS = {
         slot5: { course: "ECE 3117", teacher: "HBK+MNT", note: "R-403", bg: "#FFF266", text: "#000000" },
       },
     },
-    ctSyllabus: []
+    ctSyllabus: [],
+    quizSyllabus: []
   },
 
   "3-2": {
@@ -385,7 +388,8 @@ const SEMESTER_PRESETS = {
         slot5: { course: "ECE 3221", teacher: "HBK/NIS", note: "R-402", bg: "#8EDCE6", text: "#000000" },
       },
     },
-    ctSyllabus: []
+    ctSyllabus: [],
+    quizSyllabus: []
   },
 
   "4-2": {
@@ -425,7 +429,8 @@ const SEMESTER_PRESETS = {
         slot6: { course: "ECE 4228 / 4246", teacher: "RIY+MSZ", note: "LAB-1 / LAB-2", group: "1st 30 / 2nd 30", bg: "#66D2D6", text: "#000000", span: 3 },
       },
     },
-    ctSyllabus: []
+    ctSyllabus: [],
+    quizSyllabus: []
   }
 };
 
@@ -900,6 +905,7 @@ export default function RoutineVisualExporter() {
     span: 1,
     isCT: false,
     isQuiz: false,
+    syllabus: "",
     bg: "#FFFFFF",
     text: "#000000"
   });
@@ -910,6 +916,10 @@ export default function RoutineVisualExporter() {
     const isLab = isSessionalCourse(existing.course) || (existing.span >= 2) || (existing.note && existing.note.toLowerCase().includes("lab")) || (existing.group && existing.group !== "All");
     const isAssessment = existing.isCT || existing.isQuiz || (existing.bg === "#000000");
 
+    const existingSyllabus = isLab
+      ? (data.quizSyllabus?.find(q => q.courseCode?.trim().toLowerCase() === (existing.course || "").trim().toLowerCase())?.syllabus || "")
+      : (data.ctSyllabus?.find(c => c.courseCode?.trim().toLowerCase() === (existing.course || "").trim().toLowerCase())?.syllabus || "");
+
     setCellForm({
       course: existing.course || "",
       teacher: existing.teacher || "",
@@ -918,6 +928,7 @@ export default function RoutineVisualExporter() {
       span: existing.span || 1,
       isCT: !isLab && isAssessment,
       isQuiz: isLab && isAssessment,
+      syllabus: existingSyllabus,
       bg: existing.bg || (isAssessment ? "#000000" : "#FFFFFF"),
       text: existing.text || (isAssessment ? "#FFFFFF" : "#000000"),
     });
@@ -960,7 +971,39 @@ export default function RoutineVisualExporter() {
       });
     }
 
-    setData({ ...data, schedule: updatedSchedule });
+    let nextCtSyllabus = data.ctSyllabus ? [...data.ctSyllabus] : [];
+    let nextQuizSyllabus = data.quizSyllabus ? [...data.quizSyllabus] : [];
+
+    if (cellForm.isCT && cellForm.course.trim()) {
+      const courseTrimmed = cellForm.course.trim();
+      const existingIdx = nextCtSyllabus.findIndex(c => c.courseCode?.trim().toLowerCase() === courseTrimmed.toLowerCase());
+      if (cellForm.syllabus.trim()) {
+        if (existingIdx >= 0) {
+          nextCtSyllabus[existingIdx] = { ...nextCtSyllabus[existingIdx], syllabus: cellForm.syllabus.trim() };
+        } else {
+          nextCtSyllabus.push({ courseCode: courseTrimmed, syllabus: cellForm.syllabus.trim() });
+        }
+      }
+    }
+
+    if (cellForm.isQuiz && cellForm.course.trim()) {
+      const courseTrimmed = cellForm.course.trim();
+      const existingIdx = nextQuizSyllabus.findIndex(q => q.courseCode?.trim().toLowerCase() === courseTrimmed.toLowerCase());
+      if (cellForm.syllabus.trim()) {
+        if (existingIdx >= 0) {
+          nextQuizSyllabus[existingIdx] = { ...nextQuizSyllabus[existingIdx], syllabus: cellForm.syllabus.trim() };
+        } else {
+          nextQuizSyllabus.push({ courseCode: courseTrimmed, syllabus: cellForm.syllabus.trim() });
+        }
+      }
+    }
+
+    setData({
+      ...data,
+      schedule: updatedSchedule,
+      ctSyllabus: nextCtSyllabus,
+      quizSyllabus: nextQuizSyllabus
+    });
     setSelectedCell(null);
   };
 
@@ -1069,6 +1112,26 @@ export default function RoutineVisualExporter() {
     setData({
       ...data,
       ctSyllabus: data.ctSyllabus.filter((_, i) => i !== index)
+    });
+  };
+
+  const handleAddQuizSyllabus = () => {
+    setData({
+      ...data,
+      quizSyllabus: [...(data.quizSyllabus || []), { courseCode: "", syllabus: "" }]
+    });
+  };
+
+  const handleUpdateQuizSyllabus = (index, field, value) => {
+    const updated = [...(data.quizSyllabus || [])];
+    updated[index][field] = value;
+    setData({ ...data, quizSyllabus: updated });
+  };
+
+  const handleRemoveQuizSyllabus = (index) => {
+    setData({
+      ...data,
+      quizSyllabus: (data.quizSyllabus || []).filter((_, i) => i !== index)
     });
   };
 
@@ -1219,13 +1282,19 @@ export default function RoutineVisualExporter() {
             </button>
             <button
               onClick={() => setActiveTab("ct")}
-              className={`px-3 py-1.5 rounded-md transition flex items-center gap-1 ${
-                activeTab === "ct"
+              className={`px-3 py-1.5 rounded-md transition flex items-center gap-1.5 ${
+                activeTab === "ct" || activeTab === "syllabus"
                   ? "bg-white dark:bg-slate-800 text-indigo-600 dark:text-white shadow-xs font-bold"
                   : "text-slate-600 dark:text-slate-400 hover:text-slate-900"
               }`}
             >
-              CT Syllabus ({data.ctSyllabus?.length || 0})
+              <FileText className="w-3.5 h-3.5 text-indigo-500" />
+              <span>CT & Quiz Syllabus</span>
+              {((data.ctSyllabus?.length || 0) + (data.quizSyllabus?.length || 0)) > 0 && (
+                <span className="text-[10px] px-1.5 py-0.2 rounded-full font-bold bg-indigo-100 text-indigo-700 dark:bg-indigo-900/50 dark:text-indigo-300">
+                  {(data.ctSyllabus?.length || 0) + (data.quizSyllabus?.length || 0)}
+                </span>
+              )}
             </button>
           </div>
 
@@ -1687,60 +1756,152 @@ export default function RoutineVisualExporter() {
         </div>
       )}
 
-      {/* CT Syllabus Tab */}
-      {activeTab === "ct" && (
-        <div className="bg-white dark:bg-slate-800 p-6 rounded-xl border border-slate-200 dark:border-slate-700 shadow-sm space-y-4">
-          <div className="flex justify-between items-center border-b pb-2">
-            <h3 className="font-semibold text-slate-800 dark:text-white">Class Test (CT) Syllabus Sections</h3>
+      {/* CT & Quiz Syllabus Tab */}
+      {(activeTab === "ct" || activeTab === "syllabus") && (
+        <div className="bg-white dark:bg-slate-800 p-6 rounded-xl border border-slate-200 dark:border-slate-700 shadow-sm space-y-6">
+          <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 border-b border-slate-200 dark:border-slate-700 pb-3">
+            <div>
+              <h3 className="font-bold text-lg text-slate-800 dark:text-white flex items-center gap-2">
+                <FileText className="w-5 h-5 text-indigo-500" /> Assessment Syllabus Editor (CT & Quiz)
+              </h3>
+              <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">
+                Manage Class Test (CT) topics for theory courses and Lab Quiz topics for sessional courses. Both render cleanly at the bottom of the routine schedule.
+              </p>
+            </div>
             <button
-              onClick={handleAddCtSyllabus}
-              className="flex items-center gap-1 text-sm bg-indigo-50 text-indigo-600 dark:bg-indigo-900/30 dark:text-indigo-400 font-medium px-3 py-1.5 rounded-lg hover:bg-indigo-100 transition"
+              onClick={() => setActiveTab("preview")}
+              className="bg-indigo-600 text-white px-4 py-2 rounded-lg text-sm font-semibold hover:bg-indigo-700 transition shrink-0"
             >
-              <Plus className="w-4 h-4" /> Add CT Course
+              Done & Return to Preview
             </button>
           </div>
 
-          <div className="space-y-3">
-            {(!data.ctSyllabus || data.ctSyllabus.length === 0) && (
-              <p className="text-sm text-slate-400 py-4 text-center">No CT tests scheduled for this week. Click above to add one.</p>
-            )}
-            {data.ctSyllabus?.map((item, index) => (
-              <div key={index} className="flex gap-3 items-start bg-slate-50 dark:bg-slate-900 p-3 rounded-lg border border-slate-200 dark:border-slate-700">
-                <div className="w-32">
-                  <label className="block text-xs text-slate-500 uppercase mb-1 font-semibold">Course Code</label>
-                  <input
-                    type="text"
-                    value={item.courseCode}
-                    onChange={(e) => handleUpdateCtSyllabus(index, "courseCode", e.target.value)}
-                    placeholder="e.g. ECE 2207"
-                    className="w-full px-2.5 py-1.5 border rounded text-sm bg-white dark:bg-slate-800 dark:text-white"
-                  />
-                </div>
-                <div className="flex-1">
-                  <label className="block text-xs text-slate-500 uppercase mb-1 font-semibold">Topics / Syllabus</label>
-                  <input
-                    type="text"
-                    value={item.syllabus}
-                    onChange={(e) => handleUpdateCtSyllabus(index, "syllabus", e.target.value)}
-                    placeholder="e.g. Chapter 1 & 2..."
-                    className="w-full px-2.5 py-1.5 border rounded text-sm bg-white dark:bg-slate-800 dark:text-white"
-                  />
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+            {/* Section 1: CT Syllabus (Theory Courses) */}
+            <div className="bg-slate-50 dark:bg-slate-900/60 p-4 rounded-xl border border-slate-200 dark:border-slate-700 space-y-4">
+              <div className="flex justify-between items-center border-b border-slate-200 dark:border-slate-700 pb-2.5">
+                <div className="flex items-center gap-2">
+                  <div className="w-2.5 h-2.5 rounded-full bg-rose-500"></div>
+                  <div>
+                    <h4 className="font-bold text-sm text-slate-800 dark:text-white">
+                      CT Syllabus (Theory Courses)
+                    </h4>
+                    <span className="text-[11px] text-slate-500">e.g. ECE 2207, MATH 2217, ECE 2213</span>
+                  </div>
                 </div>
                 <button
-                  onClick={() => handleRemoveCtSyllabus(index)}
-                  className="mt-6 p-2 text-rose-500 hover:bg-rose-50 dark:hover:bg-rose-900/30 rounded transition"
-                  title="Remove this CT syllabus"
+                  onClick={handleAddCtSyllabus}
+                  className="flex items-center gap-1 text-xs bg-rose-50 text-rose-600 dark:bg-rose-900/30 dark:text-rose-400 font-bold px-3 py-1.5 rounded-lg hover:bg-rose-100 transition"
                 >
-                  <Trash2 className="w-4 h-4" />
+                  <Plus className="w-3.5 h-3.5" /> Add CT Course
                 </button>
               </div>
-            ))}
+
+              <div className="space-y-3">
+                {(!data.ctSyllabus || data.ctSyllabus.length === 0) && (
+                  <p className="text-xs text-slate-400 py-4 text-center italic">
+                    No CT syllabus entries added yet. Click &quot;+ Add CT Course&quot; to add one.
+                  </p>
+                )}
+                {data.ctSyllabus?.map((item, index) => (
+                  <div key={index} className="flex gap-2.5 items-start bg-white dark:bg-slate-800 p-3 rounded-lg border border-slate-200 dark:border-slate-700 shadow-2xs">
+                    <div className="w-28 shrink-0">
+                      <label className="block text-[11px] text-slate-500 uppercase mb-0.5 font-bold">Course Code</label>
+                      <input
+                        type="text"
+                        value={item.courseCode}
+                        onChange={(e) => handleUpdateCtSyllabus(index, "courseCode", e.target.value)}
+                        placeholder="e.g. ECE 2207"
+                        className="w-full px-2.5 py-1.5 border rounded text-xs font-bold bg-white dark:bg-slate-900 dark:text-white"
+                      />
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <label className="block text-[11px] text-slate-500 uppercase mb-0.5 font-bold">CT Topics / Syllabus</label>
+                      <input
+                        type="text"
+                        value={item.syllabus}
+                        onChange={(e) => handleUpdateCtSyllabus(index, "syllabus", e.target.value)}
+                        placeholder="e.g. Chapter 1 & 2: Diode Circuits, BJT Biasing"
+                        className="w-full px-2.5 py-1.5 border rounded text-xs bg-white dark:bg-slate-900 dark:text-white"
+                      />
+                    </div>
+                    <button
+                      onClick={() => handleRemoveCtSyllabus(index)}
+                      className="mt-5 p-1.5 text-rose-500 hover:bg-rose-50 dark:hover:bg-rose-900/30 rounded transition"
+                      title="Remove this CT syllabus"
+                    >
+                      <Trash2 className="w-4 h-4" />
+                    </button>
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            {/* Section 2: Quiz Syllabus (Labs / Sessional) */}
+            <div className="bg-slate-50 dark:bg-slate-900/60 p-4 rounded-xl border border-slate-200 dark:border-slate-700 space-y-4">
+              <div className="flex justify-between items-center border-b border-slate-200 dark:border-slate-700 pb-2.5">
+                <div className="flex items-center gap-2">
+                  <div className="w-2.5 h-2.5 rounded-full bg-emerald-500"></div>
+                  <div>
+                    <h4 className="font-bold text-sm text-slate-800 dark:text-white">
+                      Quiz Syllabus (Sessional / Lab Courses)
+                    </h4>
+                    <span className="text-[11px] text-slate-500">e.g. ECE 2208, ECE 2214, ECE 2216</span>
+                  </div>
+                </div>
+                <button
+                  onClick={handleAddQuizSyllabus}
+                  className="flex items-center gap-1 text-xs bg-emerald-50 text-emerald-600 dark:bg-emerald-900/30 dark:text-emerald-400 font-bold px-3 py-1.5 rounded-lg hover:bg-emerald-100 transition"
+                >
+                  <Plus className="w-3.5 h-3.5" /> Add Lab Quiz
+                </button>
+              </div>
+
+              <div className="space-y-3">
+                {(!data.quizSyllabus || data.quizSyllabus.length === 0) && (
+                  <p className="text-xs text-slate-400 py-4 text-center italic">
+                    No Lab Quiz syllabus entries added yet. Click &quot;+ Add Lab Quiz&quot; to add one.
+                  </p>
+                )}
+                {data.quizSyllabus?.map((item, index) => (
+                  <div key={index} className="flex gap-2.5 items-start bg-white dark:bg-slate-800 p-3 rounded-lg border border-slate-200 dark:border-slate-700 shadow-2xs">
+                    <div className="w-28 shrink-0">
+                      <label className="block text-[11px] text-slate-500 uppercase mb-0.5 font-bold">Course Code</label>
+                      <input
+                        type="text"
+                        value={item.courseCode}
+                        onChange={(e) => handleUpdateQuizSyllabus(index, "courseCode", e.target.value)}
+                        placeholder="e.g. ECE 2208"
+                        className="w-full px-2.5 py-1.5 border rounded text-xs font-bold bg-white dark:bg-slate-900 dark:text-white"
+                      />
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <label className="block text-[11px] text-slate-500 uppercase mb-0.5 font-bold">Quiz Topics / Experiments</label>
+                      <input
+                        type="text"
+                        value={item.syllabus}
+                        onChange={(e) => handleUpdateQuizSyllabus(index, "syllabus", e.target.value)}
+                        placeholder="e.g. Experiment 1 & 2: Characteristics of DC Shunt Motor"
+                        className="w-full px-2.5 py-1.5 border rounded text-xs bg-white dark:bg-slate-900 dark:text-white"
+                      />
+                    </div>
+                    <button
+                      onClick={() => handleRemoveQuizSyllabus(index)}
+                      className="mt-5 p-1.5 text-rose-500 hover:bg-rose-50 dark:hover:bg-rose-900/30 rounded transition"
+                      title="Remove this Lab Quiz syllabus"
+                    >
+                      <Trash2 className="w-4 h-4" />
+                    </button>
+                  </div>
+                ))}
+              </div>
+            </div>
           </div>
 
           <div className="flex justify-end pt-2">
             <button
               onClick={() => setActiveTab("preview")}
-              className="bg-indigo-600 text-white px-4 py-2 rounded-lg text-sm font-medium hover:bg-indigo-700 transition"
+              className="bg-indigo-600 text-white px-4 py-2 rounded-lg text-sm font-semibold hover:bg-indigo-700 transition"
             >
               Done & Return to Preview
             </button>
@@ -2016,18 +2177,36 @@ export default function RoutineVisualExporter() {
               </table>
             </div>
 
-            {/* CT Syllabus Section at the Bottom */}
-            {data.ctSyllabus && data.ctSyllabus.length > 0 && (
-              <div className="pt-2 text-sm">
-                <h4 className="font-bold text-[15px] mb-1.5" style={{ color: "#18538a" }}>CT Syllabus</h4>
-                <div className="space-y-1.5 text-[13px] leading-relaxed">
-                  {data.ctSyllabus.map((ct, idx) => (
-                    <div key={idx}>
-                      <span className="font-bold" style={{ color: "#18538a" }}>{ct.courseCode}: </span>
-                      <span className="font-medium" style={{ color: "#000000" }}>{ct.syllabus}</span>
+            {/* CT & Quiz Syllabus Section at the Bottom */}
+            {((data.ctSyllabus && data.ctSyllabus.length > 0) || (data.quizSyllabus && data.quizSyllabus.length > 0)) && (
+              <div className="pt-2.5 text-sm border-t border-slate-300 mt-2 space-y-2">
+                {data.ctSyllabus && data.ctSyllabus.length > 0 && (
+                  <div>
+                    <h4 className="font-bold text-[14px] mb-1" style={{ color: "#18538a" }}>CT Syllabus:</h4>
+                    <div className="space-y-1 text-[13px] leading-relaxed">
+                      {data.ctSyllabus.map((ct, idx) => (
+                        <div key={idx} className="flex gap-1.5 items-baseline">
+                          <span className="font-bold shrink-0" style={{ color: "#18538a" }}>{ct.courseCode}:</span>
+                          <span className="font-medium" style={{ color: "#000000" }}>{ct.syllabus}</span>
+                        </div>
+                      ))}
                     </div>
-                  ))}
-                </div>
+                  </div>
+                )}
+
+                {data.quizSyllabus && data.quizSyllabus.length > 0 && (
+                  <div>
+                    <h4 className="font-bold text-[14px] mb-1" style={{ color: "#18538a" }}>Quiz Syllabus:</h4>
+                    <div className="space-y-1 text-[13px] leading-relaxed">
+                      {data.quizSyllabus.map((q, idx) => (
+                        <div key={idx} className="flex gap-1.5 items-baseline">
+                          <span className="font-bold shrink-0" style={{ color: "#18538a" }}>{q.courseCode}:</span>
+                          <span className="font-medium" style={{ color: "#000000" }}>{q.syllabus}</span>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
               </div>
             )}
           </div>
@@ -2246,6 +2425,37 @@ export default function RoutineVisualExporter() {
                   })()}
                 </div>
               </div>
+
+              {(cellForm.isCT || cellForm.isQuiz) && (
+                <div className="bg-slate-50 dark:bg-slate-900/70 p-3 rounded-lg border border-slate-200 dark:border-slate-700 space-y-1.5">
+                  <div className="flex justify-between items-center">
+                    <label className="block text-xs font-bold text-slate-700 dark:text-slate-200">
+                      {cellForm.isQuiz ? "Lab Quiz Syllabus / Experiments" : "Class Test (CT) Syllabus / Topics"}
+                    </label>
+                    <span className="text-[10px] text-slate-400 font-medium">Renders at routine bottom</span>
+                  </div>
+                  <input
+                    type="text"
+                    value={cellForm.syllabus || ""}
+                    onChange={(e) => setCellForm({ ...cellForm, syllabus: e.target.value })}
+                    placeholder={cellForm.isQuiz ? "e.g. Experiment 1 & 2: Motor Characteristics" : "e.g. Chapter 1 & 2: Diode Circuits, BJT Biasing"}
+                    className="w-full px-2.5 py-1.5 border rounded-lg text-xs bg-white dark:bg-slate-800 border-slate-300 dark:border-slate-600 dark:text-white"
+                  />
+                  <div className="flex justify-between items-center text-[10px] text-slate-500 dark:text-slate-400 pt-0.5">
+                    <span>Auto-saves to bottom syllabus</span>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setSelectedCell(null);
+                        setActiveTab("ct");
+                      }}
+                      className="text-indigo-600 dark:text-indigo-400 hover:underline font-semibold"
+                    >
+                      Open Syllabus Tab &rarr;
+                    </button>
+                  </div>
+                </div>
+              )}
 
               {!cellForm.isCT && !cellForm.isQuiz && (
                 <div className="space-y-2">
