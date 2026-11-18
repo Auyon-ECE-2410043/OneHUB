@@ -9,7 +9,7 @@ import { useState, useEffect, useCallback } from "react";
 import { useAuth } from "../../context/AuthContext";
 import registrationService from "../../services/registrationService";
 import courseService from "../../services/courseService";
-import { SEMESTERS } from "../../utils/constants";
+import { SEMESTERS, getSeriesDefaultSemester } from "../../utils/constants";
 import { formatCurrency, formatDate, getStatusBadge, getStatusLabel } from "../../utils/helpers";
 import { PageLoader } from "../../components/common/Loader";
 import Modal from "../../components/common/Modal";
@@ -27,10 +27,11 @@ export function RegistrationForm() {
   const [loading, setLoading] = useState(true);
 
   // Student States
+  const currentBatchSemester = getSeriesDefaultSemester(user);
   const [allMyRegistrations, setAllMyRegistrations] = useState([]);
   const [assignedData, setAssignedData] = useState(null);
   const [allCourses, setAllCourses] = useState([]);
-  const [selectedSemester, setSelectedSemester] = useState("2-2");
+  const [selectedSemester, setSelectedSemester] = useState(() => getSeriesDefaultSemester(user));
   const [selectedBacklogIds, setSelectedBacklogIds] = useState([]);
   const [submittingReg, setSubmittingReg] = useState(false);
 
@@ -59,13 +60,14 @@ export function RegistrationForm() {
         }
 
         try {
+          const defaultSem = getSeriesDefaultSemester(user);
           const [assigned, catalog] = await Promise.allSettled([
-            courseService.getAssignedCourses(),
+            courseService.getAssignedCourses(defaultSem),
             courseService.getAllCourses(),
           ]);
           if (assigned.status === "fulfilled" && assigned.value) {
             setAssignedData(assigned.value);
-            if (assigned.value.semester) setSelectedSemester(assigned.value.semester);
+            setSelectedSemester(defaultSem);
           }
           if (catalog.status === "fulfilled") setAllCourses(catalog.value || []);
         } catch (e) {
@@ -263,7 +265,7 @@ export function RegistrationForm() {
                       </option>
                     ))}
                   </select>
-                  {assignedData?.semester === selectedSemester && (
+                  {currentBatchSemester === selectedSemester && (
                     <span className="text-xs bg-sky-50 text-sky-700 font-bold px-2.5 py-1 rounded-full border border-sky-200">
                       Current Batch Session
                     </span>

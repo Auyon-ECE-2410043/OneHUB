@@ -65,30 +65,52 @@ router.get("/all", requireAuth, async (req, res) => {
   }
 });
 
+// Helper to determine active semester based on student series
+function getSeriesDefaultSemester(user) {
+  let series = "";
+  if (user?.batch) {
+    const match = String(user.batch).match(/\b(2[0-9])\b|20(2[0-9])/);
+    series = match ? (match[1] || match[2]) : String(user.batch).trim();
+  }
+  if (!series && user?.rollNo && user.rollNo.length >= 2) {
+    series = user.rollNo.substring(0, 2);
+  }
+
+  const seriesMap = {
+    "25": "1-2",
+    "24": "2-2",
+    "23": "3-1",
+    "22": "3-2",
+    "21": "4-2",
+  };
+
+  return seriesMap[series] || "2-2";
+}
+
 // GET /api/courses/assigned -> Fixed course list for student's batch, department, and semester
 router.get("/assigned", requireAuth, async (req, res) => {
   try {
     const student = await User.findById(req.user.id);
     if (!student) return res.status(404).json({ error: "Student not found" });
 
-    const semester = req.query.semester;
-    const filter = { batch: student.batch, department: student.department };
-    if (semester) filter.semester = semester;
+    const semester = req.query.semester || getSeriesDefaultSemester(student);
+    const filter = { batch: student.batch, department: student.department, semester };
 
-    const assignment = await CourseAssignment.findOne(filter).populate("courseIds").sort({ createdAt: -1 });
+    let assignment = await CourseAssignment.findOne(filter).populate("courseIds");
+    if (!assignment) {
+      assignment = await CourseAssignment.findOne({ department: student.department, semester }).populate("courseIds");
+    }
 
     let courses = [];
-    let assignedSemester = semester || "1-1";
+    let assignedSemester = semester;
 
-    if (assignment) {
+    if (assignment && assignment.courseIds && assignment.courseIds.length > 0) {
       courses = assignment.courseIds;
       assignedSemester = assignment.semester;
-    } else if (semester) {
+    } else {
       // Fallback: automatically fetch courses for this department and semester from the global catalog
       courses = await Course.find({ department: student.department, semester: semester });
       assignedSemester = semester;
-    } else {
-      return res.status(404).json({ error: "No course assignment found for this batch/department/semester" });
     }
 
     const totalCredit = courses.reduce((sum, c) => sum + (c.credit || 0), 0);

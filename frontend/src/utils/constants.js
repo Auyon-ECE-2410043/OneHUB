@@ -72,3 +72,23 @@ export const GRADE_POINTS = {
 };
 
 export const BATCHES = ["19", "20", "21", "22", "23", "24", "25"];
+
+export const SERIES_DEFAULT_SEMESTER = {
+  "25": "1-2",
+  "24": "2-2",
+  "23": "3-1",
+  "22": "3-2",
+  "21": "4-2",
+};
+
+export const getSeriesDefaultSemester = (user) => {
+  let series = "";
+  if (user?.batch) {
+    const match = String(user.batch).match(/\b(2[0-9])\b|20(2[0-9])/);
+    series = match ? (match[1] || match[2]) : String(user.batch).trim();
+  }
+  if (!series && user?.rollNo && user.rollNo.length >= 2) {
+    series = user.rollNo.substring(0, 2);
+  }
+  return SERIES_DEFAULT_SEMESTER[series] || "2-2";
+};
