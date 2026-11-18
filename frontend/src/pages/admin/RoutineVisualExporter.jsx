@@ -648,7 +648,46 @@ export default function RoutineVisualExporter() {
 
     // 2. Increment Running Week (e.g. 01 -> 02)
     const curWeekNum = parseInt(data.runningWeek, 10) || 1;
-    const nextWeekStr = String(curWeekNum + 1).padStart(2, "0");
+    const nextWeekNum = curWeekNum + 1;
+    const nextWeekStr = String(nextWeekNum).padStart(2, "0");
+
+    // Auto-alternate 0.75 credit labs (such as ECE 2208 in 24 series):
+    // Week 1 (odd) -> 1st 30, Week 2 (even) -> 2nd 30, Week 3 (odd) -> 1st 30, etc.
+    const updatedSchedule = JSON.parse(JSON.stringify(data.schedule));
+    
+    // Tally session occurrences across week to identify single-session 0.75 credit labs
+    const labSessionCounts = {};
+    DAYS.forEach(day => {
+      const daySlots = updatedSchedule[day] || {};
+      Object.keys(daySlots).forEach(slotId => {
+        const slot = daySlots[slotId];
+        if (slot && slot.course) {
+          const clean = slot.course.trim().toUpperCase().replace(/[^A-Z0-9]/g, "");
+          labSessionCounts[clean] = (labSessionCounts[clean] || 0) + 1;
+        }
+      });
+    });
+
+    let alternatedLabNames = [];
+    DAYS.forEach(day => {
+      const daySlots = updatedSchedule[day] || {};
+      Object.keys(daySlots).forEach(slotId => {
+        const slot = daySlots[slotId];
+        if (slot && slot.course) {
+          const clean = slot.course.trim().toUpperCase().replace(/[^A-Z0-9]/g, "");
+          // ECE 2208 (24 series) or any 0.75 credit single-session lab with 1st/2nd 30
+          const isPoint75Lab = clean === "ECE2208" || 
+            (labSessionCounts[clean] === 1 && slot.group && (slot.group.includes("1st") || slot.group.includes("2nd")));
+
+          if (isPoint75Lab) {
+            // Odd week (1, 3, 5, 7) -> "1st 30", Even week (2, 4, 6, 8) -> "2nd 30"
+            const targetGroup = (nextWeekNum % 2 === 0) ? "2nd 30" : "1st 30";
+            slot.group = targetGroup;
+            alternatedLabNames.push(`${slot.course} (${targetGroup})`);
+          }
+        }
+      });
+    });
 
     // 3. Increment Total Class Day Count (00 -> 05, or +4 if 1 holiday)
     const curDayCount = parseInt(data.totalClassDayCount, 10) || 0;
@@ -693,9 +732,10 @@ export default function RoutineVisualExporter() {
     // 6. Push current data snapshot to undo stack
     pushUndo(data);
 
-    // 7. Update data and reset holiday flags for upcoming week
+    // 7. Update data with new schedule (alternating 0.75 Cr labs) and reset holiday flags
     setData(prev => ({
       ...prev,
+      schedule: updatedSchedule,
       dateRange: formattedDateRange,
       runningWeek: nextWeekStr,
       totalClassDayCount: nextDayCountStr,
@@ -710,10 +750,11 @@ export default function RoutineVisualExporter() {
     }));
 
     const holidayCount = 5 - activeClassDays;
+    const labMsg = alternatedLabNames.length > 0 ? ` • 0.75 Cr Lab: ${alternatedLabNames.join(", ")}` : "";
     if (holidayCount > 0) {
-      toast.success(`Advanced to Week ${nextWeekStr}! Total class days: +${activeClassDays} (${holidayCount} holiday observed). Course records updated.`);
+      toast.success(`Advanced to Week ${nextWeekStr}! Total class days: +${activeClassDays} (${holidayCount} holiday observed). Course records updated.${labMsg}`);
     } else {
-      toast.success(`Advanced to Week ${nextWeekStr}! Total class days: +5. Course records updated.`);
+      toast.success(`Advanced to Week ${nextWeekStr}! Total class days: +5. Course records updated.${labMsg}`);
     }
   };
 
@@ -1365,15 +1406,42 @@ export default function RoutineVisualExporter() {
 
           <div className="grid md:grid-cols-2 gap-4">
             <div>
-              <label className="block text-xs font-semibold text-slate-600 dark:text-slate-300 uppercase mb-1">
-                Running Week
-              </label>
+              <div className="flex justify-between items-center mb-1">
+                <label className="block text-xs font-semibold text-slate-600 dark:text-slate-300 uppercase">
+                  Running Week
+                </label>
+                <span className="text-[10px] font-bold text-slate-400 dark:text-slate-500">
+                  {parseInt(data.runningWeek, 10) % 2 === 0 ? "Even Week (2nd 30 Lab)" : "Odd Week (1st 30 Lab)"}
+                </span>
+              </div>
               <input
                 type="text"
                 value={data.runningWeek}
-                onChange={(e) => setData({ ...data, runningWeek: e.target.value })}
+                onChange={(e) => {
+                  const val = e.target.value;
+                  const weekNum = parseInt(val, 10);
+                  if (!isNaN(weekNum) && weekNum > 0) {
+                    // Auto-sync 0.75 Cr lab (ECE 2208): odd week -> 1st 30, even week -> 2nd 30
+                    const updatedSchedule = JSON.parse(JSON.stringify(data.schedule));
+                    DAYS.forEach(day => {
+                      const daySlots = updatedSchedule[day] || {};
+                      Object.keys(daySlots).forEach(slotId => {
+                        const slot = daySlots[slotId];
+                        if (slot && slot.course) {
+                          const clean = slot.course.trim().toUpperCase().replace(/[^A-Z0-9]/g, "");
+                          if (clean === "ECE2208") {
+                            slot.group = (weekNum % 2 === 0) ? "2nd 30" : "1st 30";
+                          }
+                        }
+                      });
+                    });
+                    setData({ ...data, runningWeek: val, schedule: updatedSchedule });
+                  } else {
+                    setData({ ...data, runningWeek: val });
+                  }
+                }}
                 placeholder="e.g. 01"
-                className="w-full px-3 py-2 border rounded-lg text-sm bg-slate-50 dark:bg-slate-900 dark:border-slate-700 dark:text-white"
+                className="w-full px-3 py-2 border rounded-lg text-sm bg-slate-50 dark:bg-slate-900 dark:border-slate-700 dark:text-white font-mono"
               />
             </div>
             <div>
@@ -1496,7 +1564,7 @@ export default function RoutineVisualExporter() {
                         </span>
                       </div>
 
-                      {sessions.length >= 2 && (
+                      {sessions.length >= 2 ? (
                         <button
                           type="button"
                           onClick={() => handleSwapCourseGroups(courseCode)}
@@ -1505,6 +1573,26 @@ export default function RoutineVisualExporter() {
                         >
                           <RefreshCw className="w-3 h-3" /> Swap Dates (1st ⇄ 2nd 30)
                         </button>
+                      ) : (
+                        <div className="flex items-center gap-2">
+                          <span className="text-[10px] font-bold px-2 py-0.5 rounded bg-emerald-100 dark:bg-emerald-950/50 text-emerald-800 dark:text-emerald-300 border border-emerald-300">
+                            0.75 Cr Lab (Auto-Alternates)
+                          </span>
+                          <button
+                            type="button"
+                            onClick={() => {
+                              const s = sessions[0];
+                              const cur = s.group || "1st 30";
+                              const next = (cur === "1st 30") ? "2nd 30" : "1st 30";
+                              handleSetSlotGroup(s.day, s.slotId, next);
+                              toast.info(`${courseCode} toggled to ${next}`);
+                            }}
+                            className="flex items-center gap-1 text-xs text-emerald-700 dark:text-emerald-400 font-bold bg-white dark:bg-slate-800 px-2.5 py-1 rounded border border-emerald-300 dark:border-emerald-700 hover:bg-emerald-50 transition shadow-xs"
+                            title="Manually alternate between 1st 30 and 2nd 30"
+                          >
+                            <RefreshCw className="w-3 h-3" /> Alternate (1st ⇄ 2nd 30)
+                          </button>
+                        </div>
                       )}
                     </div>
 
