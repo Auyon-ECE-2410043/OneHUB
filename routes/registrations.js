@@ -259,7 +259,7 @@ router.put("/:id/approve", requireAuth, requireRole("faculty", "admin"), async (
         recipientRole: "student",
         title: "Registration Approved",
         message: `Your course registration for Semester ${registration.semester} has been approved.`,
-        type: "academic",
+        type: "registration_request",
         link: "/registration"
       });
     } catch (notifErr) {
@@ -300,7 +300,7 @@ router.put("/:id/reject", requireAuth, requireRole("faculty", "admin"), async (r
         recipientRole: "student",
         title: "Registration Rejected",
         message: `Your course registration for Semester ${updatedRegistration.semester} has been rejected. Comment: ${adviserComment || "N/A"}`,
-        type: "alert",
+        type: "general",
         link: "/registration"
       });
     } catch (notifErr) {

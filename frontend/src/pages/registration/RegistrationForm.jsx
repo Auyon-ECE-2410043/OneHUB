@@ -12,6 +12,7 @@ import courseService from "../../services/courseService";
 import { SEMESTERS, getSeriesDefaultSemester } from "../../utils/constants";
 import { formatCurrency, formatDate, getStatusBadge, getStatusLabel } from "../../utils/helpers";
 import { PageLoader } from "../../components/common/Loader";
+import { toast } from "sonner";
 import Modal from "../../components/common/Modal";
 import {
   ClipboardList,
@@ -174,9 +175,10 @@ export function RegistrationForm() {
       });
 
       setIsReviewModalOpen(false);
+      toast.success("Registration approved and fees generated successfully!");
       await loadData();
     } catch (err) {
-      alert(err.message || "Failed to approve registration");
+      toast.error(err.message || "Failed to approve registration");
     } finally {
       setReviewActionLoading(false);
     }
@@ -186,7 +188,7 @@ export function RegistrationForm() {
   const handleReject = async () => {
     if (!selectedRegForReview) return;
     if (!adviserComment) {
-      alert("Please provide a reason for rejection in the comment box.");
+      toast.warning("Please provide a reason for rejection in the comment box.");
       return;
     }
     setReviewActionLoading(true);
@@ -195,9 +197,10 @@ export function RegistrationForm() {
         adviserComment,
       });
       setIsReviewModalOpen(false);
+      toast.success("Registration rejected successfully.");
       await loadData();
     } catch (err) {
-      alert(err.message || "Failed to reject registration");
+      toast.error(err.message || "Failed to reject registration");
     } finally {
       setReviewActionLoading(false);
     }

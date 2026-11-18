@@ -52,13 +52,17 @@ router.post("/:feeId/pay", requireAuth, requireRole("student"), async (req, res)
     await fee.save({ session });
 
     const Notification = require("../models/Notification");
-    await Notification.create([{
+    try {
+      await Notification.create([{
       recipientId: fee.studentId,
         recipientRole: 'student',
       title: "Payment Successful",
       message: `Your payment of ৳${fee.amount} for ${fee.label} was successful. (Txn ID: ${transactionId})`,
       type: "payment"
     }], { session });
+    } catch (notifErr) {
+      console.error("Payment notification error:", notifErr);
+    }
 
     // If this is a Semester Registration fee, automatically approve the pending registration
     if (fee.feeType === "Semester Registration") {

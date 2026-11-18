@@ -55,7 +55,8 @@ app.get("/", (req, res) => {
   res.json({
     status: "ok",
     service: "RUET OneHub API",
-    version: "2.1.0",
+    version: "2.2.0",
+    deployedAt: "2026-11-18T20:25:00Z",
     ordinance: "RUET Scale 4.0 Standard",
   });
 });
