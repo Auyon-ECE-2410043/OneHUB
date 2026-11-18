@@ -38,6 +38,7 @@ import CGPACalculator from "../pages/cgpa/CGPACalculator";
 import AttendanceList from "../pages/attendance/AttendanceList";
 import MarkAttendance from "../pages/attendance/MarkAttendance";
 import NoticeList from "../pages/notices/NoticeList";
+import NoticeDetails from "../pages/notices/NoticeDetails";
 import HallApplicationForm from "../pages/hallApplication/HallApplicationForm";
 import { HallManagementDashboard } from "../pages/hall/HallManagementDashboard";
 import HallApplicationStatus from "../pages/hallApplication/HallApplicationStatus";
@@ -179,6 +180,7 @@ export function AppRoutes() {
 
         {/* Notice Board */}
         <Route path="/notices" element={<FeatureGuard featureKey="notices" title="Notice Board"><NoticeList /></FeatureGuard>} />
+        <Route path="/notices/:id" element={<FeatureGuard featureKey="notices" title="Notice Details"><NoticeDetails /></FeatureGuard>} />
 
         {/* Hall Accommodation */}
         <Route path="/hall" element={<FeatureGuard featureKey="hall" title="Hall Management"><ProtectedRoute allowedRoles={["student"]}><HallManagementDashboard /></ProtectedRoute></FeatureGuard>} />

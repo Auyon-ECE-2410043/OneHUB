@@ -52,14 +52,14 @@ export function MedicalCenter() {
         </div>
       </header>
 
-      {activeTab === "directory" && <DirectoryTab />}
+      {activeTab === "directory" && <DirectoryTab onBookAppointment={() => setActiveTab("appointments")} />}
       {activeTab === "appointments" && <AppointmentsTab user={user} />}
       {activeTab === "blood-directory" && <BloodDirectoryTab />}
     </div>
   );
 }
 
-function DirectoryTab() {
+function DirectoryTab({ onBookAppointment }) {
   const units = [
     {
       name: "Eye Unit (চক্ষু ইউনিট)",
@@ -184,14 +184,19 @@ function DirectoryTab() {
               <span className="text-slate-800">2:00 PM - 6:00 PM</span>
             </li>
           </ul>
-          <div>
-            <a 
-              href="https://forms.gle/xvn5rgrJrSrgdnKDA" 
-              target="_blank" 
-              rel="noopener noreferrer"
-              className="inline-flex items-center gap-2 bg-amber-500 hover:bg-amber-600 text-white px-5 py-2.5 rounded-lg font-medium transition-smooth"
+          <div className="flex flex-wrap gap-3">
+            <button 
+              type="button"
+              onClick={onBookAppointment} 
+              className="inline-flex items-center gap-2 bg-amber-500 hover:bg-amber-600 text-white px-5 py-2.5 rounded-lg font-medium transition-smooth shadow-xs cursor-pointer"
             >
-              Book Counseling Appointment <ExternalLink className="w-4 h-4" />
+              Book Counseling Session <Calendar className="w-4 h-4" />
+            </button>
+            <a 
+              href="mailto:tushar5003@gmail.com?subject=RUET%20Psychological%20Counseling%20Appointment%20Request" 
+              className="inline-flex items-center gap-2 bg-amber-100 hover:bg-amber-200 text-amber-900 px-5 py-2.5 rounded-lg font-medium transition-smooth"
+            >
+              Email Directly (tushar5003@gmail.com) <ExternalLink className="w-4 h-4" />
             </a>
           </div>
         </div>
@@ -263,6 +268,7 @@ function AppointmentsTab({ user }) {
                 <option value="Dr. Md. Firoz Uddin (Eye)">Dr. Md. Firoz Uddin (Eye Unit)</option>
                 <option value="Dr. Md. Mohadderul Haque (Dental)">Dr. Md. Mohadderul Haque (Dental Unit)</option>
                 <option value="Md. Golam Muktadir (Physiotherapy)">Md. Golam Muktadir (Physiotherapy Unit)</option>
+                <option value="Tanjir Ahmmed Tushar (Mental Health Counseling)">Tanjir Ahmmed Tushar (Mental Health Counseling)</option>
                 <option value="Dr. Md. Azizul Islam (CMO)">Dr. Md. Azizul Islam (Chief Medical Officer)</option>
                 <option value="Dr. Farhana Rahman (MO)">Dr. Farhana Rahman (Medical Officer)</option>
               </select>
