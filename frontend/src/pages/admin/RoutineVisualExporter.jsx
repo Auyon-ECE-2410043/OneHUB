@@ -37,6 +37,20 @@ const TIME_SLOTS = [
 
 const DAYS = ["Saturday", "Sunday", "Monday", "Tuesday", "Wednesday"];
 
+// Universal helper to detect if a course is a Sessional / Lab course in RUET
+export const isSessionalCourse = (courseCode) => {
+  if (!courseCode) return false;
+  const clean = courseCode.trim();
+  const match = clean.match(/(\d+)$/);
+  if (match) {
+    const num = parseInt(match[1], 10);
+    return num % 2 === 0; // Even course number in RUET = Sessional/Lab
+  }
+  const lower = clean.toLowerCase();
+  return lower.includes("sessional") || lower.includes("lab");
+};
+
+
 const getContrastTextColor = (hexColor) => {
   if (!hexColor || hexColor === "#000000") return "#FFFFFF";
   const hex = hexColor.replace("#", "");
@@ -885,6 +899,7 @@ export default function RoutineVisualExporter() {
     group: "All",
     span: 1,
     isCT: false,
+    isQuiz: false,
     bg: "#FFFFFF",
     text: "#000000"
   });
@@ -892,15 +907,19 @@ export default function RoutineVisualExporter() {
   const openCellEditor = (day, slotId) => {
     const existing = data.schedule[day]?.[slotId] || {};
     setSelectedCell({ day, slotId });
+    const isLab = isSessionalCourse(existing.course) || (existing.span >= 2) || (existing.note && existing.note.toLowerCase().includes("lab")) || (existing.group && existing.group !== "All");
+    const isAssessment = existing.isCT || existing.isQuiz || (existing.bg === "#000000");
+
     setCellForm({
       course: existing.course || "",
       teacher: existing.teacher || "",
       note: existing.note || "",
       group: existing.group || (existing.span >= 2 ? "1st 30" : "All"),
       span: existing.span || 1,
-      isCT: existing.isCT || false,
-      bg: existing.bg || (existing.isCT ? "#000000" : "#FFFFFF"),
-      text: existing.text || (existing.isCT ? "#FFFFFF" : "#000000"),
+      isCT: !isLab && isAssessment,
+      isQuiz: isLab && isAssessment,
+      bg: existing.bg || (isAssessment ? "#000000" : "#FFFFFF"),
+      text: existing.text || (isAssessment ? "#FFFFFF" : "#000000"),
     });
   };
 
@@ -928,8 +947,9 @@ export default function RoutineVisualExporter() {
         group: cellForm.group || "All",
         span: Number(cellForm.span) || 1,
         isCT: cellForm.isCT,
-        bg: cellForm.isCT ? "#000000" : cellForm.bg,
-        text: cellForm.isCT ? "#FFFFFF" : cellForm.text,
+        isQuiz: cellForm.isQuiz,
+        bg: (cellForm.isCT || cellForm.isQuiz) ? "#000000" : cellForm.bg,
+        text: (cellForm.isCT || cellForm.isQuiz) ? "#FFFFFF" : cellForm.text,
       };
 
       // Successfully saved a course, remove from cleared history
@@ -2152,33 +2172,82 @@ export default function RoutineVisualExporter() {
                 </div>
 
                 <div>
-                  <label className="block text-xs font-semibold text-slate-600 dark:text-slate-300 uppercase mb-1">
-                    Is Class Test (CT)?
-                  </label>
-                  <label className="flex items-center gap-2 mt-2 cursor-pointer">
-                    <input
-                      type="checkbox"
-                      checked={cellForm.isCT}
-                      onChange={(e) => {
-                        const isChecked = e.target.checked;
-                        setCellForm({
-                          ...cellForm,
-                          isCT: isChecked,
-                          bg: isChecked ? "#000000" : "#FFFFFF",
-                          text: isChecked ? "#FFFFFF" : "#000000",
-                          teacher: isChecked && !cellForm.teacher.includes("(CT)")
-                            ? `${cellForm.teacher} (CT)`.trim()
-                            : cellForm.teacher
-                        });
-                      }}
-                      className="w-4 h-4 text-indigo-600 rounded"
-                    />
-                    <span className="text-sm font-semibold text-rose-600 dark:text-rose-400">Class Test (Black Box)</span>
-                  </label>
+                  {(() => {
+                    const isLabSlot = isSessionalCourse(cellForm.course) ||
+                      (cellForm.span >= 2) ||
+                      (cellForm.note && cellForm.note.toLowerCase().includes("lab")) ||
+                      (cellForm.group && cellForm.group !== "All");
+
+                    if (isLabSlot) {
+                      return (
+                        <div>
+                          <label className="block text-xs font-semibold text-slate-600 dark:text-slate-300 uppercase mb-1">
+                            Is Lab Quiz?
+                          </label>
+                          <label className="flex items-center gap-2 mt-2 cursor-pointer">
+                            <input
+                              type="checkbox"
+                              checked={cellForm.isQuiz}
+                              onChange={(e) => {
+                                const isChecked = e.target.checked;
+                                let teacherStr = cellForm.teacher.replace(/\s*\((CT|Quiz)\)/gi, "").trim();
+                                if (isChecked) teacherStr = `${teacherStr} (Quiz)`.trim();
+
+                                setCellForm({
+                                  ...cellForm,
+                                  isQuiz: isChecked,
+                                  isCT: false,
+                                  bg: isChecked ? "#000000" : "#FFFFFF",
+                                  text: isChecked ? "#FFFFFF" : "#000000",
+                                  teacher: teacherStr
+                                });
+                              }}
+                              className="w-4 h-4 text-emerald-600 rounded"
+                            />
+                            <span className="text-sm font-semibold text-emerald-600 dark:text-emerald-400">
+                              Lab Quiz (Black Box)
+                            </span>
+                          </label>
+                        </div>
+                      );
+                    }
+
+                    return (
+                      <div>
+                        <label className="block text-xs font-semibold text-slate-600 dark:text-slate-300 uppercase mb-1">
+                          Is Class Test (CT)?
+                        </label>
+                        <label className="flex items-center gap-2 mt-2 cursor-pointer">
+                          <input
+                            type="checkbox"
+                            checked={cellForm.isCT}
+                            onChange={(e) => {
+                              const isChecked = e.target.checked;
+                              let teacherStr = cellForm.teacher.replace(/\s*\((CT|Quiz)\)/gi, "").trim();
+                              if (isChecked) teacherStr = `${teacherStr} (CT)`.trim();
+
+                              setCellForm({
+                                ...cellForm,
+                                isCT: isChecked,
+                                isQuiz: false,
+                                bg: isChecked ? "#000000" : "#FFFFFF",
+                                text: isChecked ? "#FFFFFF" : "#000000",
+                                teacher: teacherStr
+                              });
+                            }}
+                            className="w-4 h-4 text-indigo-600 rounded"
+                          />
+                          <span className="text-sm font-semibold text-rose-600 dark:text-rose-400">
+                            Class Test (Black Box)
+                          </span>
+                        </label>
+                      </div>
+                    );
+                  })()}
                 </div>
               </div>
 
-              {!cellForm.isCT && (
+              {!cellForm.isCT && !cellForm.isQuiz && (
                 <div className="space-y-2">
                   <div className="flex justify-between items-center">
                     <label className="block text-xs font-semibold text-slate-600 dark:text-slate-300 uppercase">
@@ -2445,7 +2514,8 @@ function renderSlotCell(day, slotId, slotData, isOverriddenBySpan = false, onCli
     );
   }
 
-  const { course, teacher, note, noteBg, noteColor, bg, text, span = 1, isCT, group } = slotData;
+  const { course, teacher, note, noteBg, noteColor, bg, text, span = 1, isCT, isQuiz, group } = slotData;
+  const isAssessment = isCT || isQuiz || (bg && bg.toUpperCase() === "#000000");
 
   return (
     <td
@@ -2468,7 +2538,7 @@ function renderSlotCell(day, slotId, slotData, isOverriddenBySpan = false, onCli
             className="text-[10px] font-bold mt-0.5 px-1 rounded"
             style={{
               backgroundColor: noteBg || "transparent",
-              color: noteColor || (isCT ? "#FFFFFF" : "#000000")
+              color: noteColor || (isAssessment ? "#FFFFFF" : "#000000")
             }}
           >
             {note}
@@ -2479,17 +2549,17 @@ function renderSlotCell(day, slotId, slotData, isOverriddenBySpan = false, onCli
           <span
             className="text-[10px] font-black mt-0.5 px-2 py-0.5 rounded shadow-xs inline-block"
             style={{
-              color: isCT
+              color: isAssessment
                 ? "#fef08a"
                 : group.toLowerCase().includes("2nd") || group.includes("2")
                 ? "#c2410c"
                 : "#a16207",
-              backgroundColor: isCT
+              backgroundColor: isAssessment
                 ? "#18181b"
                 : group.toLowerCase().includes("2nd") || group.includes("2")
                 ? "#ffedd5"
                 : "#fef9c3",
-              border: isCT
+              border: isAssessment
                 ? "1px solid #3f3f46"
                 : group.toLowerCase().includes("2nd") || group.includes("2")
                 ? "1px solid #fed7aa"
