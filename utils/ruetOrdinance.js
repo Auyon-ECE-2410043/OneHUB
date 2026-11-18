@@ -58,13 +58,14 @@ function getAttendanceEvaluation(percentage) {
   else if (percentage >= 70) marks = 4;
   else if (percentage >= 65) marks = 3;
   else if (percentage >= 60) marks = 2;
+  else if (percentage >= 50) marks = 1;
   else marks = 0;
 
   if (percentage >= 75) status = "Collegiate";
-  else if (percentage >= 60) status = "Non-Collegiate";
+  else if (percentage >= 50) status = "Non-Collegiate";
   else status = "Dis-Collegiate";
 
-  return { attendanceMarks: marks, status, isEligibleForExam: percentage >= 60 };
+  return { attendanceMarks: marks, status, isEligibleForExam: percentage >= 50 };
 }
 
 /**

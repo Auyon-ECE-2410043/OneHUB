@@ -73,11 +73,11 @@ export function AttendanceList() {
   const { records, totalClasses, presentCount, percentage } = attendanceData;
   const missedCount = totalClasses - presentCount;
 
-  // RUET Eligibility Rule (75% collegiate, 60-74% non-collegiate fine, <60% discollegiate)
+  // RUET Eligibility Rule (75% collegiate, 50-74% non-collegiate fine, <50% discollegiate)
   const getEligibilityStatus = (pct) => {
     if (totalClasses === 0) return { label: "No Classes Held", color: "text-slate-500 bg-slate-100" };
     if (pct >= 75) return { label: "Collegiate (Eligible)", color: "text-emerald-700 bg-emerald-100 border-emerald-200" };
-    if (pct >= 60) return { label: "Non-Collegiate (Fine Required)", color: "text-amber-700 bg-amber-100 border-amber-200" };
+    if (pct >= 50) return { label: "Non-Collegiate (Fine Required)", color: "text-amber-700 bg-amber-100 border-amber-200" };
     return { label: "Discollegiate (Ineligible)", color: "text-rose-700 bg-rose-100 border-rose-200" };
   };
 
