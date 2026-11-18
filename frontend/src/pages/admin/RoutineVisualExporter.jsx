@@ -16,7 +16,8 @@
 import { useState, useRef, useMemo, useEffect } from "react";
 import html2canvasPro from "html2canvas-pro";
 import html2canvasStd from "html2canvas";
-import { Download, RotateCcw, Plus, Trash2, Calendar, Layers, Users, RefreshCw, Check, Sparkles, Type, Undo2, History, AlertCircle } from "lucide-react";
+import { Download, RotateCcw, Plus, Trash2, Calendar, Layers, Users, RefreshCw, Check, Sparkles, Type, Undo2, History, AlertCircle, Sun, CalendarRange } from "lucide-react";
+import { toast } from "sonner";
 import routineService from "../../services/routineService";
 
 // Standard RUET ECE time slots
@@ -453,17 +454,22 @@ export default function RoutineVisualExporter() {
     }
   }, [clearedHistory, selectedSemKey]);
 
-  // Push current schedule to undo stack before any modification
-  const pushUndo = (currentSchedule) => {
-    setUndoStack(prev => [...prev.slice(-30), JSON.parse(JSON.stringify(currentSchedule))]);
+  // Push current schedule/data to undo stack before any modification
+  const pushUndo = (currentState) => {
+    setUndoStack(prev => [...prev.slice(-30), JSON.parse(JSON.stringify(currentState))]);
   };
 
-  // Revert to last schedule state
+  // Revert to last schedule/data state
   const handleUndo = () => {
     if (undoStack.length === 0) return;
-    const prevSchedule = undoStack[undoStack.length - 1];
+    const prevState = undoStack[undoStack.length - 1];
     setUndoStack(prev => prev.slice(0, -1));
-    setData(prev => ({ ...prev, schedule: prevSchedule }));
+    if (prevState && prevState.schedule) {
+      setData(prevState);
+    } else if (prevState) {
+      setData(prev => ({ ...prev, schedule: prevState }));
+    }
+    toast.info("Reverted routine to previous state.");
   };
 
   // Keyboard shortcut: Ctrl+Z / Cmd+Z for undo
@@ -593,6 +599,121 @@ export default function RoutineVisualExporter() {
       if (formatted) {
         setData(prev => ({ ...prev, dateRange: formatted }));
       }
+    }
+  };
+
+
+  // Toggle a day as Holiday (Solid Black background with bold white HOLIDAY)
+  const handleToggleHoliday = (day) => {
+    setData(prev => {
+      const curHolidays = prev.holidays || {};
+      const nextHolidays = {
+        ...curHolidays,
+        [day]: !curHolidays[day]
+      };
+      const activeCount = 5 - Object.values(nextHolidays).filter(Boolean).length;
+      if (nextHolidays[day]) {
+        toast.info(`${day} marked as HOLIDAY (Solid black background). Active class days this week: ${activeCount}.`);
+      } else {
+        toast.info(`${day} restored to regular class schedule. Active class days this week: ${activeCount}.`);
+      }
+      return {
+        ...prev,
+        holidays: nextHolidays
+      };
+    });
+  };
+
+  // Automatically advance to Next Week: increment running week, total class days (+5 or +4), and previous class records
+  const handleNextWeek = () => {
+    // 1. Calculate active class days and course counts from finishing week
+    const currentHolidays = data.holidays || {};
+    let activeClassDays = 0;
+    const weeklyCourseCounts = {};
+
+    DAYS.forEach(day => {
+      if (currentHolidays[day]) return;
+      activeClassDays += 1;
+      const daySlots = data.schedule[day] || {};
+      TIME_SLOTS.forEach(timeSlot => {
+        const slot = daySlots[timeSlot.id];
+        if (slot && slot.course) {
+          const clean = slot.course.trim().toUpperCase().replace(/[^A-Z0-9]/g, "");
+          if (clean && !clean.includes("NONE")) {
+            weeklyCourseCounts[clean] = (weeklyCourseCounts[clean] || 0) + 1;
+          }
+        }
+      });
+    });
+
+    // 2. Increment Running Week (e.g. 01 -> 02)
+    const curWeekNum = parseInt(data.runningWeek, 10) || 1;
+    const nextWeekStr = String(curWeekNum + 1).padStart(2, "0");
+
+    // 3. Increment Total Class Day Count (00 -> 05, or +4 if 1 holiday)
+    const curDayCount = parseInt(data.totalClassDayCount, 10) || 0;
+    const nextDayCount = curDayCount + activeClassDays;
+    const nextDayCountStr = String(nextDayCount).padStart(2, "0");
+
+    // 4. Increment Previous Class Record string
+    const updateRecordStr = (recordStr) => {
+      if (!recordStr) return recordStr;
+      return recordStr.replace(/\[\s*([^:]+)\s*:\s*(\d+)\s*\]/g, (match, courseName, countStr) => {
+        const curCount = parseInt(countStr, 10) || 0;
+        const clean = courseName.trim().toUpperCase().replace(/[^A-Z0-9]/g, "");
+        const added = weeklyCourseCounts[clean] || 0;
+        const next = curCount + added;
+        return `[${courseName}: ${String(next).padStart(2, "0")}]`;
+      });
+    };
+
+    const newPreviousClassRecord = updateRecordStr(data.previousClassRecord);
+
+    // 5. Advance Calendar Dates by +7 days
+    const baseStart = calStartDate || "2026-11-14";
+    const curSatDate = new Date(baseStart + "T00:00:00");
+    curSatDate.setDate(curSatDate.getDate() + 7);
+    const nextWedDate = new Date(curSatDate);
+    nextWedDate.setDate(curSatDate.getDate() + 4);
+
+    const formatIso = (d) => {
+      const y = d.getFullYear();
+      const m = String(d.getMonth() + 1).padStart(2, "0");
+      const dt = String(d.getDate()).padStart(2, "0");
+      return `${y}-${m}-${dt}`;
+    };
+
+    const sStr = formatIso(curSatDate);
+    const eStr = formatIso(nextWedDate);
+    setCalStartDate(sStr);
+    setCalEndDate(eStr);
+
+    const formattedDateRange = formatDateRangeFromDates(sStr, eStr);
+
+    // 6. Push current data snapshot to undo stack
+    pushUndo(data);
+
+    // 7. Update data and reset holiday flags for upcoming week
+    setData(prev => ({
+      ...prev,
+      dateRange: formattedDateRange,
+      runningWeek: nextWeekStr,
+      totalClassDayCount: nextDayCountStr,
+      previousClassRecord: newPreviousClassRecord,
+      holidays: {
+        Saturday: false,
+        Sunday: false,
+        Monday: false,
+        Tuesday: false,
+        Wednesday: false,
+      }
+    }));
+
+    const holidayCount = 5 - activeClassDays;
+    if (holidayCount > 0) {
+      toast.success(`Advanced to Week ${nextWeekStr}! Total class days: +${activeClassDays} (${holidayCount} holiday observed). Course records updated.`);
+    } else {
+      toast.success(`Advanced to Week ${nextWeekStr}! Total class days: +5. Course records updated.`);
     }
   };
 
@@ -1151,10 +1272,12 @@ export default function RoutineVisualExporter() {
                 </button>
                 <button
                   type="button"
-                  onClick={() => handleSetWeekPreset(1)}
-                  className="text-[11px] font-semibold px-2.5 py-1 rounded-md bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 hover:bg-slate-100 text-slate-700 dark:text-slate-200 shadow-xs"
+                  onClick={handleNextWeek}
+                  className="text-[11px] font-bold px-3 py-1 rounded-md bg-indigo-600 hover:bg-indigo-700 text-white shadow-xs transition flex items-center gap-1"
+                  title="Advance to next week: auto-increment running week, total class days (+5 or +4), and all previous course records"
                 >
-                  📅 Next Week (Sat–Wed)
+                  <CalendarRange className="w-3.5 h-3.5" />
+                  <span>Next Week (Sat–Wed)</span>
                 </button>
               </div>
             </div>
@@ -1196,6 +1319,47 @@ export default function RoutineVisualExporter() {
                 placeholder="e.g. 14 November, 2026 to November 18, 2026"
                 className="w-full px-3 py-2 border rounded-lg text-sm bg-white dark:bg-slate-800 dark:border-slate-700 dark:text-white font-medium"
               />
+            </div>
+          </div>
+
+          {/* Holiday Management Card */}
+          <div className="bg-slate-50 dark:bg-slate-900/60 p-4 rounded-xl border border-slate-200 dark:border-slate-700 space-y-3">
+            <div className="flex flex-col sm:flex-row justify-between sm:items-center gap-2">
+              <div>
+                <label className="text-xs font-bold text-slate-700 dark:text-slate-300 uppercase flex items-center gap-1.5">
+                  <Sun className="w-4 h-4 text-amber-500" />
+                  Weekly Holidays & Off-Days (Blackout Any Day)
+                </label>
+                <p className="text-[11px] text-slate-500 dark:text-slate-400 mt-0.5">
+                  Mark any day in this routine week as a holiday. It will render in solid black with bold white "HOLIDAY" across all class boxes, and automatically reduce the active class day count (+4 instead of +5) on Next Week.
+                </p>
+              </div>
+              <span className="text-xs font-bold px-2.5 py-1 rounded-full bg-indigo-50 dark:bg-indigo-950/60 text-indigo-700 dark:text-indigo-300 border border-indigo-200 dark:border-indigo-800 self-start sm:self-auto shrink-0">
+                {5 - Object.values(data.holidays || {}).filter(Boolean).length} / 5 Class Days Active
+              </span>
+            </div>
+
+            <div className="grid grid-cols-2 sm:grid-cols-5 gap-2 pt-1">
+              {DAYS.map(day => {
+                const isHol = !!(data.holidays && data.holidays[day]);
+                return (
+                  <button
+                    key={day}
+                    type="button"
+                    onClick={() => handleToggleHoliday(day)}
+                    className={`flex flex-col items-center justify-center p-2.5 rounded-xl border text-xs font-bold transition shadow-xs ${
+                      isHol
+                        ? "bg-black text-white border-black ring-2 ring-amber-400"
+                        : "bg-white dark:bg-slate-800 text-slate-700 dark:text-slate-200 border-slate-200 dark:border-slate-700 hover:border-indigo-400"
+                    }`}
+                  >
+                    <span className="text-[11px] font-bold">{day}</span>
+                    <span className={`text-[10px] mt-1 font-semibold ${isHol ? "text-amber-300" : "text-emerald-600 dark:text-emerald-400"}`}>
+                      {isHol ? "⚫ HOLIDAY" : "🟢 Class Day"}
+                    </span>
+                  </button>
+                );
+              })}
             </div>
           </div>
 
@@ -1478,14 +1642,34 @@ export default function RoutineVisualExporter() {
 
       {/* Visual Canvas / Printable Document View */}
       <div className="space-y-2">
-        <div className="flex items-center justify-between text-xs text-slate-500 dark:text-slate-400 px-1">
-          <span className="flex items-center gap-1.5">
-            <span>💡 Tip: Click on any slot in the timetable to edit course, teacher, room, lab group (1st/2nd 30), or add CT black box.</span>
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between text-xs text-slate-500 dark:text-slate-400 px-1 gap-2">
+          <span className="flex items-center gap-1.5 flex-wrap">
+            <span>💡 Tip: Click any slot to edit. Click any day name or black box to toggle Holiday.</span>
             <span className="hidden md:inline px-2 py-0.5 rounded bg-indigo-50 dark:bg-indigo-900/30 text-indigo-600 dark:text-indigo-400 font-medium text-[11px]">
               Font: {activeFont.name}
             </span>
           </span>
-          <span>Click "Download Routine PNG" above to export.</span>
+          <div className="flex items-center gap-1 flex-wrap">
+            <span className="text-[11px] font-bold text-slate-600 dark:text-slate-300 mr-0.5">Holidays:</span>
+            {DAYS.map(day => {
+              const isHol = !!(data.holidays && data.holidays[day]);
+              return (
+                <button
+                  key={day}
+                  type="button"
+                  onClick={() => handleToggleHoliday(day)}
+                  className={`text-[10px] font-bold px-2 py-0.5 rounded transition ${
+                    isHol
+                      ? "bg-black text-white ring-1 ring-amber-400 shadow-xs"
+                      : "bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 hover:bg-slate-200"
+                  }`}
+                  title={`Toggle ${day} Holiday blackout`}
+                >
+                  {day.slice(0, 3)}: {isHol ? "⚫ HOLIDAY" : "Class"}
+                </button>
+              );
+            })}
+          </div>
         </div>
 
         {/* The Exact Printable Template Box */}
@@ -1574,16 +1758,94 @@ export default function RoutineVisualExporter() {
                 <tbody>
                   {DAYS.map((day, dayIndex) => {
                     const daySlots = data.schedule[day] || {};
+                    const isHoliday = !!(data.holidays && data.holidays[day]);
 
                     return (
                       <tr key={day} className="h-[62px]">
                         {/* Day label */}
                         <td
-                          className="border border-black font-bold text-xs px-2 text-center"
-                          style={{ backgroundColor: "#d4cc95", borderColor: "#000000", color: "#000000" }}
+                          onClick={() => handleToggleHoliday(day)}
+                          className="border border-black font-bold text-xs px-2 text-center cursor-pointer transition select-none hover:opacity-90"
+                          style={{
+                            backgroundColor: isHoliday ? "#000000" : "#d4cc95",
+                            borderColor: "#000000",
+                            color: isHoliday ? "#ffffff" : "#000000",
+                          }}
+                          title={isHoliday ? "Holiday active. Click to restore classes." : "Click to toggle Holiday"}
                         >
-                          {day}
+                          <div className="flex flex-col items-center justify-center">
+                            <span>{day}</span>
+                            {isHoliday ? (
+                              <span className="text-[9px] uppercase tracking-wider text-amber-300 font-extrabold mt-0.5">
+                                HOLIDAY
+                              </span>
+                            ) : null}
+                          </div>
                         </td>
+
+                        {isHoliday ? (
+                          <>
+                            {/* Morning Periods (Slots 0, 1, 2) */}
+                            <td
+                              colSpan={3}
+                              onClick={() => handleToggleHoliday(day)}
+                              className="border border-black text-center font-black text-base tracking-[0.25em] select-none cursor-pointer hover:bg-zinc-900 transition"
+                              style={{ backgroundColor: "#000000", color: "#FFFFFF", borderColor: "#000000" }}
+                              title="Holiday active. Click to restore normal classes."
+                            >
+                              HOLIDAY
+                            </td>
+
+                            {/* Middle Class Break Column */}
+                            {dayIndex === 0 && (
+                              <td
+                                rowSpan={DAYS.length}
+                                className="border border-black text-[11px] font-medium text-center p-0 align-middle select-none"
+                                style={{ backgroundColor: "#ffffff", borderColor: "#000000", color: "#334155" }}
+                              >
+                                <div style={{ writingMode: "vertical-rl", transform: "rotate(180deg)", margin: "0 auto", textTransform: "uppercase", letterSpacing: "1px" }}>
+                                  Class Break
+                                </div>
+                              </td>
+                            )}
+
+                            {/* Midday Periods (Slots 3, 4, 5) */}
+                            <td
+                              colSpan={3}
+                              onClick={() => handleToggleHoliday(day)}
+                              className="border border-black text-center font-black text-base tracking-[0.25em] select-none cursor-pointer hover:bg-zinc-900 transition"
+                              style={{ backgroundColor: "#000000", color: "#FFFFFF", borderColor: "#000000" }}
+                              title="Holiday active. Click to restore normal classes."
+                            >
+                              HOLIDAY
+                            </td>
+
+                            {/* Lunch / Prayer Break Column */}
+                            {dayIndex === 0 && (
+                              <td
+                                rowSpan={DAYS.length}
+                                className="border border-black text-[11px] font-medium text-center p-0 align-middle select-none"
+                                style={{ backgroundColor: "#ffffff", borderColor: "#000000", color: "#334155" }}
+                              >
+                                <div style={{ writingMode: "vertical-rl", transform: "rotate(180deg)", margin: "0 auto", textTransform: "uppercase", letterSpacing: "1px" }}>
+                                  Class Break
+                                </div>
+                              </td>
+                            )}
+
+                            {/* Afternoon Periods (Slots 6, 7, 8) */}
+                            <td
+                              colSpan={3}
+                              onClick={() => handleToggleHoliday(day)}
+                              className="border border-black text-center font-black text-base tracking-[0.25em] select-none cursor-pointer hover:bg-zinc-900 transition"
+                              style={{ backgroundColor: "#000000", color: "#FFFFFF", borderColor: "#000000" }}
+                              title="Holiday active. Click to restore normal classes."
+                            >
+                              HOLIDAY
+                            </td>
+                          </>
+                        ) : (
+                          <>
 
                         {/* Slot 0 (8.00 - 8.50) */}
                         {renderSlotCell(day, "slot0", daySlots.slot0, false, () => openCellEditor(day, "slot0"), getRecoverableSlot(day, "slot0"))}
@@ -1637,6 +1899,8 @@ export default function RoutineVisualExporter() {
 
                         {/* Slot 8 (4.10 - 5.00) */}
                         {renderSlotCell(day, "slot8", daySlots.slot8, daySlots.slot6?.span >= 3 || daySlots.slot7?.span >= 2, () => openCellEditor(day, "slot8"), getRecoverableSlot(day, "slot8"))}
+                          </>
+                        )}
                       </tr>
                     );
                   })}
