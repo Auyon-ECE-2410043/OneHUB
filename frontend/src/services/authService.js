@@ -51,6 +51,19 @@ export const authService = {
 
   verifyOtp: async (email, otp, newPassword) => {
     const res = await api.post("/auth/verify-otp", { email, otp, newPassword });
+    if (res.data.token) {
+      localStorage.setItem("token", res.data.token);
+      localStorage.setItem("user", JSON.stringify(res.data.user));
+    }
+    return res.data;
+  },
+
+  resetPassword: async (email, otp, newPassword) => {
+    const res = await api.post("/auth/verify-otp", { email, otp, newPassword });
+    if (res.data.token) {
+      localStorage.setItem("token", res.data.token);
+      localStorage.setItem("user", JSON.stringify(res.data.user));
+    }
     return res.data;
   },
 

@@ -58,13 +58,16 @@ export function Login() {
   const handleForgotPasswordEmail = async (e) => {
     e.preventDefault();
     if (!formData.email) {
-      toast.error("Please enter your email.");
+      toast.error("Please enter your email or roll number.");
       return;
     }
     setLoading(true);
     try {
-      await authService.sendOtp(formData.email);
-      toast.success("Password reset code sent to your email!");
+      const res = await authService.sendOtp(formData.email);
+      if (res.email) {
+        setFormData((prev) => ({ ...prev, email: res.email }));
+      }
+      toast.success(res.message || "Password reset code sent to your email!");
       setStep("reset_password");
     } catch (err) {
       toast.error(err.response?.data?.error || err.message || "Failed to send reset code.");
@@ -85,9 +88,14 @@ export function Login() {
     }
     setLoading(true);
     try {
-      await authService.verifyOtp(formData.email, verifyData.otp, verifyData.newPassword);
-      toast.success("Password reset successfully! You can now login.");
-      setStep("login");
+      const res = await authService.resetPassword(formData.email, verifyData.otp, verifyData.newPassword);
+      toast.success("Password reset successfully! Logging you in...");
+      if (res.token) {
+        navigate(from, { replace: true });
+        window.location.reload();
+      } else {
+        setStep("login");
+      }
     } catch (err) {
       toast.error(err.response?.data?.error || err.message || "Invalid verification code.");
     } finally {
@@ -426,23 +434,23 @@ export function Login() {
                 <Mail className="w-12 h-12 text-sky-400 mx-auto mb-2" />
                 <h3 className="text-xl font-bold text-white">Reset Password</h3>
                 <p className="text-sm text-slate-400 mt-2">
-                  Enter your university email to receive a password reset verification code.
+                  Enter your university email or roll number to receive a password reset verification code.
                 </p>
               </div>
               <div>
                 <label className="block text-xs font-semibold uppercase tracking-wider text-slate-300 mb-1.5">
-                  University Email
+                  University Email or Roll Number
                 </label>
                 <div className="relative rounded-xl shadow-xs">
                   <div className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-slate-500">
                     <Mail className="h-5 w-5" />
                   </div>
                   <input
-                    type="email"
+                    type="text"
                     name="email"
                     value={formData.email}
                     onChange={handleChange}
-                    placeholder="2410042@student.ruet.ac.bd"
+                    placeholder="e.g. 2410042@student.ruet.ac.bd or 2410042"
                     className="block w-full pl-10 pr-3.5 py-2.5 bg-slate-800/80 border border-slate-700 rounded-xl text-white placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-sky-500 focus:border-transparent text-sm transition-smooth"
                     required
                   />

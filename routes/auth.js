@@ -402,23 +402,36 @@ router.post("/profile/picture", requireAuth, upload.single("picture"), async (re
 router.post("/send-otp", async (req, res) => {
   try {
     const { email } = req.body;
-    if (!email) return res.status(400).json({ error: "Email is required" });
+    if (!email) return res.status(400).json({ error: "Email or Roll Number is required" });
 
-    const user = await User.findOne({ email: email.toLowerCase() });
-    if (!user) return res.status(404).json({ error: "User not found" });
+    const input = email.trim().toLowerCase();
+    const user = await User.findOne(
+      input.includes("@")
+        ? { email: input }
+        : { $or: [{ rollNo: input }, { email: `${input}@student.ruet.ac.bd` }] }
+    );
+    if (!user) return res.status(404).json({ error: "No registered account found with that email or roll number." });
 
     const otpCode = Math.floor(100000 + Math.random() * 900000).toString();
     await Otp.findOneAndDelete({ email: user.email });
     await Otp.create({ email: user.email, otp: otpCode });
     
-    await sendEmail({
-      to: user.email,
-      subject: "OneHUB - Password Reset Verification",
-      text: `Your password reset verification code is: ${otpCode}`,
-      html: generateOTPTemplate(otpCode, 'reset') // Reuse the auth template
-    });
+    try {
+      await sendEmail({
+        to: user.email,
+        subject: "OneHUB - Password Reset Verification",
+        text: `Your password reset verification code is: ${otpCode}`,
+        html: generateOTPTemplate(otpCode, 'reset')
+      });
 
-    res.json({ message: "A password reset code has been sent to your email (Please check your Spam folder)." });
+      res.json({ 
+        message: `A password reset code has been sent to ${user.email} (Please check your Inbox and Spam folder).`,
+        email: user.email 
+      });
+    } catch (emailErr) {
+      console.error("Failed to send email via SMTP:", emailErr);
+      return res.status(500).json({ error: "Failed to send reset email: " + emailErr.message });
+    }
   } catch (err) {
     res.status(500).json({ error: err.message });
   }
@@ -430,17 +443,25 @@ router.post("/verify-otp", async (req, res) => {
     const { email, otp, newPassword } = req.body;
     if (!otp) return res.status(400).json({ error: "Verification code is required." });
     if (!newPassword) return res.status(400).json({ error: "New password is required." });
+    if (newPassword.length < 6) return res.status(400).json({ error: "Password must be at least 6 characters." });
     
-    const user = await User.findOne({ email: email.toLowerCase() });
+    const input = (email || "").trim().toLowerCase();
+    const user = await User.findOne(
+      input.includes("@")
+        ? { email: input }
+        : { $or: [{ rollNo: input }, { email: `${input}@student.ruet.ac.bd` }] }
+    );
     if (!user) return res.status(404).json({ error: "User not found" });
 
-    const otpRecord = await Otp.findOne({ email: user.email, otp });
+    const cleanOtp = String(otp).trim();
+    const otpRecord = await Otp.findOne({ email: user.email, otp: cleanOtp });
     if (!otpRecord) return res.status(400).json({ error: "Invalid or expired verification code." });
 
     if (newPassword) {
       const bcrypt = require("bcryptjs");
       const salt = await bcrypt.genSalt(10);
       user.passwordHash = await bcrypt.hash(newPassword, salt);
+      user.isFirstLogin = false;
       await user.save();
     }
 

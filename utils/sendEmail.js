@@ -3,23 +3,35 @@ const nodemailer = require("nodemailer");
 const sendEmail = async (options) => {
   const emailUser = process.env.EMAIL_USER;
   const emailPass = process.env.EMAIL_PASS;
-  const emailHost = process.env.EMAIL_HOST || "smtp.gmail.com";
-  const emailPort = process.env.EMAIL_PORT || 587;
+  const emailHost = process.env.EMAIL_HOST;
+  const emailPort = process.env.EMAIL_PORT;
   
   // Use EMAIL_FROM if provided, otherwise fallback to EMAIL_USER (works for Gmail)
   const emailFrom = process.env.EMAIL_FROM || emailUser || "noreply@onehub.edu";
 
   let transporter;
   if (emailUser && emailPass) {
-    transporter = nodemailer.createTransport({
-      host: emailHost,
-      port: emailPort,
-      secure: emailPort == 465,
-      auth: {
-        user: emailUser,
-        pass: emailPass,
-      },
-    });
+    if (emailHost) {
+      transporter = nodemailer.createTransport({
+        host: emailHost,
+        port: Number(emailPort) || 587,
+        secure: Number(emailPort) === 465,
+        auth: {
+          user: emailUser,
+          pass: emailPass,
+        },
+        family: 4, // Force IPv4 to prevent ENETUNREACH on Render/cloud
+      });
+    } else {
+      transporter = nodemailer.createTransport({
+        service: "gmail",
+        auth: {
+          user: emailUser,
+          pass: emailPass,
+        },
+        family: 4, // Force IPv4 to prevent ENETUNREACH on Render/cloud
+      });
+    }
   } else {
     console.warn("WARNING: EMAIL_USER and EMAIL_PASS not set. Emails will be logged to console instead of sending.");
     transporter = {
