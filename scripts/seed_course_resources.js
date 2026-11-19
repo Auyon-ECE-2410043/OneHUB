@@ -427,40 +427,7 @@ async function seed() {
     }
     console.log("Seeded Nafisa 1-2 Final Course Marks.");
 
-    // Sem 2-1: Target SGPA ~3.82, Credits 19.5
-    const sem2_1Courses = await Course.find({ department: "ECE", semester: "2-1" });
-    const gradeAssignments2_1 = {
-      "ECE 2103": "A+",
-      "ECE 2104": "A+",
-      "ECE 2105": "A",
-      "ECE 2106": "A+",
-      "ECE 2111": "A+",
-      "ECE 2112": "A+",
-      "Math 2117": "A",
-      "Chem 2117": "A-",
-      "Chem 2118": "A+",
-      "ECE 2100": "A+",
-    };
-
-    for (const c of sem2_1Courses) {
-      const grade = gradeAssignments2_1[c.courseCode] || "A";
-      const gpaPoint = GRADE_POINTS[grade];
-      await Mark.findOneAndUpdate(
-        { studentId: nafisa._id, courseId: c._id, semester: "2-1", type: "final" },
-        {
-          studentId: nafisa._id,
-          courseId: c._id,
-          semester: "2-1",
-          type: "final",
-          instanceNumber: 1,
-          grade,
-          gpaPoint,
-          enteredBy: nafisa.adviserId || nafisa._id,
-        },
-        { upsert: true }
-      );
-    }
-    console.log("Seeded Nafisa 2-1 Final Course Marks.");
+    // Sem 2-1: No results given yet for 2-1 semester (results not published yet)
   }
 
   await mongoose.disconnect();

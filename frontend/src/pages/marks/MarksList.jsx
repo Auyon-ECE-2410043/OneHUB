@@ -442,59 +442,62 @@ export function MarksList() {
       )}
 
       {/* FINAL GRADES TAB */}
-      {activeTab === "final" && (
-        <div className="bg-white rounded-2xl border border-slate-200 shadow-xs overflow-hidden">
-          <div className="p-4 border-b border-slate-100 flex items-center justify-between">
-            <div className="font-bold text-sm text-slate-800">
-              Final Letter Grades & GPA Points ({finalGrades.length})
+      {activeTab === "final" && (() => {
+        const semesterFinals = finalGrades.filter((g) => g.semester === selectedSemester);
+        return (
+          <div className="bg-white rounded-2xl border border-slate-200 shadow-xs overflow-hidden">
+            <div className="p-4 border-b border-slate-100 flex items-center justify-between">
+              <div className="font-bold text-sm text-slate-800">
+                Final Letter Grades &amp; GPA Points (Semester {selectedSemester})
+              </div>
+              <button
+                onClick={() => setIsGradeSheetOpen(true)}
+                className="px-3.5 py-1.5 bg-emerald-50 text-emerald-700 hover:bg-emerald-100 font-semibold rounded-xl text-xs transition-smooth flex items-center space-x-1.5 cursor-pointer"
+              >
+                <Printer className="w-3.5 h-3.5" />
+                <span>Download Official Grade Sheet</span>
+              </button>
             </div>
-            <button
-              onClick={() => setIsGradeSheetOpen(true)}
-              className="px-3.5 py-1.5 bg-emerald-50 text-emerald-700 hover:bg-emerald-100 font-semibold rounded-xl text-xs transition-smooth flex items-center space-x-1.5 cursor-pointer"
-            >
-              <Printer className="w-3.5 h-3.5" />
-              <span>Download Official Grade Sheet</span>
-            </button>
-          </div>
-          <table className="w-full text-left border-collapse">
-            <thead>
-              <tr className="bg-slate-50 text-xs font-semibold uppercase tracking-wider text-slate-500 border-b border-slate-200">
-                <th className="py-3 px-4">Course Code & Title</th>
-                <th className="py-3 px-4">Credit</th>
-                <th className="py-3 px-4">Grade</th>
-                <th className="py-3 px-4">Grade Point (GPA)</th>
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-slate-100 text-sm">
-              {finalGrades.length === 0 ? (
-                <tr>
-                  <td colSpan={4} className="py-8 text-center text-slate-400">
-                    Final semester grades have not been published yet.
-                  </td>
+            <table className="w-full text-left border-collapse">
+              <thead>
+                <tr className="bg-slate-50 text-xs font-semibold uppercase tracking-wider text-slate-500 border-b border-slate-200">
+                  <th className="py-3 px-4">Course Code &amp; Title</th>
+                  <th className="py-3 px-4">Credit</th>
+                  <th className="py-3 px-4">Grade</th>
+                  <th className="py-3 px-4">Grade Point (GPA)</th>
                 </tr>
-              ) : (
-                finalGrades.map((g) => (
-                  <tr key={g._id}>
-                    <td className="py-3 px-4 font-semibold text-slate-800">
-                      <span className="font-mono text-sky-700 mr-2">{g.courseId?.courseCode}</span>
-                      {g.courseId?.courseName}
-                    </td>
-                    <td className="py-3 px-4">{g.courseId?.credit || 3}</td>
-                    <td className="py-3 px-4">
-                      <span className="px-2.5 py-1 bg-emerald-100 text-emerald-800 font-bold text-xs rounded-md">
-                        {g.grade}
-                      </span>
-                    </td>
-                    <td className="py-3 px-4 font-bold text-slate-800">
-                      {g.gpaPoint !== null ? g.gpaPoint.toFixed(2) : "N/A"}
+              </thead>
+              <tbody className="divide-y divide-slate-100 text-sm">
+                {semesterFinals.length === 0 ? (
+                  <tr>
+                    <td colSpan={4} className="py-8 text-center text-slate-400">
+                      Final examination results have not been published yet for Semester {selectedSemester}.
                     </td>
                   </tr>
-                ))
-              )}
-            </tbody>
-          </table>
-        </div>
-      )}
+                ) : (
+                  semesterFinals.map((g) => (
+                    <tr key={g._id}>
+                      <td className="py-3 px-4 font-semibold text-slate-800">
+                        <span className="font-mono text-sky-700 mr-2">{g.courseId?.courseCode}</span>
+                        {g.courseId?.courseName}
+                      </td>
+                      <td className="py-3 px-4">{g.courseId?.credit || 3}</td>
+                      <td className="py-3 px-4">
+                        <span className="px-2.5 py-1 bg-emerald-100 text-emerald-800 font-bold text-xs rounded-md">
+                          {g.grade}
+                        </span>
+                      </td>
+                      <td className="py-3 px-4 font-bold text-slate-800">
+                        {g.gpaPoint !== null ? g.gpaPoint.toFixed(2) : "N/A"}
+                      </td>
+                    </tr>
+                  ))
+                )}
+              </tbody>
+            </table>
+          </div>
+        );
+      })()}
 
       {/* Official RUET Grade Sheet Modal */}
       {isGradeSheetOpen && (
@@ -504,7 +507,7 @@ export function MarksList() {
           student={user}
           semester={selectedSemester}
           officialResults={officialResults}
-          availableSemesters={["1-1", "1-2", "2-1", "2-2"]}
+          availableSemesters={officialResults && officialResults.length > 0 ? officialResults.map(r => r.semester) : ["1-1", "1-2"]}
           coursesMap={(() => {
             const map = {};
             finalGrades.forEach((m) => {
@@ -521,17 +524,6 @@ export function MarksList() {
                 gpaPoint: m.gpaPoint,
               });
             });
-            if (assignedCourses.length > 0 && (!map[selectedSemester] || map[selectedSemester].length === 0)) {
-              map[selectedSemester] = assignedCourses.map((c) => ({
-                _id: c._id,
-                courseCode: c.courseCode,
-                courseName: c.courseName,
-                credit: c.credit,
-                courseType: c.courseType,
-                grade: "A",
-                gpaPoint: 3.75,
-              }));
-            }
             return map;
           })()}
         />

@@ -62,10 +62,9 @@ export function RUETGradeSheetPaper({
 
   if (!isOpen) return null;
 
-  const currentResult = officialResults.find((r) => r.semester === currentSemester) || {};
-
-  // Resolve courses for this semester: from coursesMap, or fallback to sensible defaults
+  const currentResult = officialResults.find((r) => r.semester === currentSemester);
   const courses = coursesMap[currentSemester] || [];
+  const hasResult = !!(currentResult && currentResult.sgpa !== undefined) || courses.length > 0;
 
   const studentName = student?.name || "NAFISA ISLAM";
   const studentRoll = student?.rollNo || "2410042";
@@ -76,25 +75,31 @@ export function RUETGradeSheetPaper({
   // Compute or format SGPA and CGPA
   const totalRegisteredCredits = courses.length > 0
     ? courses.reduce((sum, c) => sum + (Number(c.credit) || 0), 0)
-    : (currentResult.semesterEarnedCredit || 20.25);
+    : (currentResult?.semesterEarnedCredit || 0);
 
-  const totalEarnedCredits = currentResult.semesterEarnedCredit || totalRegisteredCredits;
-  const totalCumulativeCredits = currentResult.totalEarnedCredit || (
+  const totalEarnedCredits = currentResult?.semesterEarnedCredit || totalRegisteredCredits;
+  
+  // Find latest official CGPA if available
+  const latestOfficial = officialResults && officialResults.length > 0
+    ? [...officialResults].sort((a, b) => b.semester.localeCompare(a.semester))[0]
+    : null;
+
+  const totalCumulativeCredits = currentResult?.totalEarnedCredit || (
     currentSemester === "1-1" ? 20.25 :
     currentSemester === "1-2" ? 39.00 :
-    currentSemester === "2-1" ? 58.50 : 78.75
+    (latestOfficial?.totalEarnedCredit || 39.00)
   );
 
-  const sgpa = currentResult.sgpa !== undefined
+  const sgpa = currentResult?.sgpa !== undefined
     ? Number(currentResult.sgpa).toFixed(2)
     : (courses.length > 0
-      ? (courses.reduce((sum, c) => sum + ((Number(c.gpaPoint) || 3.75) * (Number(c.credit) || 3)), 0) / totalRegisteredCredits).toFixed(2)
-      : "3.85"
+      ? (courses.reduce((sum, c) => sum + ((Number(c.gpaPoint) || 0) * (Number(c.credit) || 0)), 0) / (totalRegisteredCredits || 1)).toFixed(2)
+      : null
     );
 
-  const cgpa = currentResult.cgpa !== undefined
+  const cgpa = currentResult?.cgpa !== undefined
     ? Number(currentResult.cgpa).toFixed(2)
-    : sgpa;
+    : (latestOfficial?.cgpa ? Number(latestOfficial.cgpa).toFixed(2) : (sgpa || "—"));
 
   // High-Res PNG Download with full Dark Mode immunity
   // High-Res PNG Download with full Dark Mode immunity, Legal size aspect ratio (8.5" x 14")
@@ -454,8 +459,13 @@ export function RUETGradeSheetPaper({
                   <tbody className="divide-y divide-black/40">
                     {courses.length === 0 ? (
                       <tr>
-                        <td colSpan={8} className="py-6 text-center text-slate-500 italic">
-                          No course records found for Semester {currentSemester}.
+                        <td colSpan={8} className="py-8 text-center text-slate-500 font-sans">
+                          <div className="flex flex-col items-center justify-center space-y-1">
+                            <span className="font-bold text-sm text-slate-800">Results Not Published Yet</span>
+                            <span className="text-xs text-slate-500 max-w-md">
+                              Official semester examination results for Semester {currentSemester} have not been published by the Office of the Controller of Examinations.
+                            </span>
+                          </div>
                         </td>
                       </tr>
                     ) : (
@@ -502,7 +512,9 @@ export function RUETGradeSheetPaper({
                         Earned: {totalEarnedCredits.toFixed(2)} Cr
                       </td>
                       <td className="border border-black py-2 px-2 text-center font-mono">
-                        {courses.reduce((acc, c) => acc + ((Number(c.credit) || 3.0) * (Number(c.gpaPoint) || 3.75)), 0).toFixed(2)}
+                        {courses.length > 0
+                          ? courses.reduce((acc, c) => acc + ((Number(c.credit) || 3.0) * (Number(c.gpaPoint) || 3.75)), 0).toFixed(2)
+                          : "0.00"}
                       </td>
                     </tr>
                   </tfoot>
@@ -514,11 +526,11 @@ export function RUETGradeSheetPaper({
                 <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 text-center">
                   <div className="p-2 border border-black/30 bg-white">
                     <p className="text-[10px] font-bold uppercase tracking-wider text-slate-600">Semester GPA (SGPA)</p>
-                    <p className="text-xl font-black text-black font-mono mt-0.5">{sgpa}</p>
+                    <p className="text-xl font-black text-black font-mono mt-0.5">{sgpa || "—"}</p>
                   </div>
                   <div className="p-2 border border-black/30 bg-white">
                     <p className="text-[10px] font-bold uppercase tracking-wider text-slate-600">Cumulative GPA (CGPA)</p>
-                    <p className="text-xl font-black text-black font-mono mt-0.5">{cgpa}</p>
+                    <p className="text-xl font-black text-black font-mono mt-0.5">{cgpa || "—"}</p>
                   </div>
                   <div className="p-2 border border-black/30 bg-white">
                     <p className="text-[10px] font-bold uppercase tracking-wider text-slate-600">Cumulative Credits</p>
@@ -526,9 +538,15 @@ export function RUETGradeSheetPaper({
                   </div>
                   <div className="p-2 border border-black/30 bg-white">
                     <p className="text-[10px] font-bold uppercase tracking-wider text-slate-600">Academic Standing</p>
-                    <p className="text-sm font-black text-emerald-800 uppercase mt-1.5 flex items-center justify-center space-x-1">
-                      <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600" />
-                      <span>PASSED</span>
+                    <p className={`text-sm font-black uppercase mt-1.5 flex items-center justify-center space-x-1 ${hasResult ? "text-emerald-800" : "text-amber-800"}`}>
+                      {hasResult ? (
+                        <>
+                          <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600" />
+                          <span>PASSED</span>
+                        </>
+                      ) : (
+                        <span>RESULT AWAITED</span>
+                      )}
                     </p>
                   </div>
                 </div>

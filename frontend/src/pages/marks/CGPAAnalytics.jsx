@@ -258,9 +258,9 @@ export default function CGPAAnalytics() {
           isOpen={isGradeSheetOpen}
           onClose={() => setIsGradeSheetOpen(false)}
           student={user}
-          semester={selectedOfficialSem || "2-2"}
+          semester={selectedOfficialSem || (officialResults[0]?.semester || "1-2")}
           officialResults={officialResults}
-          availableSemesters={officialResults.map(r => r.semester).concat(["2-1", "2-2"]).filter((v, i, a) => a.indexOf(v) === i)}
+          availableSemesters={officialResults && officialResults.length > 0 ? officialResults.map(r => r.semester) : ["1-1", "1-2"]}
           coursesMap={(() => {
             const map = {};
             finalGrades.forEach((m) => {
