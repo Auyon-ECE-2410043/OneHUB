@@ -18,6 +18,7 @@ import noticeService from "../../services/noticeService";
 import userService from "../../services/userService";
 import hallApplicationService from "../../services/hallApplicationService";
 import { formatCurrency, formatDate, getStatusBadge, getStatusLabel } from "../../utils/helpers";
+import { getSeriesDefaultSemester } from "../../utils/constants";
 import { PageLoader } from "../../components/common/Loader";
 import { LiveSidebar } from "../../components/dashboard/LiveSidebar";
 import {
@@ -128,7 +129,7 @@ export function Dashboard() {
         if (user?.role === "student") {
           try {
             const [assignedCourses, reg, myFees] = await Promise.allSettled([
-              courseService.getAssignedCourses(),
+              courseService.getAssignedCourses(getSeriesDefaultSemester(user)),
               registrationService.getMyRegistration(),
               feeService.getMyFees(),
             ]);

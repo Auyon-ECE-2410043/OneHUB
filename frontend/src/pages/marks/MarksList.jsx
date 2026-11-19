@@ -7,6 +7,8 @@
 
 import { useState, useEffect } from "react";
 import { useSearchParams } from "react-router-dom";
+import { useAuth } from "../../context/AuthContext";
+import { getSeriesDefaultSemester } from "../../utils/constants";
 import markService from "../../services/markService";
 import courseService from "../../services/courseService";
 import { PageLoader } from "../../components/common/Loader";
@@ -18,6 +20,7 @@ import {
 } from "lucide-react";
 
 export function MarksList() {
+  const { user } = useAuth();
   const [searchParams] = useSearchParams();
   const initialCourseId = searchParams.get("courseId") || "";
 
@@ -36,7 +39,7 @@ export function MarksList() {
     const fetchInit = async () => {
       setLoading(true);
       try {
-        const assigned = await courseService.getAssignedCourses();
+        const assigned = await courseService.getAssignedCourses(getSeriesDefaultSemester(user));
         const list = assigned?.courses || [];
         setAssignedCourses(list);
 

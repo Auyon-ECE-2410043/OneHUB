@@ -7,6 +7,8 @@
 
 import { useState, useEffect } from "react";
 import { useSearchParams } from "react-router-dom";
+import { useAuth } from "../../context/AuthContext";
+import { getSeriesDefaultSemester } from "../../utils/constants";
 import attendanceService from "../../services/attendanceService";
 import courseService from "../../services/courseService";
 import { formatDate } from "../../utils/helpers";
@@ -18,6 +20,7 @@ import {
 } from "lucide-react";
 
 export function AttendanceList() {
+  const { user } = useAuth();
   const [searchParams] = useSearchParams();
   const initialCourseId = searchParams.get("courseId") || "";
 
@@ -37,7 +40,7 @@ export function AttendanceList() {
     const fetchCourses = async () => {
       setLoading(true);
       try {
-        const assigned = await courseService.getAssignedCourses();
+        const assigned = await courseService.getAssignedCourses(getSeriesDefaultSemester(user));
         const list = assigned?.courses || [];
         setAssignedCourses(list);
         if (!selectedCourseId && list.length > 0) {

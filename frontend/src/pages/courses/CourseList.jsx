@@ -10,7 +10,7 @@ import { Link } from "react-router-dom";
 import { useAuth } from "../../context/AuthContext";
 import courseService from "../../services/courseService";
 import registrationService from "../../services/registrationService";
-import { DEPARTMENTS, SEMESTERS } from "../../utils/constants";
+import { DEPARTMENTS, SEMESTERS, getSeriesDefaultSemester } from "../../utils/constants";
 import { formatDate, getStatusBadge, getStatusLabel } from "../../utils/helpers";
 import { PageLoader } from "../../components/common/Loader";
 import Modal from "../../components/common/Modal";
@@ -22,6 +22,7 @@ import {
   CalendarCheck,
   Award,
   Layers,
+  CheckCircle2,
 } from "lucide-react";
 
 export function CourseList() {
@@ -92,20 +93,33 @@ export function CourseList() {
     try {
       if (user?.role === "student") {
         try {
+          const seriesSem = getSeriesDefaultSemester(user);
+          setCurrentBatchSemester(seriesSem);
+
           const [regs, assigned] = await Promise.allSettled([
             registrationService.getAllMyRegistrations(),
-            courseService.getAssignedCourses(),
+            courseService.getAssignedCourses(seriesSem),
           ]);
 
           const list = regs.status === "fulfilled" ? (regs.value || []) : [];
           setStudentRegistrations(list);
 
-          const defaultSem = assigned.status === "fulfilled" && assigned.value?.semester
-            ? assigned.value.semester
-            : (user?.batch === "24" ? "2-2" : user?.batch === "25" ? "1-2" : "2-2");
+          // Find approved registrations
+          const approvedRegs = list.filter((r) => r.status === "approved");
 
-          setCurrentBatchSemester(defaultSem);
-          setActiveSemester(defaultSem);
+          // Selection Priority:
+          // 1. Approved registration matching the student's series current semester (e.g. 2-2 for Batch 24)
+          // 2. Or the highest approved registration (e.g. 2-2, 2-1)
+          // 3. Otherwise default to series semester (e.g. 2-2)
+          let targetSem = seriesSem;
+          if (approvedRegs.some((r) => r.semester === seriesSem)) {
+            targetSem = seriesSem;
+          } else if (approvedRegs.length > 0) {
+            const sortedApproved = [...approvedRegs].sort((a, b) => b.semester.localeCompare(a.semester));
+            targetSem = sortedApproved[0].semester;
+          }
+
+          setActiveSemester(targetSem);
         } catch (e) {
           console.warn("No registration found", e);
         }
@@ -203,6 +217,7 @@ export function CourseList() {
       {/* STUDENT VIEW: Enrolled Courses */}
       {user?.role === "student" && (() => {
         const registration = studentRegistrations.find((r) => r.semester === activeSemester);
+        const approvedRegs = studentRegistrations.filter((r) => r.status === "approved");
 
         return (
           <div className="space-y-6">
@@ -217,11 +232,16 @@ export function CourseList() {
                   onChange={(e) => setActiveSemester(e.target.value)}
                   className="px-3.5 py-2 bg-slate-50 border border-slate-200 rounded-xl text-sm font-bold text-slate-800 focus:ring-2 focus:ring-sky-500 cursor-pointer"
                 >
-                  {SEMESTERS.map((sem) => (
-                    <option key={sem} value={sem}>
-                      Semester {sem} {sem === currentBatchSemester ? "(Current Session)" : ""}
-                    </option>
-                  ))}
+                  {SEMESTERS.map((sem) => {
+                    const reg = studentRegistrations.find((r) => r.semester === sem);
+                    const isCurrent = sem === currentBatchSemester;
+                    const isApproved = reg?.status === "approved";
+                    return (
+                      <option key={sem} value={sem}>
+                        Semester {sem} {isCurrent ? "(Current Session)" : ""} {isApproved ? "• Approved Enrolled" : reg ? `• (${getStatusLabel(reg.status)})` : ""}
+                      </option>
+                    );
+                  })}
                 </select>
               </div>
 
@@ -256,16 +276,50 @@ export function CourseList() {
                     ? `Your registration application for Semester ${activeSemester} was submitted on ${formatDate(registration.createdAt)} and is waiting for adviser review and fee assessment. Once approved, all courses for Semester ${activeSemester} will be unlocked here.`
                     : `Your course registration was rejected by your adviser${registration.adviserComment ? `: "${registration.adviserComment}"` : ""}. Please review and re-apply.`}
                 </p>
-                <Link
-                  to="/registration"
-                  className="mt-6 inline-flex px-5 py-2.5 bg-sky-600 hover:bg-sky-700 text-white font-semibold rounded-xl text-sm transition-smooth shadow-sm"
-                >
-                  {!registration
-                    ? `Apply for Semester ${activeSemester} Registration`
-                    : registration.status === "pending_approval"
-                    ? "Track Registration Status"
-                    : "Re-Apply for Course Registration"}
-                </Link>
+                <div className="mt-6 flex flex-wrap gap-3 justify-center items-center">
+                  <Link
+                    to="/registration"
+                    className="inline-flex px-5 py-2.5 bg-sky-600 hover:bg-sky-700 text-white font-semibold rounded-xl text-sm transition-smooth shadow-sm"
+                  >
+                    {!registration
+                      ? `Apply for Semester ${activeSemester} Registration`
+                      : registration.status === "pending_approval"
+                      ? "Track Registration Status"
+                      : "Re-Apply for Course Registration"}
+                  </Link>
+
+                  {approvedRegs.length > 0 && !approvedRegs.some((r) => r.semester === activeSemester) && (
+                    <button
+                      type="button"
+                      onClick={() => setActiveSemester(currentBatchSemester || approvedRegs[0].semester)}
+                      className="px-5 py-2.5 bg-emerald-50 hover:bg-emerald-100 text-emerald-800 border border-emerald-300 rounded-xl text-sm font-bold transition-smooth inline-flex items-center gap-2 cursor-pointer shadow-xs"
+                    >
+                      <CheckCircle2 className="w-4 h-4 text-emerald-600" />
+                      <span>View Approved Semester {currentBatchSemester || approvedRegs[0].semester} Courses</span>
+                    </button>
+                  )}
+                </div>
+
+                {approvedRegs.length > 0 && (
+                  <div className="mt-6 pt-5 border-t border-slate-100 flex flex-col items-center gap-2">
+                    <p className="text-xs font-semibold text-slate-500">
+                      Approved enrolled courses available in your record:
+                    </p>
+                    <div className="flex flex-wrap gap-2 justify-center">
+                      {approvedRegs.map((appReg) => (
+                        <button
+                          key={appReg.semester}
+                          type="button"
+                          onClick={() => setActiveSemester(appReg.semester)}
+                          className="px-3.5 py-1.5 bg-slate-50 hover:bg-emerald-50 text-slate-700 hover:text-emerald-800 border border-slate-200 hover:border-emerald-300 rounded-xl text-xs font-bold transition-smooth inline-flex items-center gap-1.5 cursor-pointer"
+                        >
+                          <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600" />
+                          <span>Semester {appReg.semester} (Approved)</span>
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+                )}
               </div>
             ) : (
             <>
