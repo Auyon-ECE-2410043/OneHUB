@@ -16,7 +16,7 @@
 import { useState, useRef, useMemo, useEffect } from "react";
 import html2canvasPro from "html2canvas-pro";
 import html2canvasStd from "html2canvas";
-import { Download, RotateCcw, Plus, Trash2, Calendar, Layers, Users, RefreshCw, Check, Sparkles, Type, Undo2, History, AlertCircle, Sun, CalendarRange , FileText, FlaskConical, BookOpen } from "lucide-react";
+import { Download, RotateCcw, Plus, Trash2, Calendar, Layers, Users, RefreshCw, Check, Sparkles, Type, Undo2, History, AlertCircle, Sun, CalendarRange , FileText, FlaskConical, BookOpen, X } from "lucide-react";
 import { toast } from "sonner";
 import routineService from "../../services/routineService";
 
@@ -434,9 +434,9 @@ const SEMESTER_PRESETS = {
   }
 };
 
-export default function RoutineVisualExporter() {
-  const [selectedSemKey, setSelectedSemKey] = useState("2-2"); // Default to user's 2-2 semester
-  const [data, setData] = useState(SEMESTER_PRESETS["2-2"]);
+export default function RoutineVisualExporter({ initialSemKey = "2-2", onClose = null }) {
+  const [selectedSemKey, setSelectedSemKey] = useState(initialSemKey);
+  const [data, setData] = useState(SEMESTER_PRESETS[initialSemKey] || SEMESTER_PRESETS["2-2"]);
   const [activeTab, setActiveTab] = useState("preview"); // "preview" | "header" | "labs" | "ct"
   const [selectedCell, setSelectedCell] = useState(null); // { day, slotId }
   const [downloading, setDownloading] = useState(false);
@@ -1377,6 +1377,17 @@ export default function RoutineVisualExporter() {
             <Download className="w-4 h-4" />
             {downloading ? "Rendering PNG..." : "Download Routine PNG"}
           </button>
+
+          {onClose && (
+            <button
+              type="button"
+              onClick={onClose}
+              className="p-1.5 text-slate-400 hover:text-slate-700 dark:hover:text-white rounded-lg hover:bg-slate-100 dark:hover:bg-slate-700 transition cursor-pointer"
+              title="Close timetable viewer"
+            >
+              <X className="w-5 h-5" />
+            </button>
+          )}
         </div>
       </div>
 

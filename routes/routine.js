@@ -7,6 +7,7 @@
 
 const express = require("express");
 const ClassSchedule = require("../models/ClassSchedule");
+const AssessmentSyllabus = require("../models/AssessmentSyllabus");
 const User = require("../models/User");
 const Notification = require("../models/Notification");
 const { requireAuth, requireRole } = require("../middleware/auth");
@@ -282,6 +283,199 @@ router.delete("/:id", requireAuth, requireRole("admin"), async (req, res) => {
     res.json({ message: "Routine slot deleted" });
   } catch (err) {
     res.status(400).json({ error: err.message });
+  }
+});
+
+// Helper to calculate student's default semester from user batch/roll
+function getStudentDefaultSemester(user) {
+  let series = "";
+  if (user?.batch) {
+    const match = String(user.batch).match(/\b(2[0-9])\b|20(2[0-9])/);
+    series = match ? (match[1] || match[2]) : String(user.batch).trim();
+  }
+  if (!series && user?.rollNo && user.rollNo.length >= 2) {
+    series = user.rollNo.substring(0, 2);
+  }
+  const seriesMap = { "25": "1-2", "24": "2-2", "23": "3-1", "22": "3-2", "21": "4-2" };
+  return seriesMap[series] || "2-2";
+}
+
+// GET /api/routine/syllabus -> Fetch Class Test (CT) & Quiz syllabus for student/teacher semester
+router.get("/syllabus", requireAuth, async (req, res) => {
+  try {
+    const user = await User.findById(req.user.id);
+    const department = (req.query.department || user?.department || "ECE").toUpperCase();
+    const semester = req.query.semester || (user?.role === "student" ? getStudentDefaultSemester(user) : "2-2");
+
+    // 1. Fetch persisted assessment syllabuses
+    const syllabuses = await AssessmentSyllabus.find({ department, semester }).sort({ createdAt: -1 });
+
+    const ctSyllabus = syllabuses.filter((s) => s.type === "CT" || s.type === "Assignment");
+    const quizSyllabus = syllabuses.filter((s) => s.type === "Quiz" || s.type === "Lab Final");
+
+    // 2. Also inspect ClassSchedule for any slots marked with assessmentType !== 'None'
+    const scheduleSlots = await ClassSchedule.find({
+      department,
+      semester,
+      assessmentType: { $in: ["CT", "Quiz", "Lab Final"] },
+      assessmentInfo: { $exists: true, $ne: "" },
+    });
+
+    scheduleSlots.forEach((slot) => {
+      const isQuiz = slot.assessmentType === "Quiz" || slot.assessmentType === "Lab Final" || slot.type === "sessional";
+      const targetList = isQuiz ? quizSyllabus : ctSyllabus;
+
+      const alreadyExists = targetList.some(
+        (item) => item.courseCode?.trim().toUpperCase() === slot.courseCode?.trim().toUpperCase()
+      );
+
+      if (!alreadyExists) {
+        targetList.push({
+          _id: slot._id,
+          courseCode: slot.courseCode,
+          courseName: slot.courseName,
+          type: isQuiz ? "Quiz" : "CT",
+          title: `${slot.assessmentType} (${slot.dayOfWeek})`,
+          syllabus: slot.assessmentInfo,
+          assessmentDate: `${slot.dayOfWeek}, ${slot.startTime} - ${slot.endTime}`,
+          roomOrLab: slot.roomOrLab,
+          teacherInitials: slot.teacherInitials?.join(", ") || "",
+          targetGroup: slot.targetGroup || "All",
+          authorName: "Routine Schedule",
+        });
+      }
+    });
+
+    res.json({ department, semester, ctSyllabus, quizSyllabus });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// POST /api/routine/syllabus -> Add/Update Class Test or Quiz syllabus
+router.post("/syllabus", requireAuth, async (req, res) => {
+  try {
+    const user = await User.findById(req.user.id);
+    const {
+      department = user?.department || "ECE",
+      semester = user?.role === "student" ? getStudentDefaultSemester(user) : "2-2",
+      courseCode,
+      courseName = "",
+      type = "CT",
+      title = "CT 1",
+      syllabus,
+      assessmentDate = "",
+      roomOrLab = "",
+      teacherInitials = "",
+      targetGroup = "All",
+    } = req.body;
+
+    if (!courseCode || !syllabus) {
+      return res.status(400).json({ error: "Course code and syllabus are required" });
+    }
+
+    const cleanCourse = courseCode.trim().toUpperCase();
+
+    // Check if an entry for this courseCode, type, and title already exists
+    let entry = await AssessmentSyllabus.findOne({
+      department: department.toUpperCase(),
+      semester,
+      courseCode: cleanCourse,
+      type,
+    });
+
+    if (entry) {
+      entry.syllabus = syllabus.trim();
+      entry.title = title || entry.title;
+      entry.assessmentDate = assessmentDate || entry.assessmentDate;
+      entry.roomOrLab = roomOrLab || entry.roomOrLab;
+      entry.teacherInitials = teacherInitials || entry.teacherInitials;
+      entry.targetGroup = targetGroup || entry.targetGroup;
+      entry.postedBy = user._id;
+      entry.authorName = user.name || "Student CR";
+      await entry.save();
+    } else {
+      entry = await AssessmentSyllabus.create({
+        department: department.toUpperCase(),
+        semester,
+        courseCode: cleanCourse,
+        courseName,
+        type,
+        title,
+        syllabus: syllabus.trim(),
+        assessmentDate,
+        roomOrLab,
+        teacherInitials,
+        targetGroup,
+        postedBy: user._id,
+        authorName: user.name || "Student CR",
+      });
+    }
+
+    // Try to update any corresponding ClassSchedule slot with assessment info
+    try {
+      await ClassSchedule.updateMany(
+        {
+          department: department.toUpperCase(),
+          semester,
+          courseCode: cleanCourse,
+        },
+        {
+          assessmentType: type === "Quiz" ? "Quiz" : "CT",
+          assessmentInfo: syllabus.trim(),
+        }
+      );
+    } catch (e) {
+      console.warn("ClassSchedule sync skipped:", e);
+    }
+
+    // Notify batch students
+    try {
+      const batchYear = semester ? semester.substring(0, 1) : "";
+      const notifUsers = await User.find({
+        role: "student",
+        department: department.toUpperCase(),
+      }).limit(100);
+
+      const notifs = notifUsers.map((u) => ({
+        recipientId: u._id,
+        recipientRole: "student",
+        title: `New ${type} Syllabus: ${cleanCourse}`,
+        message: `${user.name || "CR"} posted the ${title} syllabus for ${cleanCourse}: "${syllabus.trim().substring(0, 60)}..."`,
+        type: "exam_notice",
+        link: "/routine",
+      }));
+      await Notification.insertMany(notifs);
+    } catch (notifErr) {
+      console.warn("Syllabus notification skipped:", notifErr);
+    }
+
+    res.status(201).json({ message: "Syllabus saved successfully", entry });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// DELETE /api/routine/syllabus/:id -> Delete a syllabus entry
+router.delete("/syllabus/:id", requireAuth, async (req, res) => {
+  try {
+    const entry = await AssessmentSyllabus.findById(req.params.id);
+    if (!entry) return res.status(404).json({ error: "Syllabus entry not found" });
+
+    // Allow author, faculty, or admin to delete
+    if (
+      req.user.role !== "admin" &&
+      req.user.role !== "faculty" &&
+      entry.postedBy &&
+      entry.postedBy.toString() !== req.user.id
+    ) {
+      return res.status(403).json({ error: "Not authorized to delete this syllabus" });
+    }
+
+    await AssessmentSyllabus.findByIdAndDelete(req.params.id);
+    res.json({ message: "Syllabus entry deleted" });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
   }
 });
 

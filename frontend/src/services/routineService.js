@@ -37,6 +37,21 @@ export const routineService = {
     const res = await api.delete(`/routine/${id}`);
     return res.data;
   },
+
+  getSyllabus: async (params) => {
+    const res = await api.get("/routine/syllabus", { params });
+    return res.data;
+  },
+
+  addSyllabus: async (data) => {
+    const res = await api.post("/routine/syllabus", data);
+    return res.data;
+  },
+
+  deleteSyllabus: async (id) => {
+    const res = await api.delete(`/routine/syllabus/${id}`);
+    return res.data;
+  },
 };
 
 export default routineService;

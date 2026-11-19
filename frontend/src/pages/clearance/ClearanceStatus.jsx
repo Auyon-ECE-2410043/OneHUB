@@ -7,22 +7,23 @@
 
 import { useState, useEffect } from "react";
 import api from "../../services/api";
-import { ShieldCheck, CheckCircle2, Clock, AlertCircle, QrCode, Download } from "lucide-react";
+import { ShieldCheck, CheckCircle2, Clock, AlertCircle, QrCode, Download, Calendar } from "lucide-react";
 import { useAuth } from "../../context/AuthContext";
+import { SEMESTERS, getSeriesDefaultSemester } from "../../utils/constants";
 
 export function ClearanceStatus() {
   const { user } = useAuth();
+  const defaultSemester = getSeriesDefaultSemester(user) || "2-2";
+  const [selectedSemester, setSelectedSemester] = useState(defaultSemester);
   const [clearance, setClearance] = useState(null);
   const [loading, setLoading] = useState(true);
   const [generating, setGenerating] = useState(false);
   const [admitData, setAdmitData] = useState(null);
-  
-  // For simplicity, hardcoding semester. In real app, this might come from context.
-  const currentSemester = "2-1";
 
-  const fetchClearance = async () => {
+  const fetchClearance = async (sem = selectedSemester) => {
+    setLoading(true);
     try {
-      const { data } = await api.get(`/clearance?semester=${currentSemester}`);
+      const { data } = await api.get(`/clearance?semester=${sem}`);
       setClearance(data.clearance);
     } catch (err) {
       console.error(err);
@@ -32,8 +33,8 @@ export function ClearanceStatus() {
   };
 
   useEffect(() => {
-    fetchClearance();
-  }, []);
+    fetchClearance(selectedSemester);
+  }, [selectedSemester]);
 
   const handleGenerateAdmit = async () => {
     setGenerating(true);
@@ -72,12 +73,46 @@ export function ClearanceStatus() {
 
   return (
     <div className="max-w-4xl mx-auto space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-500">
+      {/* Semester Switcher Bar */}
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 bg-white p-4 rounded-2xl border border-slate-200 shadow-xs">
+        <div>
+          <label className="block text-xs font-semibold uppercase text-slate-500 mb-1">
+            Academic Semester
+          </label>
+          <div className="flex items-center gap-2">
+            <select
+              value={selectedSemester}
+              onChange={(e) => setSelectedSemester(e.target.value)}
+              className="px-3.5 py-2 bg-slate-50 border border-slate-200 rounded-xl text-sm font-bold text-slate-800 focus:ring-2 focus:ring-indigo-500 focus:outline-none cursor-pointer"
+            >
+              {SEMESTERS.map((s) => (
+                <option key={s} value={s}>
+                  Semester {s}
+                </option>
+              ))}
+            </select>
+            {defaultSemester === selectedSemester && (
+              <span className="text-xs bg-indigo-50 text-indigo-700 font-bold px-2.5 py-1 rounded-full border border-indigo-200">
+                Current Batch Session
+              </span>
+            )}
+          </div>
+        </div>
+
+        <div className="text-xs text-slate-500 sm:text-right">
+          <span className="mr-1.5">Clearance ID:</span>
+          <span className="font-mono font-bold text-slate-700 bg-slate-100 px-2.5 py-1 rounded-full border border-slate-200">
+            {clearance?._id ? `CLR-${clearance._id.slice(-6).toUpperCase()}` : "Initializing"}
+          </span>
+        </div>
+      </div>
+
       <header className="bg-gradient-to-r from-indigo-900 to-indigo-700 text-white p-8 rounded-2xl shadow-lg relative overflow-hidden">
         <div className="absolute inset-0 bg-[url('https://www.transparenttextures.com/patterns/cubes.png')] opacity-10"></div>
         <div className="relative z-10 flex flex-col md:flex-row justify-between items-center text-center md:text-left gap-6">
           <div>
             <h1 className="text-3xl font-bold tracking-tight mb-2">Digital Exam Clearance</h1>
-            <p className="text-indigo-200 text-lg">Semester {currentSemester} &middot; Automatic Verifications</p>
+            <p className="text-indigo-200 text-lg">Semester {selectedSemester} &middot; Automatic Verifications</p>
           </div>
           <div className="bg-white/10 p-4 rounded-xl backdrop-blur-sm border border-white/20">
             <p className="text-sm text-indigo-200 font-medium uppercase tracking-wider mb-1">Overall Status</p>
