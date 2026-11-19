@@ -97,10 +97,11 @@ export function RUETGradeSheetPaper({
     : sgpa;
 
   // High-Res PNG Download with full Dark Mode immunity
+  // High-Res PNG Download with full Dark Mode immunity, Legal size aspect ratio (8.5" x 14")
   const handleDownloadPNG = async () => {
     if (!paperRef.current) return;
     setDownloading(true);
-    const toastId = toast.loading("Generating high-resolution official RUET grade sheet...");
+    const toastId = toast.loading("Generating high-resolution Legal size RUET grade sheet...");
 
     let clone = null;
     try {
@@ -111,15 +112,24 @@ export function RUETGradeSheetPaper({
       clone.style.top = "0";
       clone.style.left = "0";
       clone.style.zIndex = "-9999";
-      clone.style.width = "840px";
-      clone.style.maxWidth = "840px";
-      clone.style.minWidth = "840px";
+      clone.style.width = "816px";
+      clone.style.minWidth = "816px";
+      clone.style.maxWidth = "816px";
+      clone.style.height = "1344px";
+      clone.style.minHeight = "1344px";
+      clone.style.maxHeight = "1344px";
       clone.style.transform = "none";
       clone.style.margin = "0";
+      clone.style.padding = "40px 48px";
+      clone.style.boxSizing = "border-box";
+      clone.style.display = "flex";
+      clone.style.flexDirection = "column";
+      clone.style.justifyContent = "space-between";
       clone.style.backgroundColor = "#ffffff";
       clone.style.color = "#000000";
       clone.style.boxShadow = "none";
       clone.style.border = "none";
+      clone.style.overflow = "hidden";
 
       // Ensure black text for all text nodes
       clone.querySelectorAll("h1, h2, h3, p, span, td, th, div").forEach((node) => {
@@ -145,6 +155,8 @@ export function RUETGradeSheetPaper({
         logging: false,
         scrollX: 0,
         scrollY: 0,
+        width: 816,
+        height: 1344,
       };
 
       let canvas;
@@ -157,11 +169,11 @@ export function RUETGradeSheetPaper({
 
       const imgData = canvas.toDataURL("image/png", 1.0);
       const link = document.createElement("a");
-      link.download = `RUET_Official_Grade_Sheet_${studentRoll}_Sem_${currentSemester}.png`;
+      link.download = `RUET_Official_Grade_Sheet_${studentRoll}_Sem_${currentSemester}_Legal.png`;
       link.href = imgData;
       link.click();
 
-      toast.success("Grade Sheet downloaded successfully!", { id: toastId });
+      toast.success("Official Legal-size Grade Sheet downloaded successfully!", { id: toastId });
     } catch (err) {
       console.error("Failed to generate Grade Sheet PNG:", err);
       toast.error("Failed to download image. Try printing instead.", { id: toastId });
@@ -179,6 +191,67 @@ export function RUETGradeSheetPaper({
 
   return (
     <div className="fixed inset-0 z-50 overflow-y-auto bg-slate-900/80 backdrop-blur-sm flex justify-center p-2 sm:p-4 print:p-0 print:bg-white print:static">
+      {/* Print isolation style configured for standard Legal paper (8.5in x 14in) single-page printing */}
+      <style>{`
+        @page {
+          size: legal portrait;
+          margin: 0;
+        }
+        @media print {
+          html, body {
+            width: 8.5in !important;
+            height: 14in !important;
+            max-height: 14in !important;
+            margin: 0 !important;
+            padding: 0 !important;
+            background: #ffffff !important;
+            color: #000000 !important;
+            overflow: hidden !important;
+            -webkit-print-color-adjust: exact !important;
+            print-color-adjust: exact !important;
+          }
+          body * {
+            visibility: hidden !important;
+          }
+          #ruet-gradesheet-paper, #ruet-gradesheet-paper * {
+            visibility: visible !important;
+          }
+          #ruet-gradesheet-paper {
+            position: fixed !important;
+            left: 0 !important;
+            top: 0 !important;
+            width: 8.5in !important;
+            height: 14in !important;
+            max-height: 14in !important;
+            box-sizing: border-box !important;
+            margin: 0 !important;
+            padding: 0.45in 0.55in !important;
+            box-shadow: none !important;
+            border: none !important;
+            background: #ffffff !important;
+            display: flex !important;
+            flex-direction: column !important;
+            justify-content: space-between !important;
+            page-break-after: avoid !important;
+            page-break-inside: avoid !important;
+            break-after: avoid !important;
+            break-inside: avoid !important;
+            overflow: hidden !important;
+          }
+          /* Strictly prevent page breaks on all internal elements */
+          #ruet-gradesheet-paper * {
+            page-break-after: avoid !important;
+            page-break-inside: avoid !important;
+            break-after: avoid !important;
+            break-inside: avoid !important;
+          }
+          table, tr, td, th {
+            page-break-inside: avoid !important;
+            break-inside: avoid !important;
+          }
+        }
+      `}</style>
+
       <div className="relative w-full max-w-[880px] bg-white rounded-2xl shadow-2xl flex flex-col my-auto border border-slate-200 print:shadow-none print:border-none print:m-0 print:w-full print:max-w-none">
         
         {/* Modal Controls Header (Hidden in Print) */}
@@ -188,8 +261,13 @@ export function RUETGradeSheetPaper({
               <Award className="w-5 h-5" />
             </div>
             <div>
-              <h3 className="text-sm font-bold leading-tight">RUET Semester Grade Sheet & Tabulation</h3>
-              <p className="text-[11px] text-slate-400">Office of the Controller of Examinations</p>
+              <div className="flex items-center gap-2">
+                <h3 className="text-sm font-bold leading-tight">RUET Semester Grade Sheet &amp; Tabulation</h3>
+                <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-sky-500/20 text-sky-300 border border-sky-400/30">
+                  Legal Size (8.5&quot; × 14&quot;)
+                </span>
+              </div>
+              <p className="text-[11px] text-slate-400">Office of the Controller of Examinations • Legal 1-Page</p>
             </div>
           </div>
 
@@ -212,8 +290,8 @@ export function RUETGradeSheetPaper({
 
             <button
               onClick={handlePrint}
-              className="px-3 py-1.5 bg-slate-800 hover:bg-slate-700 text-slate-200 rounded-lg text-xs font-semibold flex items-center space-x-1.5 transition-colors"
-              title="Print or Save as PDF"
+              className="px-3 py-1.5 bg-slate-800 hover:bg-slate-700 text-slate-200 rounded-lg text-xs font-semibold flex items-center space-x-1.5 transition-colors cursor-pointer"
+              title="Print 1-Page Legal Document or Save as PDF"
             >
               <Printer className="w-3.5 h-3.5" />
               <span className="hidden sm:inline">Print / PDF</span>
@@ -222,16 +300,16 @@ export function RUETGradeSheetPaper({
             <button
               onClick={handleDownloadPNG}
               disabled={downloading}
-              className="px-3.5 py-1.5 bg-emerald-600 hover:bg-emerald-500 text-white rounded-lg text-xs font-semibold flex items-center space-x-1.5 transition-colors disabled:opacity-50"
-              title="Download high-resolution PNG"
+              className="px-3.5 py-1.5 bg-emerald-600 hover:bg-emerald-500 text-white rounded-lg text-xs font-semibold flex items-center space-x-1.5 transition-colors disabled:opacity-50 cursor-pointer"
+              title="Download 1-Page Legal 300 DPI PNG"
             >
               <Download className="w-3.5 h-3.5" />
-              <span>{downloading ? "Exporting..." : "Download PNG"}</span>
+              <span>{downloading ? "Exporting..." : "Download Legal PNG"}</span>
             </button>
 
             <button
               onClick={onClose}
-              className="p-1.5 text-slate-400 hover:text-white rounded-lg hover:bg-slate-800 transition-colors ml-2"
+              className="p-1.5 text-slate-400 hover:text-white rounded-lg hover:bg-slate-800 transition-colors ml-2 cursor-pointer"
               title="Close"
             >
               <X className="w-5 h-5" />
@@ -246,11 +324,15 @@ export function RUETGradeSheetPaper({
           <div
             ref={paperRef}
             id="ruet-gradesheet-paper"
-            className="w-[820px] min-w-[820px] max-w-[820px] bg-white text-black p-8 sm:p-10 shadow-md print:shadow-none print:p-6 border border-slate-300 print:border-none relative box-border font-serif select-text"
+            className="w-full max-w-[816px] min-h-[1344px] max-h-[1344px] bg-white text-black p-8 sm:p-10 shadow-md print:shadow-none print:p-0 border border-slate-300 print:border-none relative box-border font-serif select-text flex flex-col justify-between print:rounded-none"
             style={{
               backgroundColor: "#ffffff",
               color: "#000000",
               fontFamily: "'Times New Roman', Times, serif",
+              width: "816px",
+              minHeight: "1344px",
+              maxHeight: "1344px",
+              boxSizing: "border-box",
             }}
           >
             {/* Watermark Crest */}
