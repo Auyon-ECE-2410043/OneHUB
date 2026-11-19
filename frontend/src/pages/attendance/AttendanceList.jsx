@@ -8,9 +8,10 @@
 import { useState, useEffect } from "react";
 import { useSearchParams } from "react-router-dom";
 import { useAuth } from "../../context/AuthContext";
-import { getSeriesDefaultSemester } from "../../utils/constants";
+import { SEMESTERS, getSeriesDefaultSemester } from "../../utils/constants";
 import attendanceService from "../../services/attendanceService";
 import courseService from "../../services/courseService";
+import registrationService from "../../services/registrationService";
 import { formatDate } from "../../utils/helpers";
 import { PageLoader } from "../../components/common/Loader";
 import {
@@ -25,6 +26,8 @@ export function AttendanceList() {
   const initialCourseId = searchParams.get("courseId") || "";
 
   const [loading, setLoading] = useState(true);
+  const [studentRegistrations, setStudentRegistrations] = useState([]);
+  const [selectedSemester, setSelectedSemester] = useState(() => getSeriesDefaultSemester(user) || "2-2");
   const [assignedCourses, setAssignedCourses] = useState([]);
   const [selectedCourseId, setSelectedCourseId] = useState(initialCourseId);
 
@@ -37,14 +40,45 @@ export function AttendanceList() {
   });
 
   useEffect(() => {
-    const fetchCourses = async () => {
+    const fetchRegistrationsAndCourses = async () => {
       setLoading(true);
       try {
-        const assigned = await courseService.getAssignedCourses(getSeriesDefaultSemester(user));
-        const list = assigned?.courses || [];
-        setAssignedCourses(list);
-        if (!selectedCourseId && list.length > 0) {
-          setSelectedCourseId(list[0]._id);
+        let regs = studentRegistrations;
+        if (regs.length === 0) {
+          try {
+            regs = await registrationService.getAllMyRegistrations();
+            setStudentRegistrations(regs || []);
+          } catch (e) {
+            console.warn("Could not fetch student registrations", e);
+          }
+        }
+
+        // Check if student has an approved registration for selectedSemester
+        const approvedReg = (regs || []).find(
+          (r) => r.semester === selectedSemester && r.status === "approved"
+        );
+
+        let courses = [];
+        if (approvedReg && approvedReg.courseIds && approvedReg.courseIds.length > 0) {
+          courses = [...approvedReg.courseIds];
+          if (approvedReg.backlogCourseIds && approvedReg.backlogCourseIds.length > 0) {
+            courses = [...courses, ...approvedReg.backlogCourseIds];
+          }
+        } else {
+          // Fallback to assigned batch curriculum for this specific semester
+          const assigned = await courseService.getAssignedCourses(selectedSemester);
+          courses = assigned?.courses || [];
+        }
+
+        setAssignedCourses(courses);
+
+        if (courses.length > 0) {
+          const exists = courses.some((c) => c._id === selectedCourseId);
+          if (!exists) {
+            setSelectedCourseId(courses[0]._id);
+          }
+        } else {
+          setSelectedCourseId("");
         }
       } catch (e) {
         console.warn("Could not fetch assigned courses", e);
@@ -52,8 +86,9 @@ export function AttendanceList() {
         setLoading(false);
       }
     };
-    fetchCourses();
-  }, [selectedCourseId]);
+
+    fetchRegistrationsAndCourses();
+  }, [selectedSemester]);
 
   useEffect(() => {
     const fetchAttendance = async () => {
@@ -100,23 +135,46 @@ export function AttendanceList() {
           </p>
         </div>
 
-        {/* Course Selector */}
-        {assignedCourses.length > 0 && (
-          <div className="flex items-center space-x-2 w-full sm:w-auto">
-            <span className="text-xs font-semibold uppercase text-slate-500 shrink-0">Course:</span>
+        {/* Selectors: Semester and Course */}
+        <div className="flex flex-wrap items-center gap-3 w-full sm:w-auto">
+          <div className="flex items-center space-x-2">
+            <span className="text-xs font-semibold uppercase text-slate-500 shrink-0">Semester:</span>
             <select
-              value={selectedCourseId}
-              onChange={(e) => setSelectedCourseId(e.target.value)}
-              className="flex-1 w-full sm:w-auto min-w-0 truncate px-4 py-2 bg-white border border-slate-300 rounded-xl text-sm font-semibold text-slate-800 focus:ring-2 focus:ring-sky-500 focus:outline-none shadow-xs"
+              value={selectedSemester}
+              onChange={(e) => setSelectedSemester(e.target.value)}
+              className="px-3.5 py-2 bg-white border border-slate-300 rounded-xl text-sm font-semibold text-slate-800 focus:ring-2 focus:ring-sky-500 shadow-xs cursor-pointer"
             >
-              {assignedCourses.map((c) => (
-                <option key={c._id} value={c._id}>
-                  {c.courseCode} - {c.courseName}
-                </option>
-              ))}
+              {SEMESTERS.map((sem) => {
+                const isCurrent = sem === getSeriesDefaultSemester(user);
+                const isApproved = studentRegistrations.some(
+                  (r) => r.semester === sem && r.status === "approved"
+                );
+                return (
+                  <option key={sem} value={sem}>
+                    Semester {sem} {isCurrent ? "(Current)" : ""} {isApproved ? "✓ (Approved)" : ""}
+                  </option>
+                );
+              })}
             </select>
           </div>
-        )}
+
+          {assignedCourses.length > 0 && (
+            <div className="flex items-center space-x-2 flex-1 sm:flex-initial">
+              <span className="text-xs font-semibold uppercase text-slate-500 shrink-0">Course:</span>
+              <select
+                value={selectedCourseId}
+                onChange={(e) => setSelectedCourseId(e.target.value)}
+                className="flex-1 sm:w-auto min-w-[200px] max-w-[320px] truncate px-4 py-2 bg-white border border-slate-300 rounded-xl text-sm font-semibold text-slate-800 focus:ring-2 focus:ring-sky-500 focus:outline-none shadow-xs cursor-pointer"
+              >
+                {assignedCourses.map((c) => (
+                  <option key={c._id} value={c._id}>
+                    {c.courseCode} - {c.courseName}
+                  </option>
+                ))}
+              </select>
+            </div>
+          )}
+        </div>
       </div>
 
       {/* Metrics Banner */}
