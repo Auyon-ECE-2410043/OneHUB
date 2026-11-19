@@ -54,7 +54,9 @@ const hallApplicationSchema = new mongoose.Schema(
     flaggedReason: { type: String, default: "" },
     reviewedBy: { type: mongoose.Schema.Types.ObjectId, ref: "User", default: null },
     reviewedAt: { type: Date, default: null },
+    allocatedHall: { type: String, default: null },
     allocatedRoomNumber: { type: String, default: null },
+    allocatedBedNumber: { type: String, default: null },
   },
   { timestamps: true }
 );

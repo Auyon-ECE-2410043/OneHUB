@@ -139,4 +139,119 @@ router.put("/:id/review", requireAuth, requireRole("admin", "hall_admin"), async
   }
 });
 
+// GET /api/hall/allocation -> Student views allocated room, hall, bed, and roommates
+router.get("/allocation", requireAuth, async (req, res) => {
+  try {
+    const application = await HallApplication.findOne({
+      studentId: req.user.id,
+      status: "approved",
+    }).sort({ createdAt: -1 });
+
+    if (!application || !application.allocatedRoomNumber) {
+      return res.json({ allocated: false });
+    }
+
+    const hallName = application.allocatedHall || application.preferredHall || "Deshratna Sheikh Hasina Hall";
+    const roomNumber = application.allocatedRoomNumber;
+
+    // Find roommates who share the same allocated hall & room
+    const roommateApps = await HallApplication.find({
+      $or: [{ allocatedHall: hallName }, { preferredHall: hallName }],
+      allocatedRoomNumber: roomNumber,
+      status: "approved",
+      studentId: { $ne: req.user.id },
+    }).populate("studentId", "name rollNo department phone email profilePicture batch");
+
+    const roommates = roommateApps.map((app) => ({
+      name: app.studentId?.name || app.fullName,
+      rollNo: app.studentId?.rollNo || app.rollNo,
+      department: app.studentId?.department || app.department,
+      phone: app.studentId?.phone || app.contactNumber,
+      bedNumber: app.allocatedBedNumber || "Bed",
+      batch: app.studentId?.batch || "24",
+    }));
+
+    res.json({
+      allocated: true,
+      hallName,
+      roomNumber,
+      bedNumber: application.allocatedBedNumber || "Bed-01",
+      allottedDate: application.reviewedAt || application.updatedAt,
+      roommates,
+    });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// GET /api/hall/maintenance -> Fetch maintenance requests
+router.get("/maintenance", requireAuth, async (req, res) => {
+  try {
+    const HallMaintenance = require("../models/HallMaintenance");
+    const query = {};
+    if (req.user.role === "student") {
+      query.studentId = req.user.id;
+    } else if (req.query.hallName) {
+      query.hallName = req.query.hallName;
+    }
+    const tickets = await HallMaintenance.find(query)
+      .populate("studentId", "name rollNo department phone")
+      .sort({ createdAt: -1 });
+    res.json({ tickets });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// POST /api/hall/maintenance -> Student submits a maintenance ticket
+router.post("/maintenance", requireAuth, async (req, res) => {
+  try {
+    const HallMaintenance = require("../models/HallMaintenance");
+    const { hallName, roomNumber, category, title, description, priority } = req.body;
+    if (!category || !title || !description) {
+      return res.status(400).json({ error: "Category, title, and description are required." });
+    }
+
+    const ticket = await HallMaintenance.create({
+      studentId: req.user.id,
+      hallName: hallName || "Residential Hall",
+      roomNumber: roomNumber || "N/A",
+      category,
+      title,
+      description,
+      priority: priority || "normal",
+      status: "Pending",
+    });
+
+    res.status(201).json({ message: "Maintenance request submitted successfully", ticket });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// PATCH /api/hall/maintenance/:id/status -> Hall staff / Provost / Admin updates status
+router.patch("/maintenance/:id/status", requireAuth, requireRole("admin", "hall_admin", "faculty"), async (req, res) => {
+  try {
+    const HallMaintenance = require("../models/HallMaintenance");
+    const { status, technicianAssigned, staffNotes } = req.body;
+    const update = {};
+    if (status) {
+      update.status = status;
+      if (status === "Resolved") {
+        update.resolvedAt = new Date();
+        update.resolvedBy = req.user.id;
+      }
+    }
+    if (technicianAssigned !== undefined) update.technicianAssigned = technicianAssigned;
+    if (staffNotes !== undefined) update.staffNotes = staffNotes;
+
+    const ticket = await HallMaintenance.findByIdAndUpdate(req.params.id, update, { new: true });
+    if (!ticket) return res.status(404).json({ error: "Ticket not found" });
+
+    res.json({ message: "Ticket updated successfully", ticket });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
 module.exports = router;

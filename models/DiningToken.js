@@ -8,8 +8,21 @@ const diningTokenSchema = new mongoose.Schema({
   },
   mealType: {
     type: String,
-    enum: ["Lunch", "Dinner"],
+    enum: ["Lunch", "Dinner", "Grand Feast", "Special Dinner"],
     required: true,
+  },
+  isGrandFeast: {
+    type: Boolean,
+    default: false,
+  },
+  guestTokensCount: {
+    type: Number,
+    default: 0,
+  },
+  guestNames: [{ type: String }],
+  hallName: {
+    type: String,
+    default: "Shahid Abdul Hamid Hall",
   },
   date: {
     type: Date,
