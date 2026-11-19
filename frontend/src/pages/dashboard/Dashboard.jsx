@@ -129,14 +129,32 @@ export function Dashboard() {
         // Student-specific data
         if (user?.role === "student") {
           try {
+            const seriesSem = getSeriesDefaultSemester(user);
             const [assignedCourses, reg, myFees] = await Promise.allSettled([
-              courseService.getAssignedCourses(getSeriesDefaultSemester(user)),
+              courseService.getAssignedCourses(seriesSem),
               registrationService.getMyRegistration(),
               feeService.getMyFees(),
             ]);
 
-            if (assignedCourses.status === "fulfilled") setCoursesData(assignedCourses.value);
-            if (reg.status === "fulfilled") setRegistration(reg.value);
+            let activeCoursesData = null;
+            if (reg.status === "fulfilled" && reg.value && reg.value.status === "approved" && reg.value.courseIds?.length > 0) {
+              const coursesList = reg.value.courseIds;
+              activeCoursesData = {
+                semester: reg.value.semester,
+                courses: coursesList,
+                totalCredit: reg.value.totalCredit || coursesList.reduce((sum, c) => sum + (c.credit || 0), 0),
+                status: "approved",
+                isApproved: true,
+              };
+              setRegistration(reg.value);
+            } else if (assignedCourses.status === "fulfilled" && assignedCourses.value) {
+              activeCoursesData = assignedCourses.value;
+              if (reg.status === "fulfilled") setRegistration(reg.value);
+            }
+
+            if (activeCoursesData) {
+              setCoursesData(activeCoursesData);
+            }
             if (myFees.status === "fulfilled") setFees(myFees.value);
           } catch (e) {
             console.warn("Student data fetch error", e);
@@ -479,9 +497,21 @@ export function Dashboard() {
 {/* Assigned Courses with Chart */}
           <motion.div variants={itemVariants} className="p-4 bg-white/80 dark:bg-slate-900/80 backdrop-blur-xl rounded-2xl border border-slate-200/80 dark:border-slate-800 shadow-xs hover:shadow-md transition-smooth flex flex-col">
             <div className="flex items-center justify-between">
-              <span className="text-xs font-semibold uppercase tracking-wider text-slate-500 dark:text-slate-400">
-                Course Credits
-              </span>
+              <div>
+                <span className="text-xs font-semibold uppercase tracking-wider text-slate-500 dark:text-slate-400">
+                  Course Credits
+                </span>
+                {coursesData?.semester && (
+                  <div className="text-[11px] font-bold text-sky-600 dark:text-sky-400 flex items-center gap-1.5 mt-0.5">
+                    <span>Semester {coursesData.semester}</span>
+                    {(coursesData.status === "approved" || coursesData.isApproved) && (
+                      <span className="text-[10px] bg-emerald-50 dark:bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 px-1.5 py-0.5 rounded-full font-semibold">
+                        ✓ Approved
+                      </span>
+                    )}
+                  </div>
+                )}
+              </div>
               <div className="w-10 h-10 rounded-xl bg-sky-50 dark:bg-sky-500/10 text-sky-600 dark:text-sky-400 flex items-center justify-center">
                 <BookOpen className="w-5 h-5" />
               </div>

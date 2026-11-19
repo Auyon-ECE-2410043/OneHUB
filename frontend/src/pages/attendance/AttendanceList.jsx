@@ -53,9 +53,28 @@ export function AttendanceList() {
           }
         }
 
-        // Check if student has an approved registration for selectedSemester
+        // Ensure active semester prefers student's approved registration or default series semester
+        let activeSem = selectedSemester;
+        const approvedRegs = (regs || []).filter((r) => r.status === "approved");
+        const seriesSem = getSeriesDefaultSemester(user) || "2-2";
+
+        if (!approvedRegs.some((r) => r.semester === activeSem)) {
+          if (approvedRegs.some((r) => r.semester === seriesSem)) {
+            activeSem = seriesSem;
+          } else if (approvedRegs.length > 0) {
+            const sorted = [...approvedRegs].sort((a, b) => b.semester.localeCompare(a.semester));
+            activeSem = sorted[0].semester;
+          } else {
+            activeSem = seriesSem;
+          }
+          if (activeSem !== selectedSemester) {
+            setSelectedSemester(activeSem);
+          }
+        }
+
+        // Check if student has an approved registration for activeSem
         const approvedReg = (regs || []).find(
-          (r) => r.semester === selectedSemester && r.status === "approved"
+          (r) => r.semester === activeSem && r.status === "approved"
         );
 
         let courses = [];
@@ -66,7 +85,7 @@ export function AttendanceList() {
           }
         } else {
           // Fallback to assigned batch curriculum for this specific semester
-          const assigned = await courseService.getAssignedCourses(selectedSemester);
+          const assigned = await courseService.getAssignedCourses(activeSem);
           courses = assigned?.courses || [];
         }
 

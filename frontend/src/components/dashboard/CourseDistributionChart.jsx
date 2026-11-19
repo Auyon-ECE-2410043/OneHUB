@@ -13,19 +13,30 @@ export function CourseDistributionChart({ coursesData }) {
   const { theme } = useTheme();
   
   const data = useMemo(() => {
-    if (!coursesData || !coursesData.courses) return [];
+    if (!coursesData) return [];
+    
+    // Support coursesData.courses, coursesData.courseIds, or array directly
+    const list = coursesData.courses || coursesData.courseIds || (Array.isArray(coursesData) ? coursesData : []);
+    if (!Array.isArray(list) || list.length === 0) return [];
     
     let theory = 0;
     let sessional = 0;
     
-    coursesData.courses.forEach(c => {
-      if (c.type === 'theory') theory += c.credits;
-      else sessional += c.credits;
+    list.forEach(c => {
+      // Credit: handle c.credit, c.credits, or numerical fallback
+      const cred = Number(c.credit ?? c.credits ?? 0) || 0;
+      // Type: handle c.courseType or c.type ('theory' vs 'sessional'/'lab')
+      const typeStr = (c.courseType || c.type || "").toLowerCase();
+      if (typeStr === 'theory') {
+        theory += cred;
+      } else {
+        sessional += cred;
+      }
     });
 
     return [
-      { name: 'Theory Credits', value: theory, color: '#3b82f6' }, // sky-500
-      { name: 'Sessional/Lab', value: sessional, color: '#6366f1' }, // indigo-500
+      { name: 'Theory Credits', value: Number(theory.toFixed(2)), color: '#3b82f6' }, // sky-500
+      { name: 'Sessional/Lab', value: Number(sessional.toFixed(2)), color: '#6366f1' }, // indigo-500
     ].filter(d => d.value > 0);
   }, [coursesData]);
 

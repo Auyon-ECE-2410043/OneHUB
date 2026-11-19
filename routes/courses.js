@@ -94,7 +94,49 @@ router.get("/assigned", requireAuth, async (req, res) => {
     const student = await User.findById(req.user.id);
     if (!student) return res.status(404).json({ error: "Student not found" });
 
-    const semester = req.query.semester || getSeriesDefaultSemester(student);
+    const requestedSemester = req.query.semester;
+    const defSem = getSeriesDefaultSemester(student);
+
+    // 1. If student has an approved registration, prioritize their official enrolled courses and credits!
+    let approvedReg = null;
+    if (requestedSemester) {
+      approvedReg = await Registration.findOne({
+        studentId: student._id,
+        semester: requestedSemester,
+        status: "approved",
+      }).populate("courseIds backlogCourseIds");
+    } else {
+      approvedReg = await Registration.findOne({
+        studentId: student._id,
+        semester: defSem,
+        status: "approved",
+      }).populate("courseIds backlogCourseIds");
+
+      if (!approvedReg) {
+        approvedReg = await Registration.findOne({
+          studentId: student._id,
+          status: "approved",
+        }).sort({ semester: -1 }).populate("courseIds backlogCourseIds");
+      }
+    }
+
+    if (approvedReg && approvedReg.courseIds && approvedReg.courseIds.length > 0) {
+      const courses = [...approvedReg.courseIds];
+      if (approvedReg.backlogCourseIds && approvedReg.backlogCourseIds.length > 0) {
+        courses.push(...approvedReg.backlogCourseIds);
+      }
+      const totalCredit = approvedReg.totalCredit || courses.reduce((sum, c) => sum + (c.credit || 0), 0);
+      return res.json({
+        semester: approvedReg.semester,
+        courses,
+        totalCredit: Number(totalCredit.toFixed(2)),
+        isApproved: true,
+        registrationId: approvedReg._id,
+      });
+    }
+
+    // 2. Otherwise fall back to assigned curriculum for batch, department, and semester
+    const semester = requestedSemester || defSem;
     const filter = { batch: student.batch, department: student.department, semester };
 
     let assignment = await CourseAssignment.findOne(filter).populate("courseIds");
@@ -115,7 +157,7 @@ router.get("/assigned", requireAuth, async (req, res) => {
     }
 
     const totalCredit = courses.reduce((sum, c) => sum + (c.credit || 0), 0);
-    res.json({ semester: assignedSemester, courses, totalCredit });
+    res.json({ semester: assignedSemester, courses, totalCredit: Number(totalCredit.toFixed(2)), isApproved: false });
   } catch (err) {
     res.status(500).json({ error: err.message });
   }
