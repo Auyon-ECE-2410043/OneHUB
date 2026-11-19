@@ -21,7 +21,10 @@ import {
   Trash2,
   AlertCircle,
   FileCheck,
+  Download,
+  FileText,
 } from "lucide-react";
+import RegistrationConfirmationPaper from "./RegistrationConfirmationPaper";
 
 export function RegistrationForm() {
   const { user } = useAuth();
@@ -35,6 +38,10 @@ export function RegistrationForm() {
   const [selectedSemester, setSelectedSemester] = useState(() => getSeriesDefaultSemester(user));
   const [selectedBacklogIds, setSelectedBacklogIds] = useState([]);
   const [submittingReg, setSubmittingReg] = useState(false);
+
+  // Official Registration Paper State
+  const [showConfirmationPaper, setShowConfirmationPaper] = useState(false);
+  const [paperRegistration, setPaperRegistration] = useState(null);
 
   // Faculty/Admin Review States
   const [pendingList, setPendingList] = useState([]);
@@ -326,9 +333,27 @@ export function RegistrationForm() {
                 )}
 
                 {currentSemReg.status === "approved" && (
-                  <div className="p-4 bg-emerald-50 border border-emerald-200 rounded-xl text-xs text-emerald-800">
-                    <span className="font-bold block mb-1">Registration Approved:</span>
-                    Your course registration for Semester {selectedSemester} has been approved by your adviser! Semester fees have been billed. Enrolled courses are now active and viewable under <strong>My Courses</strong>.
+                  <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 p-4.5 bg-linear-to-r from-emerald-50 to-teal-50 border border-emerald-200 rounded-xl text-xs text-emerald-900 shadow-xs">
+                    <div className="space-y-1">
+                      <div className="flex items-center gap-1.5 font-bold text-sm text-emerald-800">
+                        <CheckCircle2 className="w-4 h-4 text-emerald-600" />
+                        <span>Course Registration Approved</span>
+                      </div>
+                      <p className="text-emerald-700 leading-relaxed">
+                        Your course registration for Semester {selectedSemester} has been verified and approved by your academic adviser. You can now view and download your official signed registration confirmation paper.
+                      </p>
+                    </div>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setPaperRegistration(currentSemReg);
+                        setShowConfirmationPaper(true);
+                      }}
+                      className="px-4 py-2.5 bg-emerald-600 hover:bg-emerald-700 text-white font-bold rounded-xl shadow-sm flex items-center gap-2 shrink-0 transition cursor-pointer hover:shadow-md"
+                    >
+                      <Download className="w-4 h-4" />
+                      <span>Download Official Paper</span>
+                    </button>
                   </div>
                 )}
 
@@ -341,10 +366,25 @@ export function RegistrationForm() {
 
                 {/* Registered Courses Table */}
                 <div>
-                  <h4 className="text-xs font-semibold uppercase tracking-wider text-slate-500 mb-3">
-                    Registered Courses ({currentSemReg.courseIds?.length || 0} Courses •{" "}
-                    {currentSemReg.totalCredit} Credits)
-                  </h4>
+                  <div className="flex items-center justify-between mb-3">
+                    <h4 className="text-xs font-semibold uppercase tracking-wider text-slate-500">
+                      Registered Courses ({currentSemReg.courseIds?.length || 0} Courses •{" "}
+                      {currentSemReg.totalCredit} Credits)
+                    </h4>
+                    {currentSemReg.status === "approved" && (
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setPaperRegistration(currentSemReg);
+                          setShowConfirmationPaper(true);
+                        }}
+                        className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-bold text-emerald-700 bg-emerald-100 hover:bg-emerald-200 rounded-lg transition cursor-pointer"
+                      >
+                        <FileText className="w-3.5 h-3.5" />
+                        <span>View Official Paper</span>
+                      </button>
+                    )}
+                  </div>
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
                     {currentSemReg.courseIds?.map((c) => (
                       <div
@@ -687,7 +727,18 @@ export function RegistrationForm() {
                 Reject Registration
               </button>
 
-              <div className="flex space-x-3">
+              <div className="flex items-center space-x-2">
+                <button
+                  type="button"
+                  onClick={() => {
+                    setPaperRegistration(selectedRegForReview);
+                    setShowConfirmationPaper(true);
+                  }}
+                  className="px-3.5 py-2 border border-slate-300 hover:bg-slate-50 text-slate-700 rounded-xl text-xs font-semibold inline-flex items-center gap-1.5 transition-smooth cursor-pointer"
+                >
+                  <FileText className="w-3.5 h-3.5" />
+                  <span>Preview Form</span>
+                </button>
                 <button
                   type="button"
                   onClick={() => setIsReviewModalOpen(false)}
@@ -707,6 +758,24 @@ export function RegistrationForm() {
             </div>
           </div>
         </Modal>
+      )}
+
+      {/* Official Course Registration Confirmation Paper Modal */}
+      {showConfirmationPaper && (
+        <RegistrationConfirmationPaper
+          registration={
+            paperRegistration ||
+            (user?.role === "student"
+              ? allMyRegistrations.find((r) => r.semester === selectedSemester)
+              : null)
+          }
+          user={user}
+          isOpen={showConfirmationPaper}
+          onClose={() => {
+            setShowConfirmationPaper(false);
+            setPaperRegistration(null);
+          }}
+        />
       )}
     </div>
   );

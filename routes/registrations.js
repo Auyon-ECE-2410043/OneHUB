@@ -126,6 +126,8 @@ router.get("/", requireAuth, async (req, res) => {
     const registrations = await Registration.find(filter)
       .populate("courseIds")
       .populate("backlogCourseIds")
+      .populate("approvedBy", "name teacherAcronym designation department")
+      .populate("studentId", "name rollNo registrationNo department batch previouslyEarnedCredit")
       .sort({ createdAt: -1 });
 
     res.json({ registrations });
@@ -144,6 +146,8 @@ router.get("/active", requireAuth, async (req, res) => {
     const registration = await Registration.findOne(filter)
       .populate("courseIds")
       .populate("backlogCourseIds")
+      .populate("approvedBy", "name teacherAcronym designation department")
+      .populate("studentId", "name rollNo registrationNo department batch previouslyEarnedCredit")
       .sort({ createdAt: -1 });
 
     if (!registration) return res.status(404).json({ error: "No registration found" });
