@@ -7,7 +7,7 @@
 
 import { useState, useEffect, useRef } from "react";
 import { toast } from "sonner";
-import { Bell, Check, Clock } from "lucide-react";
+import { Bell, Check, Clock, CreditCard, ChevronRight, AlertCircle } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import api from "../../services/api";
 
@@ -150,40 +150,72 @@ export function NotificationBell() {
                 No new notifications
               </div>
             ) : (
-              notifications.map((notif) => (
-                <div
-                  key={notif._id}
-                  onClick={() => {
-                    if (!notif.isRead) markAsRead(notif._id);
-                    if (notif.link) {
-                      setIsOpen(false);
-                      navigate(notif.link);
-                    }
-                  }}
-                  className={`px-4 py-3 border-b border-slate-50 transition-colors ${
-                    !notif.isRead 
-                      ? "bg-sky-50/40 hover:bg-sky-100/50 cursor-pointer" 
-                      : "hover:bg-slate-50"
-                  }`}
-                >
-                  <div className="flex justify-between items-start">
-                    <div className="flex-1">
-                      <p
-                        className={`text-sm ${
-                          !notif.isRead ? "font-semibold text-slate-900" : "text-slate-700"
-                        }`}
-                      >
-                        {notif.title}
-                      </p>
-                      <p className="text-xs text-slate-500 mt-1">{notif.message}</p>
-                      <div className="flex items-center mt-2 text-[10px] text-slate-400">
-                        <Clock className="w-3 h-3 mr-1" />
-                        {formatNotifDate(notif.createdAt)}
+              notifications.map((notif) => {
+                const isPayment = notif.type === "fee_due" || notif.title?.includes("Payment") || notif.title?.includes("Fee");
+                const isPaid = notif.type === "payment" || notif.title?.includes("Payment Successful");
+
+                return (
+                  <div
+                    key={notif._id}
+                    onClick={() => {
+                      if (!notif.isRead) markAsRead(notif._id);
+                      if (notif.link) {
+                        setIsOpen(false);
+                        navigate(notif.link);
+                      } else if (isPayment) {
+                        setIsOpen(false);
+                        navigate("/fees");
+                      }
+                    }}
+                    className={`px-4 py-3 border-b border-slate-50 transition-colors cursor-pointer ${
+                      !notif.isRead 
+                        ? isPayment
+                          ? "bg-amber-50/50 hover:bg-amber-100/60"
+                          : "bg-sky-50/40 hover:bg-sky-100/50"
+                        : "hover:bg-slate-50"
+                    }`}
+                  >
+                    <div className="flex justify-between items-start gap-2">
+                      <div className="flex-1 min-w-0">
+                        <div className="flex items-center gap-1.5 flex-wrap">
+                          {isPayment && (
+                            <span className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded text-[10px] font-bold bg-amber-100 text-amber-800 border border-amber-300">
+                              <CreditCard className="w-3 h-3 text-amber-600" />
+                              <span>Bill Due</span>
+                            </span>
+                          )}
+                          {isPaid && (
+                            <span className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded text-[10px] font-bold bg-emerald-100 text-emerald-800 border border-emerald-300">
+                              <Check className="w-3 h-3 text-emerald-600" />
+                              <span>Paid</span>
+                            </span>
+                          )}
+                          <p
+                            className={`text-sm truncate ${
+                              !notif.isRead ? "font-bold text-slate-900" : "font-medium text-slate-700"
+                            }`}
+                          >
+                            {notif.title}
+                          </p>
+                        </div>
+                        <p className="text-xs text-slate-600 mt-1 leading-relaxed">{notif.message}</p>
+                        <div className="flex items-center justify-between mt-2 pt-1 border-t border-slate-100/70 text-[10px] text-slate-400">
+                          <div className="flex items-center">
+                            <Clock className="w-3 h-3 mr-1" />
+                            {formatNotifDate(notif.createdAt)}
+                          </div>
+                          {isPayment && (
+                            <span className="font-bold text-sky-600 hover:text-sky-700 flex items-center gap-0.5">
+                              <span>Pay Now</span>
+                              <ChevronRight className="w-3 h-3" />
+                            </span>
+                          )}
+                        </div>
                       </div>
                     </div>
                   </div>
-                </div>
-              ))
+                );
+              })
             )}
           </div>
         </div>

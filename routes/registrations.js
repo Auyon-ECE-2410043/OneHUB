@@ -258,14 +258,62 @@ router.put("/:id/approve", requireAuth, requireRole("faculty", "admin"), async (
     await registration.save();
     
     try {
-      await Notification.create({
-        recipientId: registration.studentId,
-        recipientRole: "student",
-        title: "Registration Approved",
-        message: `Your course registration for Semester ${registration.semester} has been approved.`,
-        type: "registration_request",
-        link: "/registration"
-      });
+      const notifsToCreate = [
+        {
+          recipientId: registration.studentId,
+          recipientRole: "student",
+          title: "Registration Approved",
+          message: `Your course registration for Semester ${registration.semester} has been approved by your adviser.`,
+          type: "registration_request",
+          link: "/registration"
+        },
+        {
+          recipientId: registration.studentId,
+          recipientRole: "student",
+          title: `💳 Payment Due: Semester ${registration.semester} Fees (৳${registrationFee.amount + examFee.amount})`,
+          message: `Tuition fee (৳${registrationFee.amount}) and Exam fee (৳${examFee.amount}) have been assigned for Semester ${registration.semester}. Due Date: ${parsedDueDate.toLocaleDateString("en-GB")}.`,
+          type: "fee_due",
+          link: "/fees",
+          meta: {
+            feeId: registrationFee._id.toString(),
+            semester: registration.semester,
+            amount: String(registrationFee.amount + examFee.amount)
+          }
+        }
+      ];
+
+      if (hallFeeAmount && Number(hallFeeAmount) > 0) {
+        notifsToCreate.push({
+          recipientId: registration.studentId,
+          recipientRole: "student",
+          title: `💳 Payment Due: Hall Seat Fee (৳${hallFeeAmount})`,
+          message: `Hall seat and maintenance dues of ৳${hallFeeAmount} have been assigned for Semester ${registration.semester}.`,
+          type: "fee_due",
+          link: "/fees",
+          meta: {
+            semester: registration.semester,
+            amount: String(hallFeeAmount)
+          }
+        });
+      }
+
+      for (const extra of extraFeeDocs) {
+        notifsToCreate.push({
+          recipientId: registration.studentId,
+          recipientRole: "student",
+          title: `💳 Payment Due: ${extra.label} (৳${extra.amount})`,
+          message: `An additional fee for '${extra.label}' (৳${extra.amount}) has been assigned.`,
+          type: "fee_due",
+          link: "/fees",
+          meta: {
+            feeId: extra._id.toString(),
+            semester: registration.semester,
+            amount: String(extra.amount)
+          }
+        });
+      }
+
+      await Notification.insertMany(notifsToCreate);
     } catch (notifErr) {
       console.error("Failed to deliver registration approval notification:", notifErr);
     }

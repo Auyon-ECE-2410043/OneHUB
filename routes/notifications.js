@@ -14,13 +14,50 @@ const router = express.Router();
 // GET /api/notifications -> Get all notifications for logged-in user
 router.get("/", requireAuth, async (req, res) => {
   try {
-    const notifications = await Notification.find({ recipientId: req.user.id })
-      .sort({ createdAt: -1 })
-      .limit(30);
+    // 1. Fetch critical notifications (fee_due, payment, registration_request, general)
+    // 2. Fetch general recent notifications
+    const [criticalNotifs, recentNotifs, unreadCount] = await Promise.all([
+      Notification.find({
+        recipientId: req.user.id,
+        type: { $in: ["fee_due", "payment", "registration_request", "general"] },
+      })
+        .sort({ createdAt: -1 })
+        .limit(25),
+      Notification.find({ recipientId: req.user.id })
+        .sort({ createdAt: -1 })
+        .limit(35),
+      Notification.countDocuments({ recipientId: req.user.id, isRead: false }),
+    ]);
 
-    const unreadCount = await Notification.countDocuments({ recipientId: req.user.id, isRead: false });
+    // Merge & deduplicate, ensuring unread payment/important notifications come first
+    const seen = new Set();
+    const notifications = [];
 
-    res.json({ unreadCount, notifications });
+    // Prioritize unread payment and important notifications at the top
+    for (const n of criticalNotifs) {
+      if (!n.isRead && !seen.has(n._id.toString())) {
+        seen.add(n._id.toString());
+        notifications.push(n);
+      }
+    }
+
+    // Add recent notifications
+    for (const n of recentNotifs) {
+      if (!seen.has(n._id.toString())) {
+        seen.add(n._id.toString());
+        notifications.push(n);
+      }
+    }
+
+    // Add any remaining critical notifications
+    for (const n of criticalNotifs) {
+      if (!seen.has(n._id.toString())) {
+        seen.add(n._id.toString());
+        notifications.push(n);
+      }
+    }
+
+    res.json({ unreadCount, notifications: notifications.slice(0, 40) });
   } catch (err) {
     res.status(500).json({ error: err.message });
   }

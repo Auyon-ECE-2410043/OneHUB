@@ -198,10 +198,15 @@ router.post("/assign", requireAuth, requireRole("admin", "faculty"), async (req,
       notifsToInsert.push({
         recipientId: student._id,
         recipientRole: "student",
-        title: "New Fee Assigned",
-        message: `You have a new fee: ${label} (৳${amount})`,
+        title: `💳 Payment Due: ${label} (৳${amount})`,
+        message: `An invoice of ৳${amount} for '${label}' (Semester: ${semester || "N/A"}) has been assigned to your account. Due Date: ${parsedDueDate.toLocaleDateString("en-GB")}.`,
         type: "fee_due",
-        link: `/fees/payment?feeId=${feeId.toString()}`
+        link: "/fees",
+        meta: {
+          feeId: feeId.toString(),
+          semester: semester || "N/A",
+          amount: String(amount)
+        }
       });
     }
 
