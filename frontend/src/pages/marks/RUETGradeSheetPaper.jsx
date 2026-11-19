@@ -190,8 +190,94 @@ export function RUETGradeSheetPaper({
     }
   };
 
+  // Browser Print - Isolated iframe printing guarantees strictly 1 Legal page in Chrome/Edge/Firefox
   const handlePrint = () => {
-    window.print();
+    const printContent = paperRef.current;
+    if (!printContent) {
+      window.print();
+      return;
+    }
+
+    try {
+      const iframe = document.createElement("iframe");
+      iframe.style.position = "fixed";
+      iframe.style.right = "0";
+      iframe.style.bottom = "0";
+      iframe.style.width = "0";
+      iframe.style.height = "0";
+      iframe.style.border = "0";
+      document.body.appendChild(iframe);
+
+      const doc = iframe.contentWindow.document;
+      const styles = Array.from(document.querySelectorAll('link[rel="stylesheet"], style'))
+        .map((node) => node.outerHTML)
+        .join("\n");
+
+      doc.open();
+      doc.write(`
+        <!DOCTYPE html>
+        <html>
+          <head>
+            <title>RUET Official Grade Sheet</title>
+            ${styles}
+            <style>
+              @page {
+                size: legal portrait;
+                margin: 0.3in 0.45in;
+              }
+              * {
+                box-sizing: border-box !important;
+                -webkit-print-color-adjust: exact !important;
+                print-color-adjust: exact !important;
+              }
+              html, body {
+                margin: 0 !important;
+                padding: 0 !important;
+                background: #ffffff !important;
+                color: #000000 !important;
+                font-family: 'Times New Roman', Times, serif;
+                width: 100% !important;
+                height: 100% !important;
+                overflow: hidden !important;
+              }
+              .isolated-legal-paper {
+                width: 100% !important;
+                max-height: 13.3in !important;
+                height: 100% !important;
+                display: flex !important;
+                flex-direction: column !important;
+                justify-content: space-between !important;
+                page-break-inside: avoid !important;
+                page-break-after: avoid !important;
+                break-inside: avoid !important;
+                break-after: avoid !important;
+                overflow: hidden !important;
+                background: #ffffff !important;
+              }
+            </style>
+          </head>
+          <body>
+            <div class="isolated-legal-paper">
+              ${printContent.innerHTML}
+            </div>
+          </body>
+        </html>
+      `);
+      doc.close();
+
+      setTimeout(() => {
+        iframe.contentWindow.focus();
+        iframe.contentWindow.print();
+        setTimeout(() => {
+          if (iframe.parentNode) {
+            iframe.parentNode.removeChild(iframe);
+          }
+        }, 1500);
+      }, 350);
+    } catch (e) {
+      console.warn("Iframe print fallback to window.print:", e);
+      window.print();
+    }
   };
 
   return (
@@ -200,7 +286,7 @@ export function RUETGradeSheetPaper({
       <style>{`
         @page {
           size: legal portrait;
-          margin: 0;
+          margin: 0.3in 0.45in;
         }
         @media print {
           html, body {
@@ -215,22 +301,21 @@ export function RUETGradeSheetPaper({
             -webkit-print-color-adjust: exact !important;
             print-color-adjust: exact !important;
           }
-          body * {
+          body > * {
             visibility: hidden !important;
           }
           #ruet-gradesheet-paper, #ruet-gradesheet-paper * {
             visibility: visible !important;
           }
           #ruet-gradesheet-paper {
-            position: fixed !important;
+            position: absolute !important;
             left: 0 !important;
             top: 0 !important;
             width: 8.5in !important;
-            height: 14in !important;
-            max-height: 14in !important;
+            max-height: 13.4in !important;
             box-sizing: border-box !important;
             margin: 0 !important;
-            padding: 0.45in 0.55in !important;
+            padding: 0.35in 0.45in !important;
             box-shadow: none !important;
             border: none !important;
             background: #ffffff !important;

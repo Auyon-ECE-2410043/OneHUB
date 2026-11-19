@@ -129,27 +129,35 @@ export function Dashboard() {
         // Student-specific data
         if (user?.role === "student") {
           try {
-            const seriesSem = getSeriesDefaultSemester(user);
-            const [assignedCourses, reg, myFees] = await Promise.allSettled([
+            const seriesSem = getSeriesDefaultSemester(user) || "2-2";
+            const [assignedCourses, reg, myFees, allRegsResult] = await Promise.allSettled([
               courseService.getAssignedCourses(seriesSem),
-              registrationService.getMyRegistration(),
+              registrationService.getMyRegistration(seriesSem),
               feeService.getMyFees(),
+              registrationService.getAllMyRegistrations(),
             ]);
 
             let activeCoursesData = null;
-            if (reg.status === "fulfilled" && reg.value && reg.value.status === "approved" && reg.value.courseIds?.length > 0) {
-              const coursesList = reg.value.courseIds;
+            const allRegs = allRegsResult.status === "fulfilled" ? (allRegsResult.value || []) : [];
+            const approvedRegForSem = (allRegs || []).find(r => r.semester === seriesSem && r.status === "approved") ||
+                                      (reg.status === "fulfilled" && reg.value?.status === "approved" ? reg.value : null) ||
+                                      (allRegs || []).find(r => r.status === "approved");
+
+            if (approvedRegForSem && approvedRegForSem.courseIds?.length > 0) {
+              const coursesList = approvedRegForSem.courseIds;
               activeCoursesData = {
-                semester: reg.value.semester,
+                semester: approvedRegForSem.semester,
                 courses: coursesList,
-                totalCredit: reg.value.totalCredit || coursesList.reduce((sum, c) => sum + (c.credit || 0), 0),
+                totalCredit: approvedRegForSem.totalCredit || coursesList.reduce((sum, c) => sum + (c.credit || 0), 0),
                 status: "approved",
                 isApproved: true,
               };
-              setRegistration(reg.value);
+              setRegistration(approvedRegForSem);
             } else if (assignedCourses.status === "fulfilled" && assignedCourses.value) {
               activeCoursesData = assignedCourses.value;
-              if (reg.status === "fulfilled") setRegistration(reg.value);
+              if (reg.status === "fulfilled" && reg.value) setRegistration(reg.value);
+            } else if (reg.status === "fulfilled" && reg.value) {
+              setRegistration(reg.value);
             }
 
             if (activeCoursesData) {

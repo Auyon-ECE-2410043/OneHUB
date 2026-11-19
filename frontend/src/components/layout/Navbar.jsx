@@ -21,7 +21,6 @@ import {
   GraduationCap,
   Sun,
   Moon,
-  Search,
 } from "lucide-react";
 
 export function Navbar({ onMenuToggle, isSidebarOpen }) {
@@ -74,21 +73,6 @@ export function Navbar({ onMenuToggle, isSidebarOpen }) {
             </div>
           </Link>
         </div>
-
-        {/* Center: Command Palette Trigger Button */}
-        <button
-          type="button"
-          onClick={() => window.dispatchEvent(new CustomEvent("open-command-palette"))}
-          className="hidden sm:flex items-center gap-2.5 px-3.5 py-1.5 rounded-xl bg-slate-100 hover:bg-slate-200/80 dark:bg-slate-800/80 dark:hover:bg-slate-700/80 text-slate-500 dark:text-slate-400 border border-slate-200/80 dark:border-slate-700/80 text-xs transition cursor-pointer"
-          title="Open Command Palette (Ctrl + K / Cmd + K)"
-        >
-          <Search className="w-3.5 h-3.5 text-slate-400 dark:text-slate-500" />
-          <span className="hidden md:inline">Search features, courses, notices...</span>
-          <span className="md:hidden">Search...</span>
-          <kbd className="ml-1 px-1.5 py-0.5 text-[10px] font-mono bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded text-slate-400">
-            Ctrl K
-          </kbd>
-        </button>
 
         {/* Right Section: Notices & User Profile */}
         <div className="flex items-center space-x-3">
