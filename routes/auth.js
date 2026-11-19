@@ -504,32 +504,90 @@ router.post('/update-fcm-token', requireAuth, async (req, res) => {
     res.status(500).json({ error: err.message });
   }
 });
+// Helper to verify Google token (handles BOTH OAuth2 access_token and OpenID Connect id_token JWT)
+async function verifyGoogleToken(token) {
+  // If it's a 3-part JWT token, try ID token verification first
+  if (typeof token === 'string' && token.includes('.') && token.split('.').length === 3) {
+    try {
+      const { OAuth2Client } = require('google-auth-library');
+      const client = new OAuth2Client(process.env.GOOGLE_CLIENT_ID);
+      const ticket = await client.verifyIdToken({
+        idToken: token,
+        audience: process.env.GOOGLE_CLIENT_ID || undefined,
+      });
+      const payload = ticket.getPayload();
+      return {
+        email: payload.email ? payload.email.toLowerCase() : null,
+        name: payload.name,
+        picture: payload.picture,
+        sub: payload.sub,
+        email_verified: payload.email_verified,
+      };
+    } catch (err) {
+      console.warn("verifyIdToken fallback to userinfo:", err.message);
+    }
+  }
+
+  // Fallback / standard OAuth2 access token: query Google's UserInfo endpoint
+  const axios = require('axios');
+  const response = await axios.get('https://www.googleapis.com/oauth2/v3/userinfo', {
+    headers: { Authorization: `Bearer ${token}` }
+  });
+  return {
+    email: response.data.email ? response.data.email.toLowerCase() : null,
+    name: response.data.name,
+    picture: response.data.picture,
+    sub: response.data.sub,
+    email_verified: response.data.email_verified,
+  };
+}
+
 // POST /api/auth/google
 router.post("/google", async (req, res) => {
   try {
     const { token } = req.body;
     if (!token) return res.status(400).json({ error: "No Google token provided" });
 
-    const { OAuth2Client } = require('google-auth-library');
-    const client = new OAuth2Client(process.env.GOOGLE_CLIENT_ID);
-    
-    const ticket = await client.verifyIdToken({
-        idToken: token,
-        audience: process.env.GOOGLE_CLIENT_ID,
-    });
-    
-    const payload = ticket.getPayload();
-    const email = payload.email.toLowerCase();
-
-    const user = await User.findOne({ email });
-    if (!user) {
-      return res.status(404).json({ error: "Account not found. Please ask an admin to create an account for you." });
+    const googleUser = await verifyGoogleToken(token);
+    if (!googleUser || !googleUser.email) {
+      return res.status(400).json({ error: "Unable to retrieve verified email from Google account" });
     }
 
+    const email = googleUser.email.toLowerCase();
+    const rollCandidate = email.split('@')[0];
+
+    // Search by primary email, linked googleEmail, or student roll number from email
+    let user = await User.findOne({
+      $or: [
+        { email },
+        { googleEmail: email },
+        ...(rollCandidate && !isNaN(rollCandidate) ? [{ rollNo: rollCandidate }] : [])
+      ]
+    });
+
+    if (!user) {
+      return res.status(404).json({
+        error: `No OneHUB account linked with Google email (${email}).`,
+        unlinkedEmail: email,
+        googleName: googleUser.name,
+      });
+    }
+
+    // Auto-link Google email if not already set
+    if (!user.googleEmail) {
+      user.googleEmail = email;
+    }
+    if (googleUser.sub && !user.googleId) {
+      user.googleId = googleUser.sub;
+    }
+    if (!user.profilePicture && googleUser.picture) {
+      user.profilePicture = googleUser.picture;
+    }
     if (user.isFirstLogin) {
       user.isFirstLogin = false;
-      await user.save();
     }
+    user.lastActiveAt = new Date();
+    await user.save();
 
     const JWT_SECRET = process.env.JWT_SECRET || "defaultsecret";
     const tokenJwt = jwt.sign({ id: user._id, role: user.role }, JWT_SECRET, { expiresIn: "7d" });
@@ -541,15 +599,76 @@ router.post("/google", async (req, res) => {
         name: user.name,
         email: user.email,
         role: user.role,
+        rollNo: user.rollNo,
         department: user.department,
         designation: user.designation,
-        batch: user.batch
+        batch: user.batch,
+        profilePicture: user.profilePicture
       }
     });
 
   } catch (err) {
     console.error("Google Auth Error:", err);
-    res.status(500).json({ error: "Google authentication failed. " + err.message });
+    res.status(500).json({ error: "Google authentication failed: " + (err.response?.data?.error_description || err.message) });
+  }
+});
+
+// POST /api/auth/google/link
+// Allows an existing student/faculty to link their Google account
+router.post("/google/link", async (req, res) => {
+  try {
+    const { token, identifier, password } = req.body;
+    if (!token || !identifier || !password) {
+      return res.status(400).json({ error: "Google token, identifier, and password are required" });
+    }
+
+    const googleUser = await verifyGoogleToken(token);
+    if (!googleUser || !googleUser.email) {
+      return res.status(400).json({ error: "Invalid Google token" });
+    }
+
+    const cleanId = identifier.trim().toLowerCase();
+    const user = await User.findOne({
+      $or: [{ email: cleanId }, { rollNo: cleanId }]
+    });
+
+    if (!user) {
+      return res.status(404).json({ error: "No OneHUB account found with that email or roll number" });
+    }
+
+    const isMatch = await bcrypt.compare(password, user.passwordHash);
+    if (!isMatch) {
+      return res.status(401).json({ error: "Incorrect password for this OneHUB account" });
+    }
+
+    user.googleEmail = googleUser.email.toLowerCase();
+    if (googleUser.sub) user.googleId = googleUser.sub;
+    if (!user.profilePicture && googleUser.picture) user.profilePicture = googleUser.picture;
+    if (user.isFirstLogin) user.isFirstLogin = false;
+    user.lastActiveAt = new Date();
+    await user.save();
+
+    const JWT_SECRET = process.env.JWT_SECRET || "defaultsecret";
+    const tokenJwt = jwt.sign({ id: user._id, role: user.role }, JWT_SECRET, { expiresIn: "7d" });
+
+    res.json({
+      token: tokenJwt,
+      message: `Google account (${googleUser.email}) successfully linked to ${user.name}!`,
+      user: {
+        id: user._id,
+        name: user.name,
+        email: user.email,
+        role: user.role,
+        rollNo: user.rollNo,
+        department: user.department,
+        designation: user.designation,
+        batch: user.batch,
+        profilePicture: user.profilePicture
+      }
+    });
+  } catch (err) {
+    console.error("Google Link Error:", err);
+    res.status(500).json({ error: "Failed to link Google account: " + err.message });
   }
 });
 

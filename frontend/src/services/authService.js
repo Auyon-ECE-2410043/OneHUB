@@ -76,6 +76,15 @@ export const authService = {
     return res.data;
   },
 
+  googleLink: async (token, identifier, password) => {
+    const res = await api.post("/auth/google/link", { token, identifier, password });
+    if (res.data.token) {
+      localStorage.setItem("token", res.data.token);
+      localStorage.setItem("user", JSON.stringify(res.data.user));
+    }
+    return res.data;
+  },
+
   changePassword: async (currentPassword, newPassword) => {
     const res = await api.put("/auth/change-password", {
       currentPassword,

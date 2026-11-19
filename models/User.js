@@ -33,6 +33,8 @@ const userSchema = new mongoose.Schema(
     lastActiveAt: { type: Date, default: null },
     previouslyEarnedCredit: { type: Number, default: 0 },
     adviserId: { type: mongoose.Schema.Types.ObjectId, ref: "User", default: null },
+    googleId: { type: String, sparse: true },
+    googleEmail: { type: String, lowercase: true, trim: true, sparse: true },
 
     // Faculty specific fields
     teacherAcronym: { type: String, uppercase: true, trim: true, sparse: true },

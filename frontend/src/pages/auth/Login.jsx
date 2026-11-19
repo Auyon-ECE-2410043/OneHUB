@@ -534,7 +534,7 @@ export function Login() {
             <div className="mt-6">
               <button
                 type="button"
-                onClick={() => loginWithGoogle()}
+                onClick={handleGoogleClick}
                 disabled={loading}
                 className="w-full flex items-center justify-center gap-3 px-4 py-3 border border-slate-700 rounded-xl shadow-sm bg-white/5 hover:bg-white/10 text-sm font-medium text-white transition-smooth disabled:opacity-50"
               >
@@ -557,6 +557,178 @@ export function Login() {
           </div>
         </div>
       </div>
+
+      {/* Account Linking Modal (When Google email isn't in database yet) */}
+      {googleUnlinked && (
+        <div className="fixed inset-0 bg-black/75 backdrop-blur-md flex items-center justify-center z-50 p-4 animate-fade-in">
+          <div className="bg-slate-900 border border-slate-700 rounded-2xl p-6 max-w-md w-full shadow-2xl space-y-4">
+            <div className="flex justify-between items-start">
+              <div className="flex items-center gap-3">
+                <div className="w-10 h-10 rounded-full bg-white/10 flex items-center justify-center">
+                  <svg className="w-6 h-6" viewBox="0 0 24 24">
+                    <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" />
+                    <path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" />
+                    <path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z" />
+                    <path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z" />
+                  </svg>
+                </div>
+                <div>
+                  <h3 className="text-base font-bold text-white">Link Google Account</h3>
+                  <p className="text-xs text-sky-400 font-medium">{googleUnlinked.email}</p>
+                </div>
+              </div>
+              <button
+                onClick={() => setGoogleUnlinked(null)}
+                className="text-slate-400 hover:text-white p-1"
+              >
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+
+            <p className="text-xs text-slate-300 leading-relaxed bg-slate-800/60 p-3 rounded-xl border border-slate-700/50">
+              Confirm your RUET Roll Number or OneHUB Email and Password to link this Google account. Once linked, you can sign in with 1-click anytime!
+            </p>
+
+            <form onSubmit={handleLinkGoogleAccount} className="space-y-3.5">
+              <div>
+                <label className="block text-xs font-semibold text-slate-300 uppercase mb-1">
+                  RUET Roll Number or Email
+                </label>
+                <input
+                  type="text"
+                  value={linkData.identifier}
+                  onChange={(e) => setLinkData({ ...linkData, identifier: e.target.value })}
+                  placeholder="e.g. 2410043 or student@ruet.ac.bd"
+                  className="w-full px-3 py-2 bg-slate-800 border border-slate-700 rounded-xl text-white text-sm focus:outline-none focus:ring-2 focus:ring-sky-500"
+                  required
+                />
+              </div>
+
+              <div>
+                <label className="block text-xs font-semibold text-slate-300 uppercase mb-1">
+                  OneHUB Password
+                </label>
+                <input
+                  type="password"
+                  value={linkData.password}
+                  onChange={(e) => setLinkData({ ...linkData, password: e.target.value })}
+                  placeholder="Your OneHUB password"
+                  className="w-full px-3 py-2 bg-slate-800 border border-slate-700 rounded-xl text-white text-sm focus:outline-none focus:ring-2 focus:ring-sky-500"
+                  required
+                />
+              </div>
+
+              <div className="flex gap-2 pt-2">
+                <button
+                  type="button"
+                  onClick={() => setGoogleUnlinked(null)}
+                  className="w-1/2 py-2.5 rounded-xl border border-slate-700 text-xs font-semibold text-slate-300 hover:bg-slate-800 transition"
+                >
+                  Cancel
+                </button>
+                <button
+                  type="submit"
+                  disabled={loading}
+                  className="w-1/2 py-2.5 rounded-xl bg-gradient-to-r from-sky-500 to-indigo-600 hover:from-sky-400 hover:to-indigo-500 text-xs font-bold text-white transition disabled:opacity-50"
+                >
+                  {loading ? "Linking..." : "Link & Sign In"}
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+
+      {/* Google Setup Guidance Modal (Shown when Client ID is missing) */}
+      {showGoogleSetupModal && (
+        <div className="fixed inset-0 bg-black/75 backdrop-blur-md flex items-center justify-center z-50 p-4 animate-fade-in">
+          <div className="bg-slate-900 border border-slate-700 rounded-2xl p-6 max-w-lg w-full shadow-2xl space-y-4">
+            <div className="flex justify-between items-start border-b border-slate-800 pb-3">
+              <div className="flex items-center gap-2.5">
+                <div className="p-2 bg-sky-500/10 rounded-xl text-sky-400">
+                  <Settings className="w-5 h-5" />
+                </div>
+                <div>
+                  <h3 className="text-base font-bold text-white">Google OAuth Setup</h3>
+                  <p className="text-xs text-slate-400">Connect Google Cloud Client ID for 1-click Sign-In</p>
+                </div>
+              </div>
+              <button
+                onClick={() => setShowGoogleSetupModal(false)}
+                className="text-slate-400 hover:text-white p-1"
+              >
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+
+            <div className="space-y-3 text-xs text-slate-300">
+              <div className="p-3 bg-slate-800/80 rounded-xl border border-slate-700/80 space-y-2">
+                <div className="font-semibold text-sky-400 flex items-center gap-1.5">
+                  <Info className="w-4 h-4" /> Quick Steps to get Client ID (2 minutes):
+                </div>
+                <ol className="list-decimal list-inside space-y-1.5 text-slate-300 pl-1 leading-relaxed">
+                  <li>
+                    Open{" "}
+                    <a
+                      href="https://console.cloud.google.com/apis/credentials"
+                      target="_blank"
+                      rel="noreferrer"
+                      className="text-sky-400 hover:underline font-semibold inline-flex items-center gap-0.5"
+                    >
+                      Google Cloud Console <ExternalLink className="w-3 h-3" />
+                    </a>
+                  </li>
+                  <li>Click <strong>Create Credentials &gt; OAuth client ID</strong></li>
+                  <li>Application type: <strong>Web application</strong></li>
+                  <li>
+                    Under <strong>Authorized JavaScript origins</strong>, add:
+                    <div className="mt-1 font-mono text-[11px] bg-black/40 p-2 rounded border border-slate-700 space-y-1">
+                      <div>http://localhost:5173</div>
+                      <div>https://one-hub-iota.vercel.app</div>
+                    </div>
+                  </li>
+                  <li>Click <strong>Create</strong> and copy your Client ID.</li>
+                </ol>
+              </div>
+
+              <form onSubmit={handleSaveSetupClientId} className="space-y-3">
+                <div>
+                  <label className="block text-xs font-semibold text-slate-300 uppercase mb-1">
+                    Paste Google Client ID
+                  </label>
+                  <input
+                    type="text"
+                    value={setupClientId}
+                    onChange={(e) => setSetupClientId(e.target.value)}
+                    placeholder="e.g. 1234567890-abcdefg.apps.googleusercontent.com"
+                    className="w-full px-3 py-2 bg-slate-800 border border-slate-700 rounded-xl text-white text-xs font-mono focus:outline-none focus:ring-2 focus:ring-sky-500"
+                    required
+                  />
+                  <p className="text-[11px] text-slate-500 mt-1">
+                    You can also set <code>VITE_GOOGLE_CLIENT_ID</code> in <code>frontend/.env</code> and <code>GOOGLE_CLIENT_ID</code> in root <code>.env</code>.
+                  </p>
+                </div>
+
+                <div className="flex gap-2 pt-2">
+                  <button
+                    type="button"
+                    onClick={() => setShowGoogleSetupModal(false)}
+                    className="w-1/2 py-2.5 rounded-xl border border-slate-700 text-xs font-semibold text-slate-300 hover:bg-slate-800 transition"
+                  >
+                    Close
+                  </button>
+                  <button
+                    type="submit"
+                    className="w-1/2 py-2.5 rounded-xl bg-gradient-to-r from-sky-500 to-indigo-600 hover:from-sky-400 hover:to-indigo-500 text-xs font-bold text-white transition"
+                  >
+                    Save & Activate
+                  </button>
+                </div>
+              </form>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
     
   );
