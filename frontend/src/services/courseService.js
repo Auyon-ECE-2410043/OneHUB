@@ -50,6 +50,43 @@ export const courseService = {
     const res = await api.post("/courses/admin/assignments", assignmentData);
     return res.data.assignment;
   },
+
+  // Get single course by ID (includes resources and experiments)
+  getCourseById: async (courseId) => {
+    const res = await api.get(`/courses/${courseId}`);
+    return res.data.course;
+  },
+
+  // Add course resource (Faculty, CR, Admin)
+  addCourseResource: async (courseId, resourceData) => {
+    const res = await api.post(`/courses/${courseId}/resources`, resourceData);
+    return res.data;
+  },
+
+  // Delete course resource
+  deleteCourseResource: async (courseId, resourceId) => {
+    const res = await api.delete(`/courses/${courseId}/resources/${resourceId}`);
+    return res.data;
+  },
+
+  // Add/Update experiment (Faculty, Admin)
+  addCourseExperiment: async (courseId, experimentData) => {
+    const res = await api.post(`/courses/${courseId}/experiments`, experimentData);
+    return res.data;
+  },
+
+  // Get student experiment progress
+  getExperimentProgress: async (courseId, studentId) => {
+    const url = studentId ? `/courses/${courseId}/experiments/progress?studentId=${studentId}` : `/courses/${courseId}/experiments/progress`;
+    const res = await api.get(url);
+    return res.data.progress || [];
+  },
+
+  // Update student experiment submission or marks
+  updateExperimentStatus: async (courseId, expNo, statusData) => {
+    const res = await api.post(`/courses/${courseId}/experiments/${expNo}/status`, statusData);
+    return res.data;
+  },
 };
 
 export default courseService;

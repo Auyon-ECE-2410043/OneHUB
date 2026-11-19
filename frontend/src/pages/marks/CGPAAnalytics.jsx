@@ -6,16 +6,21 @@
  */
 
 import { useState, useEffect } from "react";
+import { useAuth } from "../../context/AuthContext";
 import { markService } from "../../services/markService";
 import { PageLoader } from "../../components/common/Loader";
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from "recharts";
-import { GraduationCap, BookOpen, Target, TrendingUp, Award, AlertTriangle } from "lucide-react";
+import { GraduationCap, BookOpen, Target, TrendingUp, Award, AlertTriangle, Printer } from "lucide-react";
+import { RUETGradeSheetPaper } from "./RUETGradeSheetPaper";
 
 export default function CGPAAnalytics() {
+  const { user } = useAuth();
   const [loading, setLoading] = useState(true);
   const [data, setData] = useState(null);
   const [officialResults, setOfficialResults] = useState([]);
   const [selectedOfficialSem, setSelectedOfficialSem] = useState("");
+  const [finalGrades, setFinalGrades] = useState([]);
+  const [isGradeSheetOpen, setIsGradeSheetOpen] = useState(false);
   
   const [targetCGPA, setTargetCGPA] = useState(3.5);
   const [nextSemCredits, setNextSemCredits] = useState(19.5);
@@ -24,12 +29,14 @@ export default function CGPAAnalytics() {
   useEffect(() => {
     const fetchSummary = async () => {
       try {
-        const [res, officialRes] = await Promise.all([
+        const [res, officialRes, finals] = await Promise.all([
           markService.getAcademicSummary().catch(() => null),
-          markService.getOfficialResults().catch(() => [])
+          markService.getOfficialResults().catch(() => []),
+          markService.getFinalGrades().catch(() => []),
         ]);
         setData(res);
         setOfficialResults(officialRes);
+        setFinalGrades(finals || []);
         if (officialRes && officialRes.length > 0) {
           setSelectedOfficialSem(officialRes[0].semester);
         }
@@ -93,20 +100,31 @@ export default function CGPAAnalytics() {
 
       {hasOfficial && (
         <div className="bg-white p-6 rounded-xl shadow border border-emerald-100">
-          <div className="flex justify-between items-center mb-4">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-4">
             <div className="flex items-center gap-2">
               <Award className="w-5 h-5 text-emerald-500" />
               <h2 className="text-lg font-bold text-gray-800">Official Semester Results</h2>
             </div>
-            <select
-              value={selectedOfficialSem}
-              onChange={(e) => setSelectedOfficialSem(e.target.value)}
-              className="border border-gray-200 rounded-lg px-3 py-1.5 text-sm outline-none focus:border-emerald-500"
-            >
-              {officialResults.map(r => (
-                <option key={r.semester} value={r.semester}>Semester {r.semester}</option>
-              ))}
-            </select>
+            <div className="flex items-center space-x-2">
+              <select
+                value={selectedOfficialSem}
+                onChange={(e) => setSelectedOfficialSem(e.target.value)}
+                className="border border-gray-200 rounded-lg px-3 py-1.5 text-sm outline-none focus:border-emerald-500 font-semibold"
+              >
+                {officialResults.map(r => (
+                  <option key={r.semester} value={r.semester}>Semester {r.semester}</option>
+                ))}
+              </select>
+
+              <button
+                onClick={() => setIsGradeSheetOpen(true)}
+                className="px-3.5 py-1.5 bg-emerald-600 hover:bg-emerald-700 text-white font-semibold rounded-xl text-xs transition-smooth shadow-xs flex items-center space-x-1.5 cursor-pointer shrink-0"
+                title="Download or Print Official RUET Grade Sheet / Provisional Transcript"
+              >
+                <Printer className="w-3.5 h-3.5" />
+                <span>Official Grade Sheet</span>
+              </button>
+            </div>
           </div>
           
           {selectedOfficial && (
@@ -232,6 +250,36 @@ export default function CGPAAnalytics() {
             </div>
           </div>
         </>
+      )}
+
+      {/* Official RUET Grade Sheet Modal */}
+      {isGradeSheetOpen && (
+        <RUETGradeSheetPaper
+          isOpen={isGradeSheetOpen}
+          onClose={() => setIsGradeSheetOpen(false)}
+          student={user}
+          semester={selectedOfficialSem || "2-2"}
+          officialResults={officialResults}
+          availableSemesters={officialResults.map(r => r.semester).concat(["2-1", "2-2"]).filter((v, i, a) => a.indexOf(v) === i)}
+          coursesMap={(() => {
+            const map = {};
+            finalGrades.forEach((m) => {
+              if (!m.courseId) return;
+              const s = m.semester;
+              if (!map[s]) map[s] = [];
+              map[s].push({
+                _id: m._id,
+                courseCode: m.courseId.courseCode,
+                courseName: m.courseId.courseName,
+                credit: m.courseId.credit,
+                courseType: m.courseId.courseType,
+                grade: m.grade,
+                gpaPoint: m.gpaPoint,
+              });
+            });
+            return map;
+          })()}
+        />
       )}
     </div>
   );

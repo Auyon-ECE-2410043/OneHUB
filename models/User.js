@@ -32,6 +32,7 @@ const userSchema = new mongoose.Schema(
     fcmTokens: [{ type: String }], // Added for mobile push notifications
     lastActiveAt: { type: Date, default: null },
     previouslyEarnedCredit: { type: Number, default: 0 },
+    isCR: { type: Boolean, default: false },
     adviserId: { type: mongoose.Schema.Types.ObjectId, ref: "User", default: null },
     googleId: { type: String, sparse: true },
     googleEmail: { type: String, lowercase: true, trim: true, sparse: true },

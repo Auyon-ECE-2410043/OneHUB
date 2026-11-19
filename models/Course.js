@@ -20,7 +20,32 @@ const courseSchema = new mongoose.Schema(
         topic: { type: String, required: true },
         details: { type: String, default: "" },
       }
-    ]
+    ],
+    resources: [
+      {
+        title: { type: String, required: true },
+        type: {
+          type: String,
+          enum: ["slides", "drive", "youtube", "book", "question", "note", "other"],
+          default: "slides",
+        },
+        url: { type: String, required: true },
+        description: { type: String, default: "" },
+        uploadedBy: { type: String, default: "Faculty / CR" },
+        uploaderRole: { type: String, default: "faculty" },
+        createdAt: { type: Date, default: Date.now },
+      },
+    ],
+    experiments: [
+      {
+        expNo: { type: Number, required: true },
+        title: { type: String, required: true },
+        description: { type: String, default: "" },
+        sheetUrl: { type: String, default: "" },
+        dateConducted: { type: String, default: "" },
+        maxMarks: { type: Number, default: 20 },
+      },
+    ],
   },
   { timestamps: true }
 );
