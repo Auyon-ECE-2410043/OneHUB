@@ -21,6 +21,7 @@ import { formatCurrency, formatDate, getStatusBadge, getStatusLabel } from "../.
 import { getSeriesDefaultSemester } from "../../utils/constants";
 import { PageLoader } from "../../components/common/Loader";
 import { LiveSidebar } from "../../components/dashboard/LiveSidebar";
+import NextClassCountdownWidget from "../../components/dashboard/NextClassCountdownWidget";
 import {
   BookOpen,
   CalendarCheck,
@@ -282,6 +283,13 @@ export function Dashboard() {
         onSuccess={() => window.location.reload()} 
       />
     </motion.div>
+
+    {/* Next Class Countdown Widget */}
+    {features.routine !== false && (user?.role === "student" || user?.role === "faculty") && (
+      <motion.div variants={itemVariants}>
+        <NextClassCountdownWidget user={user} />
+      </motion.div>
+    )}
           
           {/* HUGE LIVE FEED */}
           <div className="w-full h-[500px]">

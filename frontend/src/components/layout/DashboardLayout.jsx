@@ -11,12 +11,14 @@ import Navbar from "./Navbar";
 import Sidebar from "./Sidebar";
 import Footer from "./Footer";
 import ErrorBoundary from "../common/ErrorBoundary";
+import CommandPalette from "../common/CommandPalette";
 
 export function DashboardLayout({ features = {}, setFeatures }) {
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
 
   return (
     <div className="min-h-screen flex flex-col mesh-bg transition-colors duration-500">
+      <CommandPalette features={features} />
       <Navbar
         onMenuToggle={() => setIsSidebarOpen(!isSidebarOpen)}
         isSidebarOpen={isSidebarOpen}

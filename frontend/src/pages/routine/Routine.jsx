@@ -27,10 +27,12 @@ import {
   AlertCircle,
   Sparkles,
   Bus,
+  CalendarPlus,
 } from "lucide-react";
 import { toast } from "sonner";
 import RoutineVisualExporter from "../admin/RoutineVisualExporter";
 import CampusBusSchedule from "./CampusBusSchedule";
+import GoogleCalendarExportModal from "../../components/routine/GoogleCalendarExportModal";
 import { SEMESTERS, getSeriesDefaultSemester } from "../../utils/constants";
 
 const DAYS = ["Saturday", "Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday"];
@@ -70,6 +72,7 @@ export function Routine() {
   const [quizSyllabus, setQuizSyllabus] = useState([]);
   const [isAddModalOpen, setIsAddModalOpen] = useState(false);
   const [showTimetableModal, setShowTimetableModal] = useState(false);
+  const [showGoogleCalendarModal, setShowGoogleCalendarModal] = useState(false);
   const [submittingSyllabus, setSubmittingSyllabus] = useState(false);
 
   const [syllabusForm, setSyllabusForm] = useState({
@@ -464,6 +467,16 @@ export function Routine() {
           >
             <Download className="w-3.5 h-3.5 text-slate-600" />
             <span>Timetable Wallpaper</span>
+          </button>
+
+          <button
+            type="button"
+            onClick={() => setShowGoogleCalendarModal(true)}
+            className="flex items-center gap-1.5 px-3 py-2 bg-gradient-to-r from-sky-50 to-indigo-50 hover:from-sky-100 hover:to-indigo-100 text-sky-800 text-xs font-bold rounded-xl border border-sky-200 transition cursor-pointer shadow-2xs"
+            title="Sync routine to Google Calendar / Phone Calendar (.ics)"
+          >
+            <CalendarPlus className="w-3.5 h-3.5 text-sky-600" />
+            <span>Sync Google Calendar</span>
           </button>
 
           <button
@@ -1124,6 +1137,14 @@ export function Routine() {
           </div>
         </div>
       )}
+
+      {/* MODAL: GOOGLE CALENDAR / PHONE CALENDAR EXPORT */}
+      <GoogleCalendarExportModal
+        isOpen={showGoogleCalendarModal}
+        onClose={() => setShowGoogleCalendarModal(false)}
+        classes={classes}
+        user={user}
+      />
 
       <style
         dangerouslySetInnerHTML={{
