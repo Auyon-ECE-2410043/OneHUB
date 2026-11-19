@@ -29,6 +29,72 @@ import {
   Globe,
 } from "lucide-react";
 
+function FacultyAvatar({ name, photoUrl, size = "md", className = "" }) {
+  const [hasError, setHasError] = useState(false);
+
+  const initials = (() => {
+    if (!name) return "RU";
+    const cleaned = name
+      .replace(/(Prof\.|Prof|Dr\.|Dr|Md\.|Md|Engr\.|Engr|Mr\.|Mr|Mrs\.|Mrs|Ms\.)/gi, "")
+      .replace(/[^\w\s]/g, "")
+      .trim();
+    const parts = cleaned.split(/\s+/).filter(Boolean);
+    if (parts.length >= 2) {
+      return (parts[0][0] + parts[parts.length - 1][0]).toUpperCase();
+    }
+    if (parts.length === 1) {
+      return parts[0].substring(0, 2).toUpperCase();
+    }
+    return "RU";
+  })();
+
+  const colorGradients = [
+    "from-sky-500 to-indigo-600",
+    "from-emerald-500 to-teal-700",
+    "from-violet-500 to-purple-700",
+    "from-amber-500 to-orange-600",
+    "from-rose-500 to-pink-600",
+    "from-blue-600 to-cyan-600",
+    "from-teal-500 to-emerald-700",
+    "from-indigo-500 to-purple-600",
+  ];
+  let hash = 0;
+  if (name) {
+    for (let i = 0; i < name.length; i++) {
+      hash = name.charCodeAt(i) + ((hash << 5) - hash);
+    }
+  }
+  const gradient = colorGradients[Math.abs(hash) % colorGradients.length];
+
+  const sizeClasses = {
+    sm: "w-10 h-10 text-xs rounded-lg",
+    md: "w-12 h-12 text-sm rounded-xl",
+    lg: "w-24 h-24 text-2xl rounded-2xl",
+  };
+  const sizeClass = sizeClasses[size] || sizeClasses.md;
+
+  if (!photoUrl || hasError) {
+    return (
+      <div
+        className={`${sizeClass} bg-gradient-to-tr ${gradient} text-white font-black flex items-center justify-center shadow-xs select-none shrink-0 tracking-wider uppercase border border-white/20 ${className}`}
+        title={name}
+      >
+        {initials}
+      </div>
+    );
+  }
+
+  return (
+    <img
+      src={photoUrl}
+      alt={name}
+      loading="lazy"
+      onError={() => setHasError(true)}
+      className={`${sizeClass} object-cover border border-slate-200 shrink-0 ${className}`}
+    />
+  );
+}
+
 export function FacultyDirectory() {
   const { user } = useAuth();
   const [loading, setLoading] = useState(true);
@@ -179,17 +245,7 @@ export function FacultyDirectory() {
                   <div className="space-y-3">
                     <div className="flex items-start justify-between gap-3">
                       <div className="flex items-center space-x-3">
-                        {member.photoUrl ? (
-                          <img
-                            src={member.photoUrl}
-                            alt={member.name}
-                            className="w-12 h-12 rounded-xl object-cover border border-slate-200"
-                          />
-                        ) : (
-                          <div className="w-12 h-12 rounded-xl bg-gradient-to-tr from-sky-600 to-indigo-600 text-white font-bold flex items-center justify-center text-sm shadow-xs">
-                            {getInitials(member.name)}
-                          </div>
-                        )}
+                        <FacultyAvatar name={member.name} photoUrl={member.photoUrl} size="md" />
 
                         <div>
                           <h4 className="text-sm font-bold text-slate-900 leading-snug">
@@ -758,17 +814,7 @@ export function FacultyDirectory() {
           <div className="space-y-6 max-h-[75vh] overflow-y-auto pr-2 custom-scrollbar">
             {/* Header info */}
             <div className="flex flex-col sm:flex-row gap-5 items-start">
-              {selectedFaculty.photoUrl ? (
-                <img
-                  src={selectedFaculty.photoUrl}
-                  alt={selectedFaculty.name}
-                  className="w-24 h-24 rounded-2xl object-cover border-2 border-white shadow-sm shrink-0"
-                />
-              ) : (
-                <div className="w-24 h-24 rounded-2xl bg-gradient-to-tr from-sky-600 to-indigo-600 text-white font-bold flex items-center justify-center text-2xl shadow-sm shrink-0">
-                  {getInitials(selectedFaculty.name)}
-                </div>
-              )}
+              <FacultyAvatar name={selectedFaculty.name} photoUrl={selectedFaculty.photoUrl} size="lg" className="border-2 border-white shadow-sm" />
               
               <div className="space-y-2">
                 <div>

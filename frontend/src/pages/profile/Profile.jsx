@@ -138,7 +138,14 @@ export function Profile() {
         <div className="relative group shrink-0">
           <div className="w-20 h-20 rounded-2xl bg-gradient-to-tr from-sky-600 to-indigo-600 text-white text-2xl font-bold flex items-center justify-center shadow-lg overflow-hidden relative">
             {user?.profilePicture ? (
-              <img src={user.profilePicture} alt="Profile" className="w-full h-full object-cover" />
+              <img
+                src={user.profilePicture}
+                alt="Profile"
+                className="w-full h-full object-cover"
+                onError={(e) => {
+                  e.currentTarget.style.display = "none";
+                }}
+              />
             ) : (
               getInitials(user?.name)
             )}

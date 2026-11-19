@@ -95,7 +95,14 @@ export function Navbar({ onMenuToggle, isSidebarOpen }) {
             >
               <div className="w-8 h-8 rounded-lg bg-sky-600 text-white font-semibold flex items-center justify-center text-xs shadow-xs overflow-hidden">
                 {user?.profilePicture ? (
-                  <img src={user.profilePicture} alt="Profile" className="w-full h-full object-cover" />
+                  <img
+                    src={user.profilePicture}
+                    alt="Profile"
+                    className="w-full h-full object-cover"
+                    onError={(e) => {
+                      e.currentTarget.style.display = "none";
+                    }}
+                  />
                 ) : (
                   getInitials(user?.name)
                 )}
