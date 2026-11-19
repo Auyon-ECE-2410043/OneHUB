@@ -33,13 +33,15 @@ const getSemesterTermName = (sem) => {
   return map[sem] || `Semester ${sem}`;
 };
 
-// Helper to calculate academic session from batch
-const getAcademicSession = (batch, semester) => {
-  if (!batch) return "2024-2025";
-  const b = parseInt(batch, 10);
-  if (isNaN(b)) return "2024-2025";
-  const startYear = 2000 + b;
-  return `${startYear}-${startYear + 1}`;
+// Helper to format academic session properly (e.g. "24" -> "2024-2025")
+const formatSession = (rawSession, batch) => {
+  if (rawSession && String(rawSession).includes("-")) return rawSession;
+  const num = parseInt(rawSession || batch || "24", 10);
+  if (!isNaN(num)) {
+    const yr = num < 100 ? 2000 + num : num;
+    return `${yr}-${yr + 1}`;
+  }
+  return "2024-2025";
 };
 
 export default function RegistrationConfirmationPaper({
@@ -53,12 +55,21 @@ export default function RegistrationConfirmationPaper({
 
   if (!isOpen || !registration) return null;
 
-  const student = registration.studentId || user || {};
+  // Resolve student from registration.studentId (if populated) or current logged in user
+  const student = (registration.studentId && typeof registration.studentId === "object")
+    ? { ...user, ...registration.studentId }
+    : (user || {});
+
   const courses = registration.courseIds || [];
   const backlogs = registration.backlogCourseIds || [];
   const semester = registration.semester || "2-2";
   const termName = getSemesterTermName(semester);
-  const session = registration.academicSession || getAcademicSession(student.batch || "24", semester);
+  const session = formatSession(registration.academicSession, student.batch);
+  const studentRoll = student.rollNo || user?.rollNo || "";
+  const studentName = student.name || user?.name || "";
+  const studentRegNo = student.registrationNo || user?.registrationNo || studentRoll || "";
+  const studentDept = student.department || user?.department || "ECE";
+
   const totalCredit = registration.totalCredit
     ? Number(registration.totalCredit).toFixed(2)
     : courses.reduce((sum, c) => sum + (Number(c.credit) || 0), 0).toFixed(2);
@@ -80,9 +91,9 @@ export default function RegistrationConfirmationPaper({
     ? registration.approvedBy.name
     : "Prof. Dr. Md. Anwar Hossain";
   const adviserTitle = registration.approvedBy?.designation || "Academic Adviser";
-  const adviserDept = registration.approvedBy?.department || student.department || "ECE";
+  const adviserDept = registration.approvedBy?.department || studentDept;
 
-  // High-Res PNG Download
+  // High-Res PNG Download with full Dark Mode immunity and guaranteed black text
   const handleDownloadPNG = async () => {
     if (!paperRef.current) return;
     setDownloading(true);
@@ -94,9 +105,43 @@ export default function RegistrationConfirmationPaper({
         scale: 2.5,
         useCORS: true,
         allowTaint: false,
-        backgroundColor: "#FFFFFF",
+        backgroundColor: "#ffffff",
         logging: false,
-        windowWidth: 1200,
+        scrollX: 0,
+        scrollY: 0,
+        onclone: (clonedDoc) => {
+          // Remove dark mode classes so text never renders white-on-white
+          clonedDoc.documentElement.classList.remove("dark");
+          clonedDoc.body.classList.remove("dark");
+          clonedDoc.querySelectorAll("style.darkreader, [class*='darkreader']").forEach((s) => s.remove());
+
+          const el = clonedDoc.getElementById("ruet-registration-paper");
+          if (el) {
+            el.style.backgroundColor = "#ffffff";
+            el.style.color = "#000000";
+            el.style.width = "800px";
+            el.style.maxWidth = "800px";
+            el.style.minWidth = "800px";
+            el.style.transform = "none";
+            el.style.margin = "0 auto";
+            el.style.boxShadow = "none";
+            el.style.border = "none";
+
+            // Force all text, headers, and table cells to black
+            el.querySelectorAll("h1, h2, h3, p, span, td, th, div").forEach((node) => {
+              if (
+                !node.closest(".stamp-badge") &&
+                !node.closest(".signature-item") &&
+                !node.closest(".seal-badge")
+              ) {
+                node.style.color = "#000000";
+                if (node.tagName === "TABLE" || node.tagName === "TH" || node.tagName === "TD") {
+                  node.style.borderColor = "#000000";
+                }
+              }
+            });
+          }
+        },
       };
 
       let canvas;
@@ -109,7 +154,7 @@ export default function RegistrationConfirmationPaper({
 
       const imgData = canvas.toDataURL("image/png", 1.0);
       const link = document.createElement("a");
-      const safeRoll = student.rollNo || "Registration";
+      const safeRoll = studentRoll || "Registration";
       link.download = `RUET_Course_Registration_Approved_${safeRoll}_Sem_${semester}.png`;
       link.href = imgData;
       link.click();
@@ -199,12 +244,12 @@ export default function RegistrationConfirmationPaper({
           <div
             ref={paperRef}
             id="ruet-registration-paper"
-            style={{ fontFamily: "'Times New Roman', Times, serif" }}
+            style={{ fontFamily: "'Times New Roman', Times, serif", backgroundColor: "#ffffff", color: "#000000" }}
             className="w-full max-w-[820px] bg-white text-black p-8 sm:p-12 rounded-lg shadow-xl border border-slate-300 relative print:p-6 print:shadow-none print:border-none print:max-w-none print:w-full"
           >
             {/* TOP RIGHT: OFFICIAL "COURSE REGISTRATION APPROVED" STAMP */}
-            <div className="absolute top-6 right-6 sm:top-8 sm:right-8 z-10 pointer-events-none select-none">
-              <div className="border-[3px] border-emerald-700 rounded-lg p-2.5 bg-emerald-50/90 shadow-xs text-center transform rotate-[-2deg] transition-transform">
+            <div className="stamp-badge absolute top-6 right-6 sm:top-8 sm:right-8 z-10 pointer-events-none select-none">
+              <div className="border-[3px] border-emerald-700 rounded-lg p-2.5 bg-emerald-50 shadow-xs text-center transform rotate-[-2deg]">
                 <div className="flex items-center justify-center gap-1.5 text-emerald-800 font-black text-xs sm:text-sm tracking-wider uppercase">
                   <CheckCircle2 className="w-4 h-4 text-emerald-600 shrink-0" />
                   <span>Course Registration Approved</span>
@@ -213,7 +258,7 @@ export default function RegistrationConfirmationPaper({
                   Academic Adviser &amp; Controller Verified
                 </div>
                 <div className="text-[9px] text-emerald-700 font-mono font-semibold mt-0.5">
-                  Ref: RUET/{student.department || "ECE"}/REG-{semester}-{student.rollNo || "STU"}
+                  Ref: RUET/{studentDept}/REG-{semester}-{studentRoll || "STU"}
                 </div>
               </div>
             </div>
@@ -222,69 +267,69 @@ export default function RegistrationConfirmationPaper({
             <div className="text-center space-y-1 pt-1 pb-3">
               <div className="flex justify-center mb-1">
                 <img
-                  src="/ruet-logo.svg"
+                  src="/ruet-logo.png"
                   alt="RUET Crest"
                   className="w-16 h-16 object-contain"
                   onError={(e) => {
-                    // Fallback to placeholder if svg not found
-                    e.currentTarget.style.display = "none";
+                    // Fallback to svg if png fails
+                    e.currentTarget.src = "/ruet-logo.svg";
                   }}
                 />
               </div>
               <p className="text-xs italic tracking-wider text-slate-800 font-medium">Heaven&apos;s Light is Our Guide</p>
-              <h1 className="text-base sm:text-lg font-black tracking-wide uppercase leading-snug">
+              <h1 className="text-base sm:text-lg font-black tracking-wide uppercase leading-snug text-black">
                 Rajshahi University of Engineering &amp; Technology, Bangladesh
               </h1>
-              <h2 className="text-sm sm:text-base font-bold uppercase tracking-wider underline decoration-1 underline-offset-4">
+              <h2 className="text-sm sm:text-base font-bold uppercase tracking-wider underline decoration-1 underline-offset-4 text-black">
                 Course Registration / Course Adjustment Form
               </h2>
-              <h3 className="text-xs sm:text-sm font-bold uppercase tracking-wider pt-0.5">
-                Department of {student.department || "ECE"}
+              <h3 className="text-xs sm:text-sm font-bold uppercase tracking-wider pt-0.5 text-black">
+                Department of {studentDept}
               </h3>
-              <p className="text-xs font-bold pt-0.5">{session}</p>
+              <p className="text-xs font-bold pt-0.5 text-black">Academic Session: {session}</p>
             </div>
 
             {/* STUDENT & ACADEMIC DETAILS */}
-            <div className="text-xs sm:text-[13px] leading-relaxed space-y-2 mt-4 pt-2 border-t border-slate-300">
+            <div className="text-xs sm:text-[13px] leading-relaxed space-y-2 mt-4 pt-2 border-t border-slate-300 text-black">
               <div className="flex flex-col sm:flex-row justify-between gap-1">
                 <div className="flex items-baseline">
-                  <span className="font-bold shrink-0">Roll No.:</span>
+                  <span className="font-bold shrink-0 text-black">Roll No.:</span>
                   <span className="ml-2 font-mono font-bold text-black border-b border-dotted border-black px-2 pb-0.5 min-w-[120px]">
-                    {student.rollNo || "2410043"}
+                    {studentRoll || "—"}
                   </span>
                 </div>
                 <div className="flex items-baseline">
-                  <span className="font-bold shrink-0">Registration No. with Session:</span>
+                  <span className="font-bold shrink-0 text-black">Registration No. with Session:</span>
                   <span className="ml-2 font-mono font-bold text-black border-b border-dotted border-black px-2 pb-0.5 min-w-[150px]">
-                    {student.registrationNo || "8001"} (Session: {session})
+                    {studentRegNo || studentRoll} (Session: {session})
                   </span>
                 </div>
               </div>
 
               <div className="flex items-baseline">
-                <span className="font-bold shrink-0">Name:</span>
-                <span className="ml-2 font-bold uppercase tracking-wide border-b border-dotted border-black px-2 pb-0.5 flex-1">
-                  {student.name || "Nafisa Islam"}
+                <span className="font-bold shrink-0 text-black">Name:</span>
+                <span className="ml-2 font-bold uppercase tracking-wide border-b border-dotted border-black px-2 pb-0.5 flex-1 text-black">
+                  {studentName || "—"}
                 </span>
               </div>
 
               <div className="flex items-baseline flex-wrap">
-                <span className="font-bold shrink-0">Academic session with Semester:</span>
-                <span className="ml-2 font-semibold border-b border-dotted border-black px-2 pb-0.5 flex-1 min-w-[200px]">
+                <span className="font-bold shrink-0 text-black">Academic session with Semester:</span>
+                <span className="ml-2 font-semibold border-b border-dotted border-black px-2 pb-0.5 flex-1 min-w-[200px] text-black">
                   {session}, {termName} ({semester})
                 </span>
               </div>
 
               <div className="flex items-baseline">
-                <span className="font-bold shrink-0">Previously earned credit:</span>
-                <span className="ml-2 font-semibold border-b border-dotted border-black px-2 pb-0.5 min-w-[100px]">
+                <span className="font-bold shrink-0 text-black">Previously earned credit:</span>
+                <span className="ml-2 font-semibold border-b border-dotted border-black px-2 pb-0.5 min-w-[100px] text-black">
                   {previouslyEarnedCredit}
                 </span>
               </div>
 
               <div className="flex items-baseline">
-                <span className="font-bold shrink-0">Course No. of Backlog course:</span>
-                <span className="ml-2 font-semibold border-b border-dotted border-black px-2 pb-0.5 flex-1">
+                <span className="font-bold shrink-0 text-black">Course No. of Backlog course:</span>
+                <span className="ml-2 font-semibold border-b border-dotted border-black px-2 pb-0.5 flex-1 text-black">
                   {backlogs && backlogs.length > 0
                     ? backlogs.map((b) => b.courseCode).join(", ")
                     : "None (Regular Student)"}
@@ -293,35 +338,35 @@ export default function RegistrationConfirmationPaper({
             </div>
 
             {/* COURSES TABLE */}
-            <div className="mt-5">
-              <p className="text-xs sm:text-[13px] font-bold mb-1.5">
+            <div className="mt-5 text-black">
+              <p className="text-xs sm:text-[13px] font-bold mb-1.5 text-black">
                 Courses to be registered in this semester:
               </p>
 
-              <table className="w-full border-collapse border border-black text-xs sm:text-[13px]">
+              <table className="w-full border-collapse border border-black text-xs sm:text-[13px] text-black">
                 <thead>
                   <tr className="bg-slate-100 print:bg-slate-100">
-                    <th className="border border-black py-1.5 px-3 font-bold text-center w-28 uppercase">
+                    <th className="border border-black py-1.5 px-3 font-bold text-center w-28 uppercase text-black">
                       Course No.
                     </th>
-                    <th className="border border-black py-1.5 px-4 font-bold text-left uppercase">
+                    <th className="border border-black py-1.5 px-4 font-bold text-left uppercase text-black">
                       Course Title
                     </th>
-                    <th className="border border-black py-1.5 px-3 font-bold text-center w-24 uppercase">
+                    <th className="border border-black py-1.5 px-3 font-bold text-center w-24 uppercase text-black">
                       Credit
                     </th>
                   </tr>
                 </thead>
                 <tbody>
                   {courses.map((course, idx) => (
-                    <tr key={idx} className="hover:bg-slate-50">
-                      <td className="border border-black py-1.5 px-3 font-bold text-center font-mono">
+                    <tr key={idx} className="hover:bg-slate-50 text-black">
+                      <td className="border border-black py-1.5 px-3 font-bold text-center font-mono text-black">
                         {course.courseCode}
                       </td>
-                      <td className="border border-black py-1.5 px-4 font-medium">
+                      <td className="border border-black py-1.5 px-4 font-medium text-black">
                         {course.courseName || course.title}
                       </td>
-                      <td className="border border-black py-1.5 px-3 font-bold text-center">
+                      <td className="border border-black py-1.5 px-3 font-bold text-center text-black">
                         {Number(course.credit).toFixed(2)}
                       </td>
                     </tr>
@@ -337,14 +382,14 @@ export default function RegistrationConfirmationPaper({
                   )}
 
                   {/* Total Credit Row */}
-                  <tr className="bg-slate-50 font-bold border-t-2 border-black">
+                  <tr className="bg-slate-50 font-bold border-t-2 border-black text-black">
                     <td
                       colSpan={2}
-                      className="border border-black py-2 px-4 text-right font-bold uppercase tracking-wider text-xs sm:text-[13px]"
+                      className="border border-black py-2 px-4 text-right font-bold uppercase tracking-wider text-xs sm:text-[13px] text-black"
                     >
                       Total Credit of this Semester
                     </td>
-                    <td className="border border-black py-2 px-3 text-center font-bold font-mono text-sm">
+                    <td className="border border-black py-2 px-3 text-center font-bold font-mono text-sm text-black">
                       {totalCredit}
                     </td>
                   </tr>
@@ -353,31 +398,31 @@ export default function RegistrationConfirmationPaper({
             </div>
 
             {/* ADVISER'S COMMENT */}
-            <div className="mt-4 text-xs sm:text-[13px]">
-              <span className="font-bold">Adviser&apos;s Comment (if any):</span>
+            <div className="mt-4 text-xs sm:text-[13px] text-black">
+              <span className="font-bold text-black">Adviser&apos;s Comment (if any):</span>
               <span className="ml-2 italic text-slate-800 border-b border-dotted border-black pb-0.5 inline-block min-w-[300px]">
                 {registration.adviserComment || "Approved for regular academic session with good standing."}
               </span>
             </div>
 
             {/* SIGNATURES SECTION */}
-            <div className="mt-14 pt-2 grid grid-cols-3 gap-4 text-center text-xs sm:text-[13px]">
+            <div className="mt-14 pt-2 grid grid-cols-3 gap-4 text-center text-xs sm:text-[13px] text-black">
               {/* 1. Student Signature */}
-              <div className="flex flex-col items-center justify-end">
+              <div className="signature-item flex flex-col items-center justify-end">
                 <div
                   className="text-base sm:text-lg font-bold text-blue-900 mb-1 select-none"
                   style={{ fontFamily: "'Brush Script MT', cursive, serif" }}
                 >
-                  {student.name || "Nafisa Islam"}
+                  {studentName || "Student"}
                 </div>
                 <div className="w-full border-t border-black pt-1">
-                  <p className="font-bold leading-tight">Signature of the Student</p>
+                  <p className="font-bold leading-tight text-black">Signature of the Student</p>
                   <p className="text-[10px] text-slate-600 mt-0.5">Date: {approvalDate}</p>
                 </div>
               </div>
 
               {/* 2. Adviser Signature */}
-              <div className="flex flex-col items-center justify-end">
+              <div className="signature-item flex flex-col items-center justify-end">
                 <div
                   className="text-base sm:text-lg font-bold text-indigo-950 mb-1 select-none"
                   style={{ fontFamily: "'Brush Script MT', cursive, serif" }}
@@ -385,7 +430,7 @@ export default function RegistrationConfirmationPaper({
                   {adviserName}
                 </div>
                 <div className="w-full border-t border-black pt-1">
-                  <p className="font-bold leading-tight">Signature of the Adviser</p>
+                  <p className="font-bold leading-tight text-black">Signature of the Adviser</p>
                   <p className="text-[10px] text-slate-600 mt-0.5">
                     {adviserTitle}, Dept. of {adviserDept}
                   </p>
@@ -394,9 +439,9 @@ export default function RegistrationConfirmationPaper({
               </div>
 
               {/* 3. Controller of Examinations Signature & Official Seal */}
-              <div className="flex flex-col items-center justify-end relative">
+              <div className="signature-item flex flex-col items-center justify-end relative">
                 {/* Official Circular Stamp Overlay */}
-                <div className="absolute -top-10 opacity-75 pointer-events-none select-none">
+                <div className="seal-badge absolute -top-10 opacity-80 pointer-events-none select-none">
                   <div className="w-20 h-20 rounded-full border-2 border-dashed border-blue-900 flex flex-col items-center justify-center text-[7px] font-bold text-blue-900 leading-tight uppercase transform rotate-[-6deg]">
                     <span>★ RUET ★</span>
                     <span>Controller</span>
@@ -412,7 +457,7 @@ export default function RegistrationConfirmationPaper({
                   Prof. Dr. Md. Selim Hossain
                 </div>
                 <div className="w-full border-t border-black pt-1 relative z-10">
-                  <p className="font-bold leading-tight">Signature of the Controller</p>
+                  <p className="font-bold leading-tight text-black">Signature of the Controller</p>
                   <p className="text-[10px] text-slate-600 mt-0.5">Controller of Examinations, RUET</p>
                   <p className="text-[10px] text-slate-600">Date: {approvalDate}</p>
                 </div>
