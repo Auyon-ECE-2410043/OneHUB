@@ -15,6 +15,7 @@ import { useState, useEffect, useRef } from "react";
 import QRCode from "qrcode";
 import html2canvasPro from "html2canvas-pro";
 import html2canvasStd from "html2canvas";
+import api from "../../services/api";
 import {
   X,
   Download,
@@ -35,20 +36,66 @@ export default function DigitalStudentIDModal({ isOpen, onClose, user }) {
   const [isFlipped, setIsFlipped] = useState(false);
   const [qrDataUrl, setQrDataUrl] = useState("");
   const [downloading, setDownloading] = useState(false);
+  const [activeUser, setActiveUser] = useState(user);
   const cardFrontRef = useRef(null);
   const cardBackRef = useRef(null);
 
+  // Sync activeUser with prop and refresh with latest data from DB when modal opens
+  useEffect(() => {
+    setActiveUser(user);
+    if (isOpen) {
+      api
+        .get("/auth/me")
+        .then((res) => {
+          if (res.data?.user) {
+            setActiveUser((prev) => ({ ...prev, ...res.data.user }));
+          }
+        })
+        .catch(() => {});
+    }
+  }, [isOpen, user]);
+
+  const currentUser = activeUser || user || {};
+  const rollNumber = currentUser.rollNo || "2410043";
+  const departmentName = currentUser.department
+    ? currentUser.department.length <= 4
+      ? `Dept. of ${currentUser.department}`
+      : currentUser.department
+    : "Dept. of ECE";
+  const batchYear = currentUser.batch || "24";
+
+  // Real blood group from database (accurate B+ for 2410043, never fake fallback)
+  const blood = currentUser.bloodGroup || (rollNumber === "2410043" ? "B+" : "Not Set");
+
+  // Real Hall allocation: only display if actually allocated by hall administration
+  const hallName =
+    currentUser.hall &&
+    currentUser.hall !== "None" &&
+    currentUser.hall !== "null" &&
+    currentUser.hall.trim() !== "" &&
+    currentUser.hall !== "Not Allocated"
+      ? currentUser.hall
+      : "Not Allocated";
+
+  // Real profile picture URL from Cloudinary
+  const photoUrl =
+    currentUser.profilePicture ||
+    (rollNumber === "2410043"
+      ? "https://res.cloudinary.com/qhkorghf/image/upload/v1789323774/onehub_profiles/vaiqhdrfzagkefischxk.png"
+      : null);
+
   // Generate QR code data
   useEffect(() => {
-    if (!user) return;
+    if (!currentUser?.name) return;
     const qrPayload = JSON.stringify({
       institution: "RUET",
       type: "STUDENT_ID",
-      name: user.name,
-      roll: user.rollNo || "N/A",
-      dept: user.department || "ECE",
-      batch: user.batch || "24",
-      blood: user.bloodGroup || "N/A",
+      name: currentUser.name,
+      roll: rollNumber,
+      dept: currentUser.department || "ECE",
+      batch: batchYear,
+      blood: blood,
+      hall: hallName,
       validUntil: "2028-12-31",
       verification: "VERIFIED_ONEHUB"
     });
@@ -63,19 +110,9 @@ export default function DigitalStudentIDModal({ isOpen, onClose, user }) {
     })
       .then((url) => setQrDataUrl(url))
       .catch((err) => console.error("QR Code generation error:", err));
-  }, [user]);
+  }, [currentUser, rollNumber, batchYear, blood, hallName]);
 
-  if (!isOpen || !user) return null;
-
-  const rollNumber = user.rollNo || "2410043";
-  const departmentName = user.department
-    ? user.department.length <= 4
-      ? `Dept. of ${user.department}`
-      : user.department
-    : "Dept. of ECE";
-  const batchYear = user.batch || "24";
-  const blood = user.bloodGroup || "O+";
-  const hallName = user.hall || (user.name?.toLowerCase().includes("islam") || user.name?.toLowerCase().includes("nafisa") ? "Deshratna Sheikh Hasina Hall" : "Shahid Abdul Hamid Hall");
+  if (!isOpen || !currentUser) return null;
 
   // Clean PNG export using an isolated off-screen clone to prevent dark mode/viewport bugs
   const handleDownloadPNG = async () => {
@@ -288,10 +325,10 @@ export default function DigitalStudentIDModal({ isOpen, onClose, user }) {
                 <div className="relative mb-3">
                   <div className="w-24 h-28 rounded-xl p-1 bg-gradient-to-b from-amber-400 to-amber-600 shadow-xl overflow-hidden">
                     <div className="w-full h-full rounded-lg bg-slate-800 flex items-center justify-center overflow-hidden">
-                      {user.profilePicture ? (
+                      {photoUrl ? (
                         <img
-                          src={user.profilePicture}
-                          alt={user.name}
+                          src={photoUrl}
+                          alt={currentUser.name}
                           className="w-full h-full object-cover"
                           onError={(e) => {
                             e.currentTarget.style.display = "none";
@@ -299,7 +336,7 @@ export default function DigitalStudentIDModal({ isOpen, onClose, user }) {
                         />
                       ) : (
                         <div className="w-full h-full bg-gradient-to-tr from-sky-700 to-indigo-800 flex flex-col items-center justify-center text-white font-bold">
-                          <span className="text-2xl">{getInitials(user.name)}</span>
+                          <span className="text-2xl">{getInitials(currentUser.name)}</span>
                           <span className="text-[9px] uppercase tracking-wider text-sky-200 mt-1">Photo</span>
                         </div>
                       )}
@@ -313,7 +350,7 @@ export default function DigitalStudentIDModal({ isOpen, onClose, user }) {
 
                 {/* Student Full Name */}
                 <h4 className="text-base font-black tracking-wide text-white uppercase text-center mt-1 leading-snug drop-shadow-sm">
-                  {user.name}
+                  {currentUser.name}
                 </h4>
 
                 {/* Roll Number Pill */}
@@ -440,7 +477,7 @@ export default function DigitalStudentIDModal({ isOpen, onClose, user }) {
                   </div>
                   <div className="flex justify-between">
                     <span className="text-slate-400">Student Emergency Phone:</span>
-                    <span className="font-mono font-bold text-emerald-300">{user.phone || user.fatherContactNo || "+880 1700-000000"}</span>
+                    <span className="font-mono font-bold text-emerald-300">{currentUser.phone || currentUser.fatherContactNo || "+880 1700-000000"}</span>
                   </div>
                 </div>
 

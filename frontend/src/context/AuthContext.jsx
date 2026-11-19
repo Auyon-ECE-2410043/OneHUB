@@ -22,7 +22,21 @@ export function AuthProvider({ children }) {
 
       if (storedToken && storedUser) {
         setToken(storedToken);
-        setUser(JSON.parse(storedUser));
+        const parsedUser = JSON.parse(storedUser);
+        setUser(parsedUser);
+
+        // Immediate background refresh to sync with latest DB data (bloodGroup, photo, hall)
+        fetch((import.meta.env.VITE_API_URL || "http://localhost:5000/api") + "/auth/me", {
+          headers: { Authorization: `Bearer ${storedToken}` }
+        })
+          .then((res) => res.json())
+          .then((data) => {
+            if (data?.user) {
+              setUser(data.user);
+              localStorage.setItem("user", JSON.stringify(data.user));
+            }
+          })
+          .catch((err) => console.warn("Background user sync skipped:", err));
       }
     } catch (e) {
       console.error("Failed to restore auth state", e);

@@ -5,10 +5,11 @@
  * This file is part of the RUET OneHub Project.
  */
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useAuth } from "../../context/AuthContext";
 import { useOutletContext } from "react-router-dom";
 import authService from "../../services/authService";
+import api from "../../services/api";
 import { getInitials } from "../../utils/helpers";
 import OBERadarChart from "./OBERadarChart";
 import DigitalStudentIDModal from "./DigitalStudentIDModal";
@@ -51,6 +52,32 @@ export function Profile() {
     motherContactNo: user?.motherContactNo || "",
     bloodGroup: user?.bloodGroup || "",
   });
+
+  // Automatically fetch fresh user record from MongoDB on mount to guarantee real-time data
+  useEffect(() => {
+    async function loadFreshUser() {
+      try {
+        const res = await api.get("/auth/me");
+        if (res.data?.user) {
+          const fresh = res.data.user;
+          updateUser(fresh);
+          setProfileForm((prev) => ({
+            ...prev,
+            name: fresh.name || prev.name,
+            rollNo: fresh.rollNo || prev.rollNo,
+            batch: fresh.batch || prev.batch,
+            phone: fresh.phone || prev.phone,
+            fatherContactNo: fresh.fatherContactNo || prev.fatherContactNo,
+            motherContactNo: fresh.motherContactNo || prev.motherContactNo,
+            bloodGroup: fresh.bloodGroup || prev.bloodGroup,
+          }));
+        }
+      } catch (err) {
+        console.warn("Could not sync user profile:", err);
+      }
+    }
+    loadFreshUser();
+  }, []);
 
   const [submitting, setSubmitting] = useState(false);
   const [profileSubmitting, setProfileSubmitting] = useState(false);
