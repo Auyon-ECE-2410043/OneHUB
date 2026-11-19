@@ -46,6 +46,12 @@ export function Login() {
 
   const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
+  const [googleUnlinked, setGoogleUnlinked] = useState(null);
+  const [linkData, setLinkData] = useState({ identifier: "", password: "" });
+  const [showGoogleSetupModal, setShowGoogleSetupModal] = useState(false);
+  const [setupClientId, setSetupClientId] = useState(
+    import.meta.env.VITE_GOOGLE_CLIENT_ID || localStorage.getItem('vite_google_client_id') || "740690894171-8ce0qovfdifvcfoa8jjc9pkss3kof3d1.apps.googleusercontent.com"
+  );
 
   const handleChange = (e) => {
     setFormData({ ...formData, [e.target.name]: e.target.value });
@@ -112,13 +118,74 @@ export function Login() {
         navigate(from, { replace: true });
         window.location.reload();
       } catch (err) {
-        toast.error(err.response?.data?.error || err.message || "Google login failed.");
+        if (err.response?.status === 404 && err.response?.data?.unlinkedEmail) {
+          const unlinkedEmail = err.response.data.unlinkedEmail;
+          const rollGuess = unlinkedEmail.split('@')[0];
+          setGoogleUnlinked({
+            token: tokenResponse.access_token,
+            email: unlinkedEmail,
+            name: err.response.data.googleName || "Student"
+          });
+          setLinkData({
+            identifier: !isNaN(rollGuess) ? rollGuess : unlinkedEmail,
+            password: ""
+          });
+          toast.info("Google account verified! Please enter your OneHUB password to link it.");
+        } else {
+          toast.error(err.response?.data?.error || err.message || "Google login failed.");
+        }
       } finally {
         setLoading(false);
       }
     },
-    onError: () => toast.error("Google login failed")
+    onError: () => toast.error("Google authentication was cancelled or failed.")
   });
+
+  const handleGoogleClick = () => {
+    const activeClientId = import.meta.env.VITE_GOOGLE_CLIENT_ID || localStorage.getItem('vite_google_client_id') || "740690894171-8ce0qovfdifvcfoa8jjc9pkss3kof3d1.apps.googleusercontent.com";
+    if (!activeClientId || activeClientId === "PASTE_YOUR_GOOGLE_CLIENT_ID_HERE") {
+      setShowGoogleSetupModal(true);
+      return;
+    }
+    try {
+      loginWithGoogle();
+    } catch (err) {
+      console.error(err);
+      setShowGoogleSetupModal(true);
+    }
+  };
+
+  const handleLinkGoogleAccount = async (e) => {
+    e.preventDefault();
+    if (!linkData.identifier || !linkData.password) {
+      toast.error("Please enter your roll number / email and OneHUB password.");
+      return;
+    }
+    setLoading(true);
+    try {
+      const res = await authService.googleLink(googleUnlinked.token, linkData.identifier, linkData.password);
+      toast.success(res.message || "Google account linked successfully!");
+      navigate(from, { replace: true });
+      window.location.reload();
+    } catch (err) {
+      toast.error(err.response?.data?.error || err.message || "Failed to link Google account.");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleSaveSetupClientId = (e) => {
+    e.preventDefault();
+    if (!setupClientId.trim()) {
+      toast.error("Please enter a valid Google Client ID.");
+      return;
+    }
+    localStorage.setItem('vite_google_client_id', setupClientId.trim());
+    toast.success("Google Client ID saved! Reloading application...");
+    setTimeout(() => {
+      window.location.reload();
+    }, 800);
+  };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
