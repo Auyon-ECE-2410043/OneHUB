@@ -48,7 +48,11 @@ export function NotificationBell() {
           if (prev.size > 0) { // Don't toast on initial load
             newNotifications.forEach(notif => {
               if (!prev.has(notif._id) && !notif.isRead) {
-                toast(notif.title, { description: notif.message, icon: "🔔" });
+                if (notif.type === "urgent_blood" || notif.title?.includes("Blood")) {
+                  toast.error(notif.title, { description: notif.message, icon: "🩸", duration: 10000 });
+                } else {
+                  toast(notif.title, { description: notif.message, icon: "🔔" });
+                }
               }
             });
           }
@@ -153,6 +157,7 @@ export function NotificationBell() {
               notifications.map((notif) => {
                 const isPayment = notif.type === "fee_due" || notif.title?.includes("Payment") || notif.title?.includes("Fee");
                 const isPaid = notif.type === "payment" || notif.title?.includes("Payment Successful");
+                const isUrgentBlood = notif.type === "urgent_blood" || notif.title?.includes("Blood") || notif.title?.includes("🩸");
 
                 return (
                   <div
@@ -162,6 +167,9 @@ export function NotificationBell() {
                       if (notif.link) {
                         setIsOpen(false);
                         navigate(notif.link);
+                      } else if (isUrgentBlood) {
+                        setIsOpen(false);
+                        navigate("/medical");
                       } else if (isPayment) {
                         setIsOpen(false);
                         navigate("/fees");
@@ -169,15 +177,24 @@ export function NotificationBell() {
                     }}
                     className={`px-4 py-3 border-b border-slate-50 transition-colors cursor-pointer ${
                       !notif.isRead 
-                        ? isPayment
+                        ? isUrgentBlood
+                          ? "bg-rose-50/80 hover:bg-rose-100/90 border-l-4 border-l-rose-500"
+                          : isPayment
                           ? "bg-amber-50/50 hover:bg-amber-100/60"
                           : "bg-sky-50/40 hover:bg-sky-100/50"
+                        : isUrgentBlood
+                        ? "bg-rose-50/40 hover:bg-rose-100/60"
                         : "hover:bg-slate-50"
                     }`}
                   >
                     <div className="flex justify-between items-start gap-2">
                       <div className="flex-1 min-w-0">
                         <div className="flex items-center gap-1.5 flex-wrap">
+                          {isUrgentBlood && (
+                            <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-black bg-rose-100 text-rose-700 border border-rose-300 animate-pulse">
+                              <span>🩸 URGENT BLOOD</span>
+                            </span>
+                          )}
                           {isPayment && (
                             <span className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded text-[10px] font-bold bg-amber-100 text-amber-800 border border-amber-300">
                               <CreditCard className="w-3 h-3 text-amber-600" />

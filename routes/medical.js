@@ -7,6 +7,8 @@
 
 const express = require("express");
 const MedicalAppointment = require("../models/MedicalAppointment");
+const BloodRequest = require("../models/BloodRequest");
+const Notification = require("../models/Notification");
 const User = require("../models/User");
 const { requireAuth, requireRole } = require("../middleware/auth");
 
@@ -103,6 +105,95 @@ router.put("/appointments/:id/complete", requireAuth, requireRole("health_staff"
     
     await appointment.save();
     res.json({ appointment });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// POST /api/medical/emergency-blood-request -> Broadcast urgent blood request to all matching donors
+router.post("/emergency-blood-request", requireAuth, async (req, res) => {
+  try {
+    const { patientName, bloodGroup, unitsNeeded, hospital, contactNumber, urgency, reason } = req.body;
+    if (!patientName || !bloodGroup || !hospital || !contactNumber) {
+      return res.status(400).json({ error: "Patient name, blood group, hospital, and contact number are required." });
+    }
+
+    const cleanGroup = bloodGroup.trim().toUpperCase();
+
+    // Find all registered students/faculty matching this blood group
+    const matchingDonors = await User.find({
+      bloodGroup: cleanGroup,
+      _id: { $ne: req.user.id }
+    }).select("_id name rollNo phone role");
+
+    const bloodRequest = await BloodRequest.create({
+      requesterId: req.user.id,
+      patientName,
+      bloodGroup: cleanGroup,
+      unitsNeeded: Number(unitsNeeded) || 1,
+      hospital,
+      contactNumber,
+      urgency: urgency || "Immediate (Next 1-2 Hours)",
+      reason: reason || "",
+      status: "active",
+      notifiedCount: matchingDonors.length
+    });
+
+    // Create notifications for matching donors
+    if (matchingDonors.length > 0) {
+      const notifications = matchingDonors.map((donor) => ({
+        recipientId: donor._id,
+        recipientRole: donor.role || "student",
+        title: `🩸 URGENT: ${cleanGroup} Blood Needed!`,
+        message: `Emergency at ${hospital}: ${unitsNeeded || 1} unit(s) of ${cleanGroup} needed for ${patientName}. Urgency: ${urgency || "Immediate"}. Contact: ${contactNumber}`,
+        type: "urgent_blood",
+        link: "/medical",
+        meta: {
+          bloodGroup: cleanGroup,
+          hospital,
+          contactNumber,
+          requestId: bloodRequest._id.toString()
+        }
+      }));
+
+      await Notification.insertMany(notifications);
+    }
+
+    res.status(201).json({
+      success: true,
+      request: bloodRequest,
+      notifiedCount: matchingDonors.length
+    });
+  } catch (err) {
+    console.error("Emergency blood request error:", err);
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// GET /api/medical/emergency-blood-requests -> List active & recent emergency blood requests
+router.get("/emergency-blood-requests", requireAuth, async (req, res) => {
+  try {
+    const requests = await BloodRequest.find()
+      .populate("requesterId", "name rollNo department phone")
+      .sort({ status: 1, createdAt: -1 })
+      .limit(25);
+    res.json({ requests });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// PUT /api/medical/emergency-blood-requests/:id/fulfill -> Mark request as fulfilled
+router.put("/emergency-blood-requests/:id/fulfill", requireAuth, async (req, res) => {
+  try {
+    const bloodRequest = await BloodRequest.findById(req.params.id);
+    if (!bloodRequest) return res.status(404).json({ error: "Blood request not found" });
+
+    bloodRequest.status = "fulfilled";
+    bloodRequest.fulfilledAt = new Date();
+    await bloodRequest.save();
+
+    res.json({ success: true, request: bloodRequest });
   } catch (err) {
     res.status(500).json({ error: err.message });
   }

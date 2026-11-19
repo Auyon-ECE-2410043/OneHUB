@@ -99,8 +99,41 @@ export default function RegistrationConfirmationPaper({
     setDownloading(true);
     const toastId = toast.loading("Generating high-resolution official confirmation paper...");
 
+    let clone = null;
     try {
       const element = paperRef.current;
+      // Clone element directly to document body to eliminate all modal scroll and positioning offsets
+      clone = element.cloneNode(true);
+      clone.style.position = "fixed";
+      clone.style.top = "0";
+      clone.style.left = "0";
+      clone.style.zIndex = "-9999";
+      clone.style.width = "820px";
+      clone.style.maxWidth = "820px";
+      clone.style.minWidth = "820px";
+      clone.style.transform = "none";
+      clone.style.margin = "0";
+      clone.style.backgroundColor = "#ffffff";
+      clone.style.color = "#000000";
+      clone.style.boxShadow = "none";
+      clone.style.border = "none";
+
+      // Ensure black text for all text nodes
+      clone.querySelectorAll("h1, h2, h3, p, span, td, th, div").forEach((node) => {
+        if (
+          !node.closest(".stamp-badge") &&
+          !node.closest(".signature-item") &&
+          !node.closest(".seal-badge")
+        ) {
+          node.style.color = "#000000";
+          if (node.tagName === "TABLE" || node.tagName === "TH" || node.tagName === "TD") {
+            node.style.borderColor = "#000000";
+          }
+        }
+      });
+
+      document.body.appendChild(clone);
+
       const opts = {
         scale: 2.5,
         useCORS: true,
@@ -109,47 +142,14 @@ export default function RegistrationConfirmationPaper({
         logging: false,
         scrollX: 0,
         scrollY: 0,
-        onclone: (clonedDoc) => {
-          // Remove dark mode classes so text never renders white-on-white
-          clonedDoc.documentElement.classList.remove("dark");
-          clonedDoc.body.classList.remove("dark");
-          clonedDoc.querySelectorAll("style.darkreader, [class*='darkreader']").forEach((s) => s.remove());
-
-          const el = clonedDoc.getElementById("ruet-registration-paper");
-          if (el) {
-            el.style.backgroundColor = "#ffffff";
-            el.style.color = "#000000";
-            el.style.width = "800px";
-            el.style.maxWidth = "800px";
-            el.style.minWidth = "800px";
-            el.style.transform = "none";
-            el.style.margin = "0 auto";
-            el.style.boxShadow = "none";
-            el.style.border = "none";
-
-            // Force all text, headers, and table cells to black
-            el.querySelectorAll("h1, h2, h3, p, span, td, th, div").forEach((node) => {
-              if (
-                !node.closest(".stamp-badge") &&
-                !node.closest(".signature-item") &&
-                !node.closest(".seal-badge")
-              ) {
-                node.style.color = "#000000";
-                if (node.tagName === "TABLE" || node.tagName === "TH" || node.tagName === "TD") {
-                  node.style.borderColor = "#000000";
-                }
-              }
-            });
-          }
-        },
       };
 
       let canvas;
       try {
-        canvas = await html2canvasPro(element, opts);
+        canvas = await html2canvasPro(clone, opts);
       } catch (errPro) {
         console.warn("html2canvasPro fallback to standard:", errPro);
-        canvas = await html2canvasStd(element, opts);
+        canvas = await html2canvasStd(clone, opts);
       }
 
       const imgData = canvas.toDataURL("image/png", 1.0);
@@ -164,6 +164,9 @@ export default function RegistrationConfirmationPaper({
       console.error("Export error:", err);
       toast.error("Failed to generate image. You can use Print / Save as PDF.", { id: toastId });
     } finally {
+      if (clone && clone.parentNode) {
+        clone.parentNode.removeChild(clone);
+      }
       setDownloading(false);
     }
   };

@@ -25,6 +25,7 @@ import CourseList from "../pages/courses/CourseList";
 import CourseDetails from "../pages/courses/CourseDetails";
 import CourseAssignmentList from "../pages/courseAssignment/CourseAssignmentList";
 import Routine from "../pages/routine/Routine";
+import CampusBusSchedule from "../pages/routine/CampusBusSchedule";
 import ManageRoutine from "../pages/admin/ManageRoutine";
 import ManageCalendar from "../pages/admin/ManageCalendar";
 import UserManagement from "../pages/admin/UserManagement";
@@ -138,6 +139,7 @@ export function AppRoutes() {
         />
 
         <Route path="/routine" element={<FeatureGuard featureKey="routine" title="Weekly Routine"><Routine /></FeatureGuard>} />
+        <Route path="/bus-schedule" element={<FeatureGuard featureKey="routine" title="Campus Bus Schedule"><CampusBusSchedule /></FeatureGuard>} />
         <Route
           path="/manage-routine"
           element={

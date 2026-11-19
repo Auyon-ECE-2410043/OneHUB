@@ -102,8 +102,41 @@ export function RUETGradeSheetPaper({
     setDownloading(true);
     const toastId = toast.loading("Generating high-resolution official RUET grade sheet...");
 
+    let clone = null;
     try {
       const element = paperRef.current;
+      // Clone element directly to document body to eliminate all modal scroll and positioning offsets
+      clone = element.cloneNode(true);
+      clone.style.position = "fixed";
+      clone.style.top = "0";
+      clone.style.left = "0";
+      clone.style.zIndex = "-9999";
+      clone.style.width = "840px";
+      clone.style.maxWidth = "840px";
+      clone.style.minWidth = "840px";
+      clone.style.transform = "none";
+      clone.style.margin = "0";
+      clone.style.backgroundColor = "#ffffff";
+      clone.style.color = "#000000";
+      clone.style.boxShadow = "none";
+      clone.style.border = "none";
+
+      // Ensure black text for all text nodes
+      clone.querySelectorAll("h1, h2, h3, p, span, td, th, div").forEach((node) => {
+        if (
+          !node.closest(".stamp-badge") &&
+          !node.closest(".signature-item") &&
+          !node.closest(".seal-badge")
+        ) {
+          node.style.color = "#000000";
+          if (node.tagName === "TABLE" || node.tagName === "TH" || node.tagName === "TD") {
+            node.style.borderColor = "#000000";
+          }
+        }
+      });
+
+      document.body.appendChild(clone);
+
       const opts = {
         scale: 2.5,
         useCORS: true,
@@ -112,45 +145,14 @@ export function RUETGradeSheetPaper({
         logging: false,
         scrollX: 0,
         scrollY: 0,
-        onclone: (clonedDoc) => {
-          clonedDoc.documentElement.classList.remove("dark");
-          clonedDoc.body.classList.remove("dark");
-          clonedDoc.querySelectorAll("style.darkreader, [class*='darkreader']").forEach((s) => s.remove());
-
-          const el = clonedDoc.getElementById("ruet-gradesheet-paper");
-          if (el) {
-            el.style.backgroundColor = "#ffffff";
-            el.style.color = "#000000";
-            el.style.width = "820px";
-            el.style.maxWidth = "820px";
-            el.style.minWidth = "820px";
-            el.style.transform = "none";
-            el.style.margin = "0 auto";
-            el.style.boxShadow = "none";
-            el.style.border = "none";
-
-            el.querySelectorAll("h1, h2, h3, p, span, td, th, div").forEach((node) => {
-              if (
-                !node.closest(".stamp-badge") &&
-                !node.closest(".signature-item") &&
-                !node.closest(".seal-badge")
-              ) {
-                node.style.color = "#000000";
-                if (node.tagName === "TABLE" || node.tagName === "TH" || node.tagName === "TD") {
-                  node.style.borderColor = "#000000";
-                }
-              }
-            });
-          }
-        },
       };
 
       let canvas;
       try {
-        canvas = await html2canvasPro(element, opts);
+        canvas = await html2canvasPro(clone, opts);
       } catch (errPro) {
         console.warn("html2canvasPro fallback to standard:", errPro);
-        canvas = await html2canvasStd(element, opts);
+        canvas = await html2canvasStd(clone, opts);
       }
 
       const imgData = canvas.toDataURL("image/png", 1.0);
@@ -164,6 +166,9 @@ export function RUETGradeSheetPaper({
       console.error("Failed to generate Grade Sheet PNG:", err);
       toast.error("Failed to download image. Try printing instead.", { id: toastId });
     } finally {
+      if (clone && clone.parentNode) {
+        clone.parentNode.removeChild(clone);
+      }
       setDownloading(false);
     }
   };

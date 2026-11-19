@@ -26,9 +26,11 @@ import {
   CheckCircle2,
   AlertCircle,
   Sparkles,
+  Bus,
 } from "lucide-react";
 import { toast } from "sonner";
 import RoutineVisualExporter from "../admin/RoutineVisualExporter";
+import CampusBusSchedule from "./CampusBusSchedule";
 import { SEMESTERS, getSeriesDefaultSemester } from "../../utils/constants";
 
 const DAYS = ["Saturday", "Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday"];
@@ -56,6 +58,7 @@ const parseTime = (timeStr) => {
 export function Routine() {
   const { user } = useAuth();
   const defaultSemester = getSeriesDefaultSemester(user) || "2-2";
+  const [activeView, setActiveView] = useState("routine"); // "routine" | "bus"
   const [selectedSemester, setSelectedSemester] = useState(defaultSemester);
   const [loading, setLoading] = useState(true);
   const [classes, setClasses] = useState([]);
@@ -386,8 +389,43 @@ export function Routine() {
 
   return (
     <div className="space-y-6 max-w-full pb-10">
-      {/* Top Header Bar */}
-      <div className="flex flex-col md:flex-row justify-between md:items-center gap-4 bg-white p-5 rounded-2xl border border-slate-200 shadow-xs">
+      {/* Top View Mode Switcher */}
+      <div className="flex items-center gap-2 p-1.5 bg-slate-100 rounded-2xl w-max border border-slate-200">
+        <button
+          type="button"
+          onClick={() => setActiveView("routine")}
+          className={`flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-bold transition cursor-pointer ${
+            activeView === "routine"
+              ? "bg-white text-sky-700 shadow-xs"
+              : "text-slate-600 hover:text-slate-900"
+          }`}
+        >
+          <Calendar className="w-4 h-4 text-sky-600" />
+          <span>Weekly Class Routine &amp; Syllabus</span>
+        </button>
+        <button
+          type="button"
+          onClick={() => setActiveView("bus")}
+          className={`flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-bold transition cursor-pointer ${
+            activeView === "bus"
+              ? "bg-white text-emerald-700 shadow-xs"
+              : "text-slate-600 hover:text-slate-900"
+          }`}
+        >
+          <Bus className="w-4 h-4 text-emerald-600" />
+          <span>Campus Bus Schedule &amp; Routes</span>
+          <span className="px-1.5 py-0.2 rounded-md bg-emerald-100 text-emerald-800 text-[9.5px] font-bold uppercase">
+            5 Routes
+          </span>
+        </button>
+      </div>
+
+      {activeView === "bus" ? (
+        <CampusBusSchedule />
+      ) : (
+        <>
+          {/* Top Header Bar */}
+          <div className="flex flex-col md:flex-row justify-between md:items-center gap-4 bg-white p-5 rounded-2xl border border-slate-200 shadow-xs">
         <div>
           <h1 className="text-2xl font-bold text-slate-800 flex items-center space-x-2">
             <Calendar className="w-7 h-7 text-sky-600" />
@@ -866,6 +904,8 @@ export function Routine() {
           </div>
         </div>
       </div>
+      </>
+      )}
 
       {/* MODAL: ADD / UPDATE SYLLABUS */}
       {isAddModalOpen && (

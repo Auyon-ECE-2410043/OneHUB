@@ -11,6 +11,7 @@ import { useOutletContext } from "react-router-dom";
 import authService from "../../services/authService";
 import { getInitials } from "../../utils/helpers";
 import OBERadarChart from "./OBERadarChart";
+import DigitalStudentIDModal from "./DigitalStudentIDModal";
 import {
   User,
   Mail,
@@ -22,7 +23,9 @@ import {
   AlertCircle,
   ShieldCheck,
   Eye,
-  EyeOff
+  EyeOff,
+  CreditCard,
+  QrCode
 } from "lucide-react";
 
 export function Profile() {
@@ -37,6 +40,7 @@ export function Profile() {
   });
   
   const [showPassword, setShowPassword] = useState(false);
+  const [showIdModal, setShowIdModal] = useState(false);
   
   const [profileForm, setProfileForm] = useState({
     name: user?.name || "",
@@ -202,6 +206,18 @@ export function Profile() {
               </div>
             )}
           </div>
+        </div>
+
+        {/* Action: View Digital ID Card */}
+        <div className="flex flex-col sm:flex-row items-center gap-2 shrink-0 self-center md:self-start">
+          <button
+            type="button"
+            onClick={() => setShowIdModal(true)}
+            className="flex items-center gap-2 px-4 py-2.5 rounded-xl bg-gradient-to-r from-sky-600 to-indigo-600 hover:from-sky-700 hover:to-indigo-700 text-white font-bold text-xs shadow-md shadow-sky-500/20 transition cursor-pointer"
+          >
+            <CreditCard className="w-4 h-4 text-sky-200" />
+            <span>View Digital ID Card</span>
+          </button>
         </div>
       </div>
 
@@ -433,6 +449,13 @@ export function Profile() {
           </div>
         </form>
       </div>
+
+      {/* Digital Student ID Card Modal */}
+      <DigitalStudentIDModal
+        isOpen={showIdModal}
+        onClose={() => setShowIdModal(false)}
+        user={user}
+      />
     </div>
   );
 }
