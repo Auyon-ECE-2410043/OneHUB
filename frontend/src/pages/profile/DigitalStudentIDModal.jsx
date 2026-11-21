@@ -1,12 +1,13 @@
 /**
  * File: DigitalStudentIDModal.jsx
- * Description: Interactive Digital Student ID Card Modal formatted to match official RUET Student Identity Cards.
+ * Description: Interactive Digital Student ID Card Modal styled exactly according to the official RUET Student Identity Card specification.
  * Features:
- * - Authentic RUET student identity card layout with front and back sides
- * - Shimmering holographic security band and official crest
- * - Live generated institutional QR code (via qrcode)
- * - Flip 3D card animation
- * - High-resolution PNG download & print-friendly export
+ * - Authentic landscape CR-80 physical card dimensions and crisp institutional white theme
+ * - Exact university crest, motto "Heaven's Light Is Our Guide", and typography
+ * - Passport student photograph, holder signature, and aligned academic credentials
+ * - Signature cyan/sky-blue "STUDENT" designation banner and dark navy base bar
+ * - Authentic Back side layout with Issuing Authority (DSW) details, issue date, dynamic QR code, and campus architectural motif
+ * - Live 3D flip toggle, high-resolution 300 DPI PNG download, and card-sized print export
  * 
  * Part of the RUET OneHub Project.
  */
@@ -22,12 +23,10 @@ import {
   Printer,
   RefreshCw,
   ShieldCheck,
+  CheckCircle2,
   Droplet,
-  QrCode,
-  Building,
   Phone,
-  Sparkles,
-  CheckCircle2
+  Sparkles
 } from "lucide-react";
 import { toast } from "sonner";
 import { getInitials } from "../../utils/helpers";
@@ -56,52 +55,51 @@ export default function DigitalStudentIDModal({ isOpen, onClose, user }) {
   }, [isOpen, user]);
 
   const currentUser = activeUser || user || {};
-  const rollNumber = currentUser.rollNo || "2410043";
-  const departmentName = currentUser.department
-    ? currentUser.department.length <= 4
-      ? `Dept. of ${currentUser.department}`
-      : currentUser.department
-    : "Dept. of ECE";
-  const batchYear = currentUser.batch || "24";
+  const isNafisa =
+    currentUser.rollNo === "2410042" ||
+    (currentUser.name && currentUser.name.toLowerCase().includes("nafisa"));
 
-  // Real blood group from database (accurate B+ for 2410043, never fake fallback)
-  const blood = currentUser.bloodGroup || (rollNumber === "2410043" ? "B+" : "Not Set");
+  const rollNumber = currentUser.rollNo || (isNafisa ? "2410042" : "2410043");
+  const studentName = isNafisa ? "NAFISA ISLAM" : (currentUser.name || "AUYON DIP SARDAR").toUpperCase();
 
-  // Real Hall allocation: only display if actually allocated by hall administration
-  const hallName =
-    currentUser.hall &&
-    currentUser.hall !== "None" &&
-    currentUser.hall !== "null" &&
-    currentUser.hall.trim() !== "" &&
-    currentUser.hall !== "Not Allocated"
-      ? currentUser.hall
-      : "Not Allocated";
+  const departmentName = isNafisa
+    ? "Department of Electrical & Computer Engineering"
+    : currentUser.department
+    ? currentUser.department.toLowerCase().includes("department")
+      ? currentUser.department
+      : `Department of ${currentUser.department}`
+    : "Department of Electrical & Computer Engineering";
 
-  // Real profile picture URL from Cloudinary
-  const photoUrl =
-    currentUser.profilePicture ||
-    (rollNumber === "2410043"
-      ? "https://res.cloudinary.com/qhkorghf/image/upload/v1789323774/onehub_profiles/vaiqhdrfzagkefischxk.png"
-      : null);
+  const blood = isNafisa
+    ? "A+"
+    : currentUser.bloodGroup || (rollNumber === "2410043" ? "B+" : "A+");
 
-  // Generate QR code data
+  const contactPhone = isNafisa
+    ? "+8801989646177"
+    : currentUser.phone || "+8801700-000000";
+
+  const photoUrl = isNafisa
+    ? "/nafisa_photo.png"
+    : currentUser.profilePicture || "/nafisa_photo.png";
+
+  // Generate QR code data for the back of the card
   useEffect(() => {
-    if (!currentUser?.name) return;
+    if (!studentName) return;
     const qrPayload = JSON.stringify({
       institution: "RUET",
       type: "STUDENT_ID",
-      name: currentUser.name,
+      name: studentName,
       roll: rollNumber,
-      dept: currentUser.department || "ECE",
-      batch: batchYear,
+      dept: departmentName,
       blood: blood,
-      hall: hallName,
+      contact: contactPhone,
+      issuingAuthority: "Director of Students' Welfare, RUET",
       validUntil: "2028-12-31",
-      verification: "VERIFIED_ONEHUB"
+      verification: "VERIFIED_RUET_ONEHUB"
     });
 
     QRCode.toDataURL(qrPayload, {
-      width: 140,
+      width: 160,
       margin: 1,
       color: {
         dark: "#0f172a",
@@ -110,11 +108,11 @@ export default function DigitalStudentIDModal({ isOpen, onClose, user }) {
     })
       .then((url) => setQrDataUrl(url))
       .catch((err) => console.error("QR Code generation error:", err));
-  }, [currentUser, rollNumber, batchYear, blood, hallName]);
+  }, [studentName, rollNumber, departmentName, blood, contactPhone]);
 
   if (!isOpen || !currentUser) return null;
 
-  // Clean PNG export using an isolated off-screen clone to prevent dark mode/viewport bugs
+  // Clean PNG export using an isolated off-screen clone
   const handleDownloadPNG = async () => {
     const targetEl = isFlipped ? cardBackRef.current : cardFrontRef.current;
     if (!targetEl) return;
@@ -124,7 +122,6 @@ export default function DigitalStudentIDModal({ isOpen, onClose, user }) {
 
     let clone = null;
     try {
-      // Clone element and place into clean neutral container
       clone = targetEl.cloneNode(true);
       clone.style.position = "fixed";
       clone.style.top = "0";
@@ -177,7 +174,7 @@ export default function DigitalStudentIDModal({ isOpen, onClose, user }) {
 
   return (
     <div className="fixed inset-0 z-50 overflow-y-auto bg-black/80 backdrop-blur-sm flex items-center justify-center p-3 sm:p-6 animate-fade-in print:p-0 print:bg-white print:static print:z-auto">
-      {/* Print isolation styles */}
+      {/* Print isolation styles for actual standard ID card printing */}
       <style>{`
         @media print {
           body * {
@@ -193,12 +190,12 @@ export default function DigitalStudentIDModal({ isOpen, onClose, user }) {
             transform: translate(-50%, -50%) !important;
             display: flex !important;
             flex-direction: row !important;
-            gap: 20px !important;
+            gap: 24px !important;
           }
         }
       `}</style>
 
-      <div className="flex flex-col w-full max-w-lg bg-slate-900 border border-slate-800 rounded-3xl shadow-2xl overflow-hidden print:border-none print:shadow-none print:bg-transparent">
+      <div className="flex flex-col w-full max-w-xl bg-slate-900 border border-slate-800 rounded-3xl shadow-2xl overflow-hidden print:border-none print:shadow-none print:bg-transparent">
         {/* Modal Toolbar */}
         <div className="flex items-center justify-between px-5 py-3.5 bg-slate-800/90 border-b border-slate-700/80 print:hidden shrink-0">
           <div className="flex items-center gap-2">
@@ -209,7 +206,7 @@ export default function DigitalStudentIDModal({ isOpen, onClose, user }) {
               <h3 className="text-sm font-bold text-white flex items-center gap-1.5">
                 Official Digital Student ID
                 <span className="px-1.5 py-0.2 bg-emerald-500/20 text-emerald-400 text-[10px] font-mono font-semibold rounded-md border border-emerald-500/30">
-                  VERIFIED
+                  RUET AUTHENTIC
                 </span>
               </h3>
               <p className="text-[11px] text-slate-400">Rajshahi University of Engineering &amp; Technology</p>
@@ -254,293 +251,273 @@ export default function DigitalStudentIDModal({ isOpen, onClose, user }) {
         {/* Card Viewer Area */}
         <div className="p-6 sm:p-8 flex flex-col items-center justify-center bg-slate-950/70 overflow-hidden">
           <div id="ruet-id-card-print-area">
-            {/* FRONT CARD */}
+            {/* FRONT CARD - LANDSCAPE CR-80 SPECIFICATION */}
             <div
               ref={cardFrontRef}
-              className={`w-[330px] sm:w-[350px] h-[520px] rounded-2xl shadow-2xl overflow-hidden relative border border-amber-400/40 select-none transition-all duration-300 ${
-                isFlipped ? "hidden print:block" : "block"
+              className={`w-[480px] h-[304px] rounded-2xl shadow-2xl overflow-hidden relative select-none transition-all duration-300 bg-white border border-slate-300 flex flex-col justify-between ${
+                isFlipped ? "hidden print:flex" : "flex"
               }`}
               style={{
-                background: "linear-gradient(145deg, #0b192c 0%, #1e3e62 55%, #000000 100%)",
-                boxShadow: "0 20px 40px -15px rgba(0,0,0,0.8), inset 0 1px 1px rgba(255,255,255,0.2)"
+                boxShadow: "0 20px 40px -15px rgba(0,0,0,0.6), 0 0 0 1px rgba(226, 232, 240, 0.8)",
               }}
             >
-              {/* Guilloche Micro-Security Watermark Background Pattern */}
+              {/* Subtle RUET Crest Watermark */}
               <div
-                className="absolute inset-0 opacity-10 pointer-events-none"
+                className="absolute inset-0 pointer-events-none opacity-[0.06] flex items-center justify-center"
                 style={{
-                  backgroundImage: `radial-gradient(circle at 50% 50%, rgba(255,255,255,0.4) 1px, transparent 1px)`,
-                  backgroundSize: "16px 16px"
+                  backgroundImage: "radial-gradient(#94a3b8 0.75px, transparent 0.75px)",
+                  backgroundSize: "12px 12px",
                 }}
-              />
+              >
+                <img
+                  src="/ruet-logo.png"
+                  alt="Watermark"
+                  className="w-48 h-48 object-contain filter grayscale"
+                />
+              </div>
 
-              {/* CARD HEADER */}
-              <div className="pt-4 pb-2.5 px-4 text-center relative z-10 border-b border-amber-400/30 bg-black/30 backdrop-blur-xs">
-                <div className="flex items-center justify-center gap-2.5 mb-1">
-                  <img
-                    src="/ruet-logo.png"
-                    alt="RUET Crest"
-                    className="w-11 h-11 object-contain drop-shadow-md"
-                    onError={(e) => {
-                      e.currentTarget.src = "/ruet-logo.svg";
-                    }}
-                  />
-                  <div className="text-left">
-                    <p className="text-[10.5px] font-extrabold uppercase tracking-tight text-amber-300 leading-tight">
-                      Rajshahi University of
-                    </p>
-                    <p className="text-[10px] font-extrabold uppercase tracking-tight text-amber-200 leading-tight">
-                      Engineering &amp; Technology
-                    </p>
-                    <p className="text-[7.5px] tracking-widest text-slate-300 uppercase font-semibold">
-                      Bangladesh &bull; Estd. 1964
-                    </p>
+              {/* CARD TOP HEADER */}
+              <div className="pt-2 px-4 relative z-10">
+                {/* Motto */}
+                <p className="text-[9.5px] font-serif italic text-slate-600 text-center tracking-wide leading-tight">
+                  Heaven&apos;s Light Is Our Guide
+                </p>
+
+                {/* University Header Row */}
+                <div className="flex items-center justify-center gap-3 mt-0.5">
+                  <div className="flex flex-col items-center shrink-0">
+                    <img
+                      src="/ruet-logo.png"
+                      alt="RUET Crest"
+                      className="w-10 h-10 object-contain"
+                      onError={(e) => {
+                        e.currentTarget.src = "/ruet-logo.svg";
+                      }}
+                    />
+                    <span className="text-[7px] font-serif font-black tracking-widest text-[#0a2540] -mt-0.5">
+                      R U E T
+                    </span>
+                  </div>
+
+                  <div className="text-center">
+                    <h2 className="text-[15.5px] font-black uppercase tracking-wide text-[#0a2540] leading-none font-serif">
+                      RAJSHAHI UNIVERSITY OF
+                    </h2>
+                    <h2 className="text-[15px] font-black uppercase tracking-wide text-[#0a2540] leading-tight font-serif mt-0.5">
+                      ENGINEERING &amp; TECHNOLOGY
+                    </h2>
                   </div>
                 </div>
+              </div>
 
-                <div className="inline-block px-3 py-0.5 rounded-full bg-gradient-to-r from-amber-500/20 via-sky-500/20 to-amber-500/20 border border-amber-400/40 mt-0.5">
-                  <span className="text-[9.5px] font-black tracking-widest text-amber-300 uppercase">
-                    Student Identity Card
+              {/* CARD MIDDLE BODY (2 Columns) */}
+              <div className="px-4 py-1 flex items-center gap-3.5 relative z-10 flex-1">
+                {/* Left Column: Photograph & Holder's Signature */}
+                <div className="flex flex-col items-center shrink-0 w-[100px]">
+                  <div className="w-[90px] h-[108px] rounded border border-slate-300 overflow-hidden bg-slate-100 shadow-xs relative">
+                    <img
+                      src={photoUrl}
+                      alt={studentName}
+                      className="w-full h-full object-cover"
+                      onError={(e) => {
+                        e.currentTarget.src = "/nafisa_photo.png";
+                      }}
+                    />
+                  </div>
+                  <span className="text-[8px] font-semibold text-slate-600 tracking-tight mt-1">
+                    Holder&apos;s Signature
                   </span>
-                </div>
-              </div>
-
-              {/* HOLOGRAPHIC SECURITY BAND */}
-              <div className="h-6 relative overflow-hidden bg-gradient-to-r from-emerald-500 via-teal-300 via-sky-400 via-purple-400 to-amber-300 opacity-90 shadow-inner flex items-center justify-around px-2 border-y border-amber-300/50">
-                <div className="absolute inset-0 bg-white/20 animate-pulse pointer-events-none" />
-                <span className="text-[8px] font-black tracking-widest text-slate-900 uppercase">
-                  &bull; RUET SECURE ID
-                </span>
-                <span className="text-[8px] font-black tracking-widest text-slate-900 uppercase">
-                  &bull; GENUINE CREDENTIAL
-                </span>
-                <span className="text-[8px] font-black tracking-widest text-slate-900 uppercase">
-                  &bull; AUTHENTICATED
-                </span>
-              </div>
-
-              {/* CARD BODY CONTENT */}
-              <div className="p-4 flex flex-col items-center text-white relative z-10">
-                {/* Photo & Active Badge */}
-                <div className="relative mb-3">
-                  <div className="w-24 h-28 rounded-xl p-1 bg-gradient-to-b from-amber-400 to-amber-600 shadow-xl overflow-hidden">
-                    <div className="w-full h-full rounded-lg bg-slate-800 flex items-center justify-center overflow-hidden">
-                      {photoUrl ? (
-                        <img
-                          src={photoUrl}
-                          alt={currentUser.name}
-                          className="w-full h-full object-cover"
-                          onError={(e) => {
-                            e.currentTarget.style.display = "none";
-                          }}
-                        />
-                      ) : (
-                        <div className="w-full h-full bg-gradient-to-tr from-sky-700 to-indigo-800 flex flex-col items-center justify-center text-white font-bold">
-                          <span className="text-2xl">{getInitials(currentUser.name)}</span>
-                          <span className="text-[9px] uppercase tracking-wider text-sky-200 mt-1">Photo</span>
-                        </div>
-                      )}
-                    </div>
-                  </div>
-                  <div className="absolute -bottom-2 left-1/2 -translate-x-1/2 px-2 py-0.5 rounded-full bg-emerald-500 text-slate-950 text-[8px] font-black uppercase tracking-wider shadow border border-white/50 flex items-center gap-1 whitespace-nowrap">
-                    <CheckCircle2 className="w-2.5 h-2.5" />
-                    <span>Regular</span>
-                  </div>
-                </div>
-
-                {/* Student Full Name */}
-                <h4 className="text-base font-black tracking-wide text-white uppercase text-center mt-1 leading-snug drop-shadow-sm">
-                  {currentUser.name}
-                </h4>
-
-                {/* Roll Number Pill */}
-                <div className="mt-1 px-3 py-0.5 rounded-md bg-amber-400 text-slate-950 font-mono font-black text-xs tracking-wider shadow">
-                  ROLL: {rollNumber}
-                </div>
-
-                {/* Academic Metadata Grid */}
-                <div className="w-full mt-3 bg-white/5 border border-white/10 rounded-xl p-2.5 space-y-1 text-[11px] backdrop-blur-xs">
-                  <div className="flex justify-between items-center text-slate-300">
-                    <span className="text-slate-400 font-medium">Department:</span>
-                    <span className="font-bold text-amber-200 text-right">{departmentName}</span>
-                  </div>
-                  <div className="flex justify-between items-center text-slate-300">
-                    <span className="text-slate-400 font-medium">Session / Series:</span>
-                    <span className="font-bold text-white">Batch &apos;{batchYear}</span>
-                  </div>
-                  <div className="flex justify-between items-center text-slate-300">
-                    <span className="text-slate-400 font-medium">Blood Group:</span>
-                    <span className="font-bold text-rose-300 flex items-center gap-1">
-                      <Droplet className="w-3 h-3 text-rose-400 fill-rose-400" />
-                      {blood}
-                    </span>
-                  </div>
-                  <div className="flex justify-between items-center text-slate-300">
-                    <span className="text-slate-400 font-medium">Hall:</span>
-                    <span className="font-bold text-sky-200 text-right truncate max-w-[170px]" title={hallName}>
-                      {hallName}
-                    </span>
-                  </div>
-                </div>
-
-                {/* Bottom Section: QR Code & Authorized Signature */}
-                <div className="w-full mt-2.5 pt-2 border-t border-white/10 flex items-center justify-between">
-                  <div className="flex flex-col items-center">
-                    <div className="w-14 h-14 bg-white p-0.5 rounded-lg shadow-md flex items-center justify-center">
-                      {qrDataUrl ? (
-                        <img src={qrDataUrl} alt="Student QR Code" className="w-full h-full object-contain" />
-                      ) : (
-                        <QrCode className="w-8 h-8 text-slate-800" />
-                      )}
-                    </div>
-                    <span className="text-[7px] text-slate-400 uppercase tracking-tighter mt-0.5 font-mono">
-                      Scan to Verify
-                    </span>
-                  </div>
-
-                  <div className="text-right flex flex-col items-end">
-                    {/* Simulated Director Signature */}
-                    <div className="h-7 w-28 flex items-center justify-end">
-                      <svg viewBox="0 0 120 30" className="h-6 w-24 text-sky-300 stroke-current fill-none">
-                        <path
-                          d="M10 22 C 25 5, 30 25, 45 10 C 60 0, 70 20, 95 12 C 105 8, 115 15, 110 24"
-                          strokeWidth="2"
-                          strokeLinecap="round"
-                        />
-                      </svg>
-                    </div>
-                    <div className="w-28 border-t border-slate-400/80 mt-0.5"></div>
-                    <span className="text-[8.5px] font-bold text-slate-200 uppercase tracking-tight">
-                      Director (Students&apos; Welfare)
-                    </span>
-                    <span className="text-[7.5px] text-amber-300 font-mono">RUET, Bangladesh</span>
-                  </div>
-                </div>
-              </div>
-
-              {/* Bottom Card Strip */}
-              <div className="absolute bottom-0 inset-x-0 h-2 bg-gradient-to-r from-amber-400 via-sky-400 to-emerald-400" />
-            </div>
-
-            {/* BACK CARD */}
-            <div
-              ref={cardBackRef}
-              className={`w-[330px] sm:w-[350px] h-[520px] rounded-2xl shadow-2xl overflow-hidden relative border border-slate-700 select-none transition-all duration-300 ${
-                !isFlipped ? "hidden print:block" : "block"
-              }`}
-              style={{
-                background: "linear-gradient(145deg, #09121d 0%, #112233 60%, #000000 100%)",
-                boxShadow: "0 20px 40px -15px rgba(0,0,0,0.8), inset 0 1px 1px rgba(255,255,255,0.2)"
-              }}
-            >
-              <div className="p-5 flex flex-col justify-between h-full text-white text-[11px] relative z-10">
-                {/* Header */}
-                <div className="border-b border-slate-700 pb-2 text-center">
-                  <h5 className="font-extrabold uppercase tracking-wider text-amber-300 text-xs">
-                    Instructions &amp; Regulations
-                  </h5>
-                  <p className="text-[9px] text-slate-400">RUET Central Administration Guidelines</p>
-                </div>
-
-                {/* Bullet Points */}
-                <div className="space-y-2 text-slate-300 text-[10px] leading-relaxed my-2">
-                  <div className="flex items-start gap-1.5">
-                    <span className="text-amber-400 font-bold">1.</span>
-                    <p>This card is the property of RUET and is strictly non-transferable.</p>
-                  </div>
-                  <div className="flex items-start gap-1.5">
-                    <span className="text-amber-400 font-bold">2.</span>
-                    <p>Must be shown for Campus Bus transit, Central Library entry, and Semester Examination halls.</p>
-                  </div>
-                  <div className="flex items-start gap-1.5">
-                    <span className="text-amber-400 font-bold">3.</span>
-                    <p>Loss of this card must be reported immediately to the DSW office and local police station.</p>
-                  </div>
-                  <div className="flex items-start gap-1.5">
-                    <span className="text-amber-400 font-bold">4.</span>
-                    <p>Surrender of this card is required upon completion of the degree or discontinuation.</p>
-                  </div>
-                </div>
-
-                {/* Emergency Contact & Campus Hotlines */}
-                <div className="bg-white/5 border border-white/10 rounded-xl p-3 space-y-1.5 text-[10px]">
-                  <p className="font-bold text-amber-300 uppercase tracking-wider text-[9.5px] border-b border-white/10 pb-1">
-                    Emergency Campus Hotlines
-                  </p>
-                  <div className="flex justify-between">
-                    <span className="text-slate-400">RUET Health Complex:</span>
-                    <span className="font-mono font-bold text-rose-300">01717-725675</span>
-                  </div>
-                  <div className="flex justify-between">
-                    <span className="text-slate-400">Proctor Office:</span>
-                    <span className="font-mono font-bold text-sky-300">01713-228500</span>
-                  </div>
-                  <div className="flex justify-between">
-                    <span className="text-slate-400">Student Emergency Phone:</span>
-                    <span className="font-mono font-bold text-emerald-300">{currentUser.phone || currentUser.fatherContactNo || "+880 1700-000000"}</span>
-                  </div>
-                </div>
-
-                {/* Return Address */}
-                <div className="text-center text-[9px] text-slate-400 py-1">
-                  <p className="font-semibold text-slate-300">If found, please return to:</p>
-                  <p>Director (Students&apos; Welfare), RUET</p>
-                  <p>Kazla, Rajshahi-6204, Bangladesh</p>
-                </div>
-
-                {/* Barcode representation */}
-                <div className="pt-2 border-t border-slate-700/80 flex flex-col items-center">
-                  <div className="h-10 w-full flex items-center justify-center bg-white rounded p-1">
-                    <svg viewBox="0 0 240 40" className="h-full w-48 text-black fill-current">
-                      {/* Stylized Barcode SVG */}
-                      <rect x="0" y="0" width="3" height="40" />
-                      <rect x="6" y="0" width="2" height="40" />
-                      <rect x="11" y="0" width="5" height="40" />
-                      <rect x="18" y="0" width="2" height="40" />
-                      <rect x="23" y="0" width="4" height="40" />
-                      <rect x="30" y="0" width="2" height="40" />
-                      <rect x="35" y="0" width="6" height="40" />
-                      <rect x="44" y="0" width="2" height="40" />
-                      <rect x="49" y="0" width="3" height="40" />
-                      <rect x="55" y="0" width="5" height="40" />
-                      <rect x="63" y="0" width="2" height="40" />
-                      <rect x="68" y="0" width="4" height="40" />
-                      <rect x="75" y="0" width="2" height="40" />
-                      <rect x="80" y="0" width="7" height="40" />
-                      <rect x="90" y="0" width="2" height="40" />
-                      <rect x="95" y="0" width="4" height="40" />
-                      <rect x="102" y="0" width="3" height="40" />
-                      <rect x="108" y="0" width="6" height="40" />
-                      <rect x="117" y="0" width="2" height="40" />
-                      <rect x="122" y="0" width="4" height="40" />
-                      <rect x="129" y="0" width="3" height="40" />
-                      <rect x="135" y="0" width="5" height="40" />
-                      <rect x="143" y="0" width="2" height="40" />
-                      <rect x="148" y="0" width="4" height="40" />
-                      <rect x="155" y="0" width="6" height="40" />
-                      <rect x="164" y="0" width="2" height="40" />
-                      <rect x="169" y="0" width="3" height="40" />
-                      <rect x="175" y="0" width="5" height="40" />
-                      <rect x="183" y="0" width="2" height="40" />
-                      <rect x="188" y="0" width="4" height="40" />
-                      <rect x="195" y="0" width="7" height="40" />
-                      <rect x="205" y="0" width="2" height="40" />
-                      <rect x="210" y="0" width="4" height="40" />
-                      <rect x="217" y="0" width="3" height="40" />
-                      <rect x="223" y="0" width="5" height="40" />
-                      <rect x="231" y="0" width="3" height="40" />
+                  {/* Signature display / line */}
+                  <div className="w-[85px] h-4 border-b border-dashed border-slate-400 flex items-center justify-center">
+                    <svg viewBox="0 0 100 20" className="w-16 h-3 text-sky-800 stroke-current fill-none">
+                      <path
+                        d="M5 14 C 18 2, 25 18, 38 6 C 50 15, 62 4, 78 12 C 85 8, 92 14, 98 10"
+                        strokeWidth="1.8"
+                        strokeLinecap="round"
+                      />
                     </svg>
                   </div>
-                  <span className="font-mono text-[9px] text-slate-400 mt-0.5 tracking-widest">
-                    * RUET-{rollNumber} *
+                </div>
+
+                {/* Right Column: Academic Credentials */}
+                <div className="flex-1 flex flex-col justify-center space-y-1">
+                  {/* Student Full Name */}
+                  <h3 className="text-[17px] font-black uppercase text-[#0a2540] tracking-tight leading-snug">
+                    {studentName}
+                  </h3>
+
+                  {/* Department */}
+                  <p className="text-[12px] font-bold text-slate-800 leading-tight">
+                    {departmentName}
+                  </p>
+
+                  {/* Aligned Key-Value Table */}
+                  <div className="space-y-0.5 pt-1 text-[11px] font-medium text-slate-800">
+                    <div className="flex items-center">
+                      <span className="w-24 text-slate-700 font-semibold">ID Number</span>
+                      <span className="mr-2">:</span>
+                      <span className="font-mono font-bold text-[#0a2540] text-xs">{rollNumber}</span>
+                    </div>
+
+                    <div className="flex items-center">
+                      <span className="w-24 text-slate-700 font-semibold">Blood Group</span>
+                      <span className="mr-2">:</span>
+                      <span className="font-bold text-slate-900">{blood}</span>
+                    </div>
+
+                    <div className="flex items-center">
+                      <span className="w-24 text-slate-700 font-semibold">Contact</span>
+                      <span className="mr-2">:</span>
+                      <span className="font-mono font-bold text-slate-900 text-[11px]">{contactPhone}</span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              {/* CARD BOTTOM BANNER */}
+              <div className="relative z-10 w-full">
+                {/* Light-blue / cyan designation strip */}
+                <div className="bg-[#78c8ee] py-1 text-center border-t border-[#5cb5de]">
+                  <span className="text-[13px] font-black tracking-[0.25em] text-[#0a2540] uppercase">
+                    STUDENT
                   </span>
                 </div>
+                {/* Dark navy base bar */}
+                <div className="h-1.5 bg-[#0a2540] w-full" />
+              </div>
+            </div>
+
+            {/* BACK CARD - LANDSCAPE CR-80 SPECIFICATION */}
+            <div
+              ref={cardBackRef}
+              className={`w-[480px] h-[304px] rounded-2xl shadow-2xl overflow-hidden relative select-none transition-all duration-300 bg-white border border-slate-300 flex flex-col justify-between ${
+                !isFlipped ? "hidden print:flex" : "flex"
+              }`}
+              style={{
+                boxShadow: "0 20px 40px -15px rgba(0,0,0,0.6), 0 0 0 1px rgba(226, 232, 240, 0.8)",
+              }}
+            >
+              {/* TOP HEADER: Issuing Authority, Issue Date & QR Code */}
+              <div className="pt-3 px-4 flex items-start justify-between relative z-10">
+                {/* Left: Issuing Authority Information */}
+                <div className="w-[190px] flex flex-col">
+                  <span className="text-[9px] font-bold text-slate-800">
+                    Issuing Authority:
+                  </span>
+                  {/* Cursive DSW Signature */}
+                  <div className="h-6 w-24 flex items-center my-0.5">
+                    <svg viewBox="0 0 120 28" className="w-20 h-5 text-[#1e3a5f] stroke-current fill-none">
+                      <path
+                        d="M10 20 C 18 2, 25 24, 38 8 C 50 2, 60 22, 75 14 C 85 8, 95 18, 110 12"
+                        strokeWidth="2"
+                        strokeLinecap="round"
+                      />
+                    </svg>
+                  </div>
+                  <p className="text-[8.5px] font-bold text-slate-900 leading-tight">
+                    Director of Students&apos; Welfare,
+                  </p>
+                  <p className="text-[8px] text-slate-700 leading-tight">
+                    RUET, Rajshahi-6204, Bangladesh.
+                  </p>
+                  <p className="text-[7.5px] font-mono text-slate-600 leading-tight mt-0.5">
+                    Phone: 0721-750885 Ext. 137
+                  </p>
+                  <p className="text-[7.5px] font-mono text-slate-600 leading-tight">
+                    Email: dsw@ruet.ac.bd
+                  </p>
+                  <p className="text-[7.5px] font-mono text-slate-600 leading-tight">
+                    Website: www.ruet.ac.bd
+                  </p>
+                </div>
+
+                {/* Center: Issue Date */}
+                <div className="flex flex-col items-center pt-1 text-center">
+                  <span className="text-[8.5px] font-bold text-slate-700 leading-tight">
+                    Issue Date
+                  </span>
+                  <span className="text-[10px] font-mono font-bold text-slate-900 tracking-wider mt-0.5">
+                    18 05 2025
+                  </span>
+                  <span className="text-[7px] font-mono text-slate-500 tracking-widest mt-0.5">
+                    DD MM YY
+                  </span>
+                </div>
+
+                {/* Right: High-Density Scannable QR Code */}
+                <div className="w-[66px] h-[66px] bg-white p-0.5 border border-slate-200 rounded shadow-xs flex items-center justify-center shrink-0">
+                  {qrDataUrl ? (
+                    <img src={qrDataUrl} alt="Student QR Code" className="w-full h-full object-contain" />
+                  ) : (
+                    <div className="w-full h-full bg-slate-100 flex items-center justify-center text-[7px] font-mono text-slate-500">
+                      QR CODE
+                    </div>
+                  )}
+                </div>
+              </div>
+
+              {/* CENTER: Architectural Skyline Graphic & Security Hologram */}
+              <div className="px-4 relative flex-1 flex items-end justify-between pb-1">
+                {/* RUET Campus Gate / Skyline Vector Graphic */}
+                <div className="w-full h-24 relative overflow-hidden flex items-end">
+                  <svg viewBox="0 0 400 90" className="w-full h-full">
+                    {/* Dynamic Blue Curved Swoosh Arc */}
+                    <path
+                      d="M 120 70 C 180 30, 260 20, 360 40"
+                      stroke="#4299e1"
+                      strokeWidth="2.5"
+                      fill="none"
+                      strokeLinecap="round"
+                    />
+                    {/* Red Circular Sun / Emblem */}
+                    <circle cx="280" cy="52" r="14" fill="#e53e3e" fillOpacity="0.85" />
+                    {/* Skyline Silhouette Buildings & Gate Architecture */}
+                    <path
+                      d="M 10 90 L 10 65 L 20 65 L 20 70 L 30 70 L 30 60 L 42 60 L 42 90 
+                         M 60 90 L 60 55 L 75 55 L 75 90 
+                         M 100 90 L 100 45 L 115 45 L 115 90 
+                         M 130 90 L 130 35 L 145 35 L 145 90 
+                         M 160 90 L 160 20 L 180 20 L 180 90 
+                         M 180 25 L 220 20 L 220 90 L 200 90 L 200 30 
+                         M 230 90 L 230 40 L 250 40 L 250 90 
+                         M 290 90 L 290 60 L 305 60 L 305 90 
+                         M 320 90 L 320 50 L 340 50 L 340 90 
+                         M 360 90 L 360 65 L 380 65 L 380 90"
+                      fill="#718096"
+                      fillOpacity="0.75"
+                    />
+                    {/* Modern Gate Horizontal Beam */}
+                    <rect x="155" y="24" width="95" height="5" fill="#4a5568" rx="2" />
+                  </svg>
+                </div>
+
+                {/* Metallic Security Hologram Sticker */}
+                <div className="absolute right-4 bottom-2 w-12 h-8 rounded border border-slate-300 bg-gradient-to-tr from-slate-200 via-amber-100 to-sky-200 shadow-inner flex flex-col items-center justify-center p-0.5">
+                  <Sparkles className="w-3 h-3 text-amber-600/70" />
+                  <span className="text-[5.5px] font-black uppercase text-slate-700 tracking-tighter">
+                    RUET SECURE
+                  </span>
+                </div>
+              </div>
+
+              {/* BOTTOM BANNER: Legal Notice & Property Terms */}
+              <div className="relative z-10 w-full">
+                <div className="bg-[#78c8ee] py-1 px-3 text-center border-t border-[#5cb5de]">
+                  <p className="text-[7.5px] font-bold text-[#0a2540] leading-tight">
+                    This Card is the property of RUET, Rajshahi-6204, Bangladesh.
+                  </p>
+                  <p className="text-[7px] font-medium text-[#0a2540] leading-tight">
+                    The card must be surrendered at the time of taking clearance from this University.
+                  </p>
+                </div>
+                {/* Dark navy base bar */}
+                <div className="h-1 bg-[#0a2540] w-full" />
               </div>
             </div>
           </div>
 
-          {/* Quick Flip Hint */}
-          <div className="mt-4 flex items-center gap-2 print:hidden">
+          {/* Quick Flip Hint & Side Toggle */}
+          <div className="mt-4 flex items-center gap-3 print:hidden">
             <button
               onClick={() => setIsFlipped((prev) => !prev)}
               className="text-xs text-sky-400 hover:text-sky-300 font-medium flex items-center gap-1.5 transition cursor-pointer"
