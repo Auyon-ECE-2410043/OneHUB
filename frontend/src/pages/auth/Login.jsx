@@ -52,6 +52,15 @@ export function Login() {
   const [setupClientId, setSetupClientId] = useState(
     import.meta.env.VITE_GOOGLE_CLIENT_ID || localStorage.getItem('vite_google_client_id') || "740690894171-8ce0qovfdifvcfoa8jjc9pkss3kof3d1.apps.googleusercontent.com"
   );
+  const [resending, setResending] = useState(false);
+  const [resendCooldown, setResendCooldown] = useState(0);
+
+  useEffect(() => {
+    if (resendCooldown > 0) {
+      const timer = setTimeout(() => setResendCooldown(resendCooldown - 1), 1000);
+      return () => clearTimeout(timer);
+    }
+  }, [resendCooldown]);
 
   const handleChange = (e) => {
     setFormData({ ...formData, [e.target.name]: e.target.value });
@@ -294,6 +303,20 @@ export function Login() {
     }
   };
 
+  const handleResendOtp = async () => {
+    if (resendCooldown > 0 || resending || !userId) return;
+    setResending(true);
+    try {
+      await authService.resendFirstLoginOtp(userId);
+      toast.success("A new verification code was sent to your email! Please check your Inbox and Spam/Junk folder.");
+      setResendCooldown(45);
+    } catch (err) {
+      toast.error(err.message || "Failed to resend code.");
+    } finally {
+      setResending(false);
+    }
+  };
+
   const fillCredentials = (email, password) => {
     setFormData({ email, password });
   };
@@ -463,7 +486,10 @@ export function Login() {
                 <ShieldCheck className="w-12 h-12 text-sky-400 mx-auto mb-2" />
                 <h3 className="text-xl font-bold text-white">Security Check</h3>
                 <p className="text-sm text-slate-400 mt-2">
-                  For your first login, a verification code was sent to your email. Please enter it below and set a new password.
+                  A verification code was sent to <strong className="text-sky-300 font-semibold">{formData.email}</strong>. Please enter the code below and set a new password.
+                </p>
+                <p className="text-xs text-amber-300/80 mt-1.5 bg-amber-500/10 py-1.5 px-3 rounded-lg border border-amber-500/20">
+                  Tip: If you do not see it in your inbox, please check your <strong>Spam / Junk</strong> folder.
                 </p>
               </div>
 
@@ -526,6 +552,28 @@ export function Login() {
                       <ArrowRight className="w-4 h-4" />
                     </span>
                   )}
+                </button>
+              </div>
+
+              <div className="flex items-center justify-between pt-1">
+                <button
+                  type="button"
+                  onClick={handleResendOtp}
+                  disabled={resendCooldown > 0 || resending}
+                  className="text-xs font-medium text-sky-400 hover:text-sky-300 disabled:text-slate-500 transition-smooth"
+                >
+                  {resending
+                    ? "Resending..."
+                    : resendCooldown > 0
+                    ? `Resend Code in ${resendCooldown}s`
+                    : "Resend Code"}
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setStep("login")}
+                  className="text-xs font-medium text-slate-400 hover:text-white transition-smooth"
+                >
+                  ← Back to Sign In
                 </button>
               </div>
             </form>

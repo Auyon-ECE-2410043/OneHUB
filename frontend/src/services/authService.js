@@ -26,6 +26,11 @@ export const authService = {
     return res.data;
   },
 
+  resendFirstLoginOtp: async (userId) => {
+    const res = await api.post("/auth/resend-first-login-otp", { userId });
+    return res.data;
+  },
+
   forcePasswordChange: async (userId, currentPassword, newPassword) => {
     const res = await api.post("/auth/force-password-change", { userId, currentPassword, newPassword });
     if (res.data.token) {

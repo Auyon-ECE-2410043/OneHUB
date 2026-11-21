@@ -21,15 +21,26 @@ const sendEmail = async (options) => {
           pass: emailPass,
         },
         family: 4, // Force IPv4 to prevent ENETUNREACH on Render/cloud
+        connectionTimeout: 8000,
+        greetingTimeout: 8000,
+        socketTimeout: 10000,
       });
     } else {
       transporter = nodemailer.createTransport({
-        service: "gmail",
+        host: "smtp.gmail.com",
+        port: 465,
+        secure: true,
         auth: {
           user: emailUser,
           pass: emailPass,
         },
         family: 4, // Force IPv4 to prevent ENETUNREACH on Render/cloud
+        connectionTimeout: 8000,
+        greetingTimeout: 8000,
+        socketTimeout: 10000,
+        tls: {
+          rejectUnauthorized: false
+        }
       });
     }
   } else {

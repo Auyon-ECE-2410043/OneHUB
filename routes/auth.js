@@ -163,22 +163,30 @@ router.post("/login", async (req, res) => {
       // Generate 6-digit OTP
       const otpCode = Math.floor(100000 + Math.random() * 900000).toString();
       
-      // Save or update OTP in DB
+      // Save or update OTP in DB immediately
       await Otp.findOneAndDelete({ email: user.email });
       await Otp.create({ email: user.email, otp: otpCode });
       
-      // Send email
-      await sendEmail({
-          to: user.email,
-          subject: "OneHUB - Verify Your Account",
-          text: `Welcome to OneHUB! Your verification code for first-time login is: ${otpCode}`,
-          html: generateOTPTemplate(otpCode, 'login')
-        });
+      // Send email with safety race so cloud SMTP delays/blocks do not freeze the browser on "Signing in..."
+      const emailPromise = sendEmail({
+        to: user.email,
+        subject: "OneHUB - Verify Your Account",
+        text: `Welcome to OneHUB! Your verification code for first-time login is: ${otpCode}`,
+        html: generateOTPTemplate(otpCode, 'login')
+      }).catch((emailErr) => {
+        console.error("Warning: First-login email delivery issue:", emailErr.message);
+      });
+
+      // Allow up to 3 seconds for immediate SMTP delivery; otherwise continue in background
+      await Promise.race([
+        emailPromise,
+        new Promise((resolve) => setTimeout(resolve, 3000))
+      ]);
 
       return res.json({ 
         requiresOtp: true, 
         userId: user._id, 
-        message: "A verification code has been sent to your email (Please check your Spam/Junk folder). Please verify to continue." 
+        message: "A verification code has been sent to your email (Please check your Inbox and Spam/Junk folder)." 
       });
     }
 
@@ -292,6 +300,32 @@ router.post("/verify-first-login", async (req, res) => {
       }
 
     res.json({ token, user: userObj, message: newPassword ? "Password updated successfully." : "Email verified successfully." });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// POST /api/auth/resend-first-login-otp
+router.post("/resend-first-login-otp", async (req, res) => {
+  try {
+    const { userId } = req.body;
+    if (!userId) return res.status(400).json({ error: "User ID is required." });
+
+    const user = await User.findById(userId);
+    if (!user) return res.status(404).json({ error: "User not found." });
+
+    const otpCode = Math.floor(100000 + Math.random() * 900000).toString();
+    await Otp.findOneAndDelete({ email: user.email });
+    await Otp.create({ email: user.email, otp: otpCode });
+
+    sendEmail({
+      to: user.email,
+      subject: "OneHUB - Verify Your Account",
+      text: `Welcome to OneHUB! Your verification code for first-time login is: ${otpCode}`,
+      html: generateOTPTemplate(otpCode, 'login')
+    }).catch((err) => console.error("Resend email error:", err.message));
+
+    res.json({ message: `A new verification code has been sent to ${user.email}. Please check your Inbox and Spam/Junk folder.` });
   } catch (err) {
     res.status(500).json({ error: err.message });
   }

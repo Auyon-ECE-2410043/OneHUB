@@ -58,7 +58,7 @@ export function AuthProvider({ children }) {
 
   const login = async (credentials) => {
     const data = await authService.login(credentials);
-    if (!data.requiresOtp) {
+    if (data.token && data.user) {
       setToken(data.token);
       setUser(data.user);
     }
