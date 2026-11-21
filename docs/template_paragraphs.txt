@@ -1,0 +1,61 @@
+﻿Heaven’s Light is Our Guide
+Name of the Title
+By
+Student Name
+(2X100XX)
+Software Development Project- I (ECE-2100)
+Name of Instructor:
+XXXXX
+Rajshahi University of Engineering &amp; Technology
+Faculty of Electrical &amp; Computer Engineering
+Department of Electrical &amp; Computer Engineering
+Rajshahi-6204
+May 2026
+Acknowledgment
+Table of Contents
+Content
+Page
+Abstract
+Chapter 1: Introduction
+1.1 Introduction
+1.2 Problem Statement
+1.3 Project aims and objectives
+1.4 Significance of the study
+Chapter 2: Software &amp; Hardware
+2.1 Introduction
+2.2 Software Requirements
+2.3 Programming Languages &amp; Frameworks Used
+2.4 Development Tools (IDE, Version Control, Libraries)
+2.5 Used languages
+Chapter 3: System Design
+3.1 Table design
+3.2 Entity Relationship Diagram (ERD)
+3.3 Data Flow Diagram (DFD)
+3.4 Class Diagram
+3.5 User Interface (UI/UX) Design
+Chapter 4: System Implementation
+4.1 Introduction
+4.3 Module-wise Implementation
+4.4 Algorithms/Logic Explanation
+4.5 Security Features Implemented
+Chapter 5: Testing, Results and Evaluation
+5.1 Testing Methodology
+5.2 Testing Cases and Results
+5.3 System Outputs
+5.4 Performance Evaluation
+5.5 Justification of Complex Engineering Problem (CEP)
+5.6 Limitations &amp; Further Improvement
+5.7 Conclusion
+Chapter 6: Project Management
+6.1 Development Methodology (e. g. Agile, Waterfall, etc.)
+6.2 Timeline / Gantt Chart
+6.3 Team Contributions and Responsibilities
+6.4 Risk Management
+Chapter 7: References
+Chapter 8: Appendices
+Appendix A: Source Code (or GitHub link)
+Appendix B: Additional Screenshots
+Appendix C: User Manual
+List of Figures
+List of Tables
+Abstract
