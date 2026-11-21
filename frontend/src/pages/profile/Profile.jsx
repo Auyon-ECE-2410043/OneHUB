@@ -192,6 +192,7 @@ export function Profile() {
                       setMsg({ text: "Uploading...", type: "success" });
                       const res = await authService.uploadProfilePicture(e.target.files[0]);
                       updateUser(res.user);
+                      setUser(res.user);
                       setMsg({ text: "Profile picture updated successfully", type: "success" });
                     } catch (err) {
                       setMsg({ text: "Failed: " + err.message, type: "error" });

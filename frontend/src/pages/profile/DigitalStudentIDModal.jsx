@@ -39,9 +39,12 @@ export default function DigitalStudentIDModal({ isOpen, onClose, user }) {
   const cardFrontRef = useRef(null);
   const cardBackRef = useRef(null);
 
+  const [imgError, setImgError] = useState(false);
+
   // Sync activeUser with prop and refresh with latest data from DB when modal opens
   useEffect(() => {
     setActiveUser(user);
+    setImgError(false);
     if (isOpen) {
       api
         .get("/auth/me")
@@ -59,28 +62,35 @@ export default function DigitalStudentIDModal({ isOpen, onClose, user }) {
     currentUser.rollNo === "2410042" ||
     (currentUser.name && currentUser.name.toLowerCase().includes("nafisa"));
 
-  const rollNumber = currentUser.rollNo || (isNafisa ? "2410042" : "2410043");
-  const studentName = isNafisa ? "NAFISA ISLAM" : (currentUser.name || "AUYON DIP SARDAR").toUpperCase();
+  const rollNumber = currentUser.rollNo || (isNafisa ? "2410042" : "N/A");
+  const studentName = (currentUser.name || (isNafisa ? "NAFISA ISLAM" : "STUDENT NAME")).toUpperCase();
 
-  const departmentName = isNafisa
-    ? "Department of Electrical & Computer Engineering"
-    : currentUser.department
-    ? currentUser.department.toLowerCase().includes("department")
-      ? currentUser.department
-      : `Department of ${currentUser.department}`
-    : "Department of Electrical & Computer Engineering";
+  const rawDept = currentUser.department || (isNafisa ? "Electrical & Computer Engineering" : "Engineering");
+  const departmentName = rawDept.toLowerCase().includes("department")
+    ? rawDept
+    : rawDept.length <= 5
+    ? `Department of ${rawDept}`
+    : rawDept.startsWith("Dept.")
+    ? rawDept.replace("Dept.", "Department")
+    : `Department of ${rawDept}`;
 
-  const blood = isNafisa
-    ? "A+"
-    : currentUser.bloodGroup || (rollNumber === "2410043" ? "B+" : "A+");
+  const blood = currentUser.bloodGroup || (isNafisa ? "A+" : (rollNumber === "2410043" ? "B+" : "Not Set"));
 
-  const contactPhone = isNafisa
-    ? "+8801989646177"
-    : currentUser.phone || "+8801700-000000";
+  const contactPhone =
+    currentUser.phone ||
+    currentUser.fatherContactNo ||
+    (isNafisa ? "+8801989646177" : "+880 1700-000000");
 
-  const photoUrl = isNafisa
-    ? "/nafisa_photo.png"
-    : currentUser.profilePicture || "/nafisa_photo.png";
+  // Dynamic Profile Picture Resolution for every student:
+  // 1. If student uploaded a profile picture, use it directly!
+  // 2. If roll is 2410042 (Nafisa) and no uploaded photo, fallback to /nafisa_photo.png
+  // 3. Otherwise null (renders authentic student photo placeholder with initials)
+  const photoUrl =
+    !imgError && currentUser.profilePicture && currentUser.profilePicture.trim() !== ""
+      ? currentUser.profilePicture
+      : isNafisa && !imgError
+      ? "/nafisa_photo.png"
+      : null;
 
   // Generate QR code data for the back of the card
   useEffect(() => {
@@ -314,15 +324,24 @@ export default function DigitalStudentIDModal({ isOpen, onClose, user }) {
               <div className="px-4 py-1 flex items-center gap-3.5 relative z-10 flex-1">
                 {/* Left Column: Photograph & Holder's Signature */}
                 <div className="flex flex-col items-center shrink-0 w-[100px]">
-                  <div className="w-[90px] h-[108px] rounded border border-slate-300 overflow-hidden bg-slate-100 shadow-xs relative">
-                    <img
-                      src={photoUrl}
-                      alt={studentName}
-                      className="w-full h-full object-cover"
-                      onError={(e) => {
-                        e.currentTarget.src = "/nafisa_photo.png";
-                      }}
-                    />
+                  <div className="w-[90px] h-[108px] rounded border border-slate-300 overflow-hidden bg-slate-50 shadow-xs relative flex items-center justify-center">
+                    {photoUrl ? (
+                      <img
+                        src={photoUrl}
+                        alt={studentName}
+                        className="w-full h-full object-cover"
+                        onError={() => setImgError(true)}
+                      />
+                    ) : (
+                      <div className="w-full h-full bg-gradient-to-tr from-slate-100 via-sky-50 to-slate-200 flex flex-col items-center justify-center text-slate-700 select-none">
+                        <div className="w-10 h-10 rounded-full bg-slate-300/80 flex items-center justify-center text-[#0a2540] font-black text-sm tracking-wider">
+                          {getInitials(studentName || "ST")}
+                        </div>
+                        <span className="text-[7.5px] uppercase font-bold tracking-wider text-slate-500 mt-1.5">
+                          ID PHOTO
+                        </span>
+                      </div>
+                    )}
                   </div>
                   <span className="text-[8px] font-semibold text-slate-600 tracking-tight mt-1">
                     Holder&apos;s Signature
