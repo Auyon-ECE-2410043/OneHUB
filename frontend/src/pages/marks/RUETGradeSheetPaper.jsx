@@ -18,7 +18,8 @@
 import { useRef, useState } from "react";
 import html2canvasPro from "html2canvas-pro";
 import html2canvasStd from "html2canvas";
-import { Download, Printer, X, Award, ShieldCheck, CheckCircle2 } from "lucide-react";
+import { jsPDF } from "jspdf";
+import { Download, Printer, X, Award, ShieldCheck, CheckCircle2, FileCheck } from "lucide-react";
 import { toast } from "sonner";
 
 // Helper to convert semester code to RUET Academic Term name
@@ -101,8 +102,100 @@ export function RUETGradeSheetPaper({
     ? Number(currentResult.cgpa).toFixed(2)
     : (latestOfficial?.cgpa ? Number(latestOfficial.cgpa).toFixed(2) : (sgpa || "—"));
 
-  // High-Res PNG Download with full Dark Mode immunity
-  // High-Res PNG Download with full Dark Mode immunity, Legal size aspect ratio (8.5" x 14")
+  // 1. Direct Official Legal PDF Download (Using html2canvas-pro + jsPDF)
+  const handleDownloadPDF = async () => {
+    if (!paperRef.current) return;
+    setDownloading(true);
+    const toastId = toast.loading("Generating official Legal-size Grade Sheet PDF...");
+
+    let clone = null;
+    try {
+      const element = paperRef.current;
+      clone = element.cloneNode(true);
+      clone.style.position = "fixed";
+      clone.style.top = "0";
+      clone.style.left = "0";
+      clone.style.zIndex = "-9999";
+      clone.style.width = "816px";
+      clone.style.minWidth = "816px";
+      clone.style.maxWidth = "816px";
+      clone.style.height = "1344px";
+      clone.style.minHeight = "1344px";
+      clone.style.maxHeight = "1344px";
+      clone.style.transform = "none";
+      clone.style.margin = "0";
+      clone.style.padding = "40px 48px";
+      clone.style.boxSizing = "border-box";
+      clone.style.display = "flex";
+      clone.style.flexDirection = "column";
+      clone.style.justifyContent = "space-between";
+      clone.style.backgroundColor = "#ffffff";
+      clone.style.color = "#000000";
+      clone.style.boxShadow = "none";
+      clone.style.border = "none";
+      clone.style.overflow = "hidden";
+
+      // Ensure black text for all text nodes
+      clone.querySelectorAll("h1, h2, h3, p, span, td, th, div").forEach((node) => {
+        if (
+          !node.closest(".stamp-badge") &&
+          !node.closest(".signature-item") &&
+          !node.closest(".seal-badge")
+        ) {
+          node.style.color = "#000000";
+          if (node.tagName === "TABLE" || node.tagName === "TH" || node.tagName === "TD") {
+            node.style.borderColor = "#000000";
+          }
+        }
+      });
+
+      document.body.appendChild(clone);
+
+      const opts = {
+        scale: 2.5,
+        useCORS: true,
+        allowTaint: false,
+        backgroundColor: "#ffffff",
+        logging: false,
+        scrollX: 0,
+        scrollY: 0,
+        width: 816,
+        height: 1344,
+      };
+
+      let canvas;
+      try {
+        canvas = await html2canvasPro(clone, opts);
+      } catch (errPro) {
+        console.warn("html2canvasPro fallback to standard:", errPro);
+        canvas = await html2canvasStd(clone, opts);
+      }
+
+      const imgData = canvas.toDataURL("image/jpeg", 0.98);
+      // Legal dimensions in pt: 612 x 1008 (8.5 x 14 inches)
+      const pdf = new jsPDF({
+        orientation: "portrait",
+        unit: "pt",
+        format: "legal",
+      });
+
+      pdf.addImage(imgData, "JPEG", 0, 0, 612, 1008);
+      const safeRoll = studentRoll || "GradeSheet";
+      pdf.save(`RUET_Official_Grade_Sheet_${safeRoll}_Sem_${currentSemester}_Legal.pdf`);
+
+      toast.success("Official Legal-size Grade Sheet PDF downloaded successfully!", { id: toastId });
+    } catch (err) {
+      console.error("Failed to generate Grade Sheet PDF:", err);
+      toast.error("Failed to generate PDF. You can use Download PNG or Print.", { id: toastId });
+    } finally {
+      if (clone && clone.parentNode) {
+        clone.parentNode.removeChild(clone);
+      }
+      setDownloading(false);
+    }
+  };
+
+  // 2. High-Res PNG Download with full Dark Mode immunity, Legal size aspect ratio (8.5" x 14")
   const handleDownloadPNG = async () => {
     if (!paperRef.current) return;
     setDownloading(true);
@@ -190,7 +283,7 @@ export function RUETGradeSheetPaper({
     }
   };
 
-  // Browser Print - Isolated iframe printing guarantees strictly 1 Legal page in Chrome/Edge/Firefox
+  // 3. Browser Print - Robust isolated iframe printing with explicit Legal dimensions
   const handlePrint = () => {
     const printContent = paperRef.current;
     if (!printContent) {
@@ -200,16 +293,24 @@ export function RUETGradeSheetPaper({
 
     try {
       const iframe = document.createElement("iframe");
+      // Use full dimensions off-screen so Chromium initializes a valid print preview viewport
       iframe.style.position = "fixed";
-      iframe.style.right = "0";
-      iframe.style.bottom = "0";
-      iframe.style.width = "0";
-      iframe.style.height = "0";
-      iframe.style.border = "0";
+      iframe.style.top = "-10000px";
+      iframe.style.left = "-10000px";
+      iframe.style.width = "8.5in";
+      iframe.style.height = "14in";
+      iframe.style.border = "none";
+      iframe.style.zIndex = "-9999";
       document.body.appendChild(iframe);
 
       const doc = iframe.contentWindow.document;
+
+      // Extract stylesheets while filtering out hidden parent visibility rules
       const styles = Array.from(document.querySelectorAll('link[rel="stylesheet"], style'))
+        .filter((node) => {
+          const text = node.textContent || "";
+          return !text.includes("visibility: hidden") && !text.includes("body > *");
+        })
         .map((node) => node.outerHTML)
         .join("\n");
 
@@ -218,6 +319,7 @@ export function RUETGradeSheetPaper({
         <!DOCTYPE html>
         <html>
           <head>
+            <meta charset="utf-8" />
             <title>RUET Official Grade Sheet</title>
             ${styles}
             <style>
@@ -229,6 +331,7 @@ export function RUETGradeSheetPaper({
                 box-sizing: border-box !important;
                 -webkit-print-color-adjust: exact !important;
                 print-color-adjust: exact !important;
+                visibility: visible !important;
               }
               html, body {
                 margin: 0 !important;
@@ -236,14 +339,14 @@ export function RUETGradeSheetPaper({
                 background: #ffffff !important;
                 color: #000000 !important;
                 font-family: 'Times New Roman', Times, serif;
-                width: 100% !important;
-                height: 100% !important;
-                overflow: hidden !important;
+                width: 8.5in !important;
+                min-height: 13.4in !important;
+                visibility: visible !important;
               }
               .isolated-legal-paper {
                 width: 100% !important;
-                max-height: 13.3in !important;
                 height: 100% !important;
+                min-height: 13.2in !important;
                 display: flex !important;
                 flex-direction: column !important;
                 justify-content: space-between !important;
@@ -253,11 +356,26 @@ export function RUETGradeSheetPaper({
                 break-after: avoid !important;
                 overflow: hidden !important;
                 background: #ffffff !important;
+                visibility: visible !important;
+              }
+              .isolated-legal-paper * {
+                visibility: visible !important;
+                page-break-inside: avoid !important;
+                page-break-after: avoid !important;
+                break-inside: avoid !important;
+                break-after: avoid !important;
+              }
+              table {
+                border-collapse: collapse !important;
+                width: 100% !important;
+              }
+              th, td {
+                border-color: #000000 !important;
               }
             </style>
           </head>
           <body>
-            <div class="isolated-legal-paper">
+            <div id="ruet-gradesheet-paper" class="isolated-legal-paper">
               ${printContent.innerHTML}
             </div>
           </body>
@@ -265,15 +383,44 @@ export function RUETGradeSheetPaper({
       `);
       doc.close();
 
-      setTimeout(() => {
-        iframe.contentWindow.focus();
-        iframe.contentWindow.print();
-        setTimeout(() => {
-          if (iframe.parentNode) {
-            iframe.parentNode.removeChild(iframe);
+      const triggerPrint = () => {
+        try {
+          iframe.contentWindow.focus();
+          iframe.contentWindow.print();
+        } catch (e) {
+          console.warn("Print error inside iframe:", e);
+        } finally {
+          setTimeout(() => {
+            if (iframe.parentNode) {
+              iframe.parentNode.removeChild(iframe);
+            }
+          }, 3000);
+        }
+      };
+
+      // Check if all images inside iframe are loaded
+      const images = Array.from(doc.images);
+      if (images.length === 0) {
+        setTimeout(triggerPrint, 300);
+      } else {
+        let loadedCount = 0;
+        images.forEach((img) => {
+          if (img.complete) {
+            loadedCount++;
+            if (loadedCount === images.length) setTimeout(triggerPrint, 200);
+          } else {
+            img.onload = () => {
+              loadedCount++;
+              if (loadedCount === images.length) setTimeout(triggerPrint, 200);
+            };
+            img.onerror = () => {
+              loadedCount++;
+              if (loadedCount === images.length) setTimeout(triggerPrint, 200);
+            };
           }
-        }, 1500);
-      }, 350);
+        });
+        setTimeout(triggerPrint, 1000);
+      }
     } catch (e) {
       console.warn("Iframe print fallback to window.print:", e);
       window.print();
@@ -282,7 +429,7 @@ export function RUETGradeSheetPaper({
 
   return (
     <div className="fixed inset-0 z-50 overflow-y-auto bg-slate-900/80 backdrop-blur-sm flex justify-center p-2 sm:p-4 print:p-0 print:bg-white print:static">
-      {/* Print isolation style configured for standard Legal paper (8.5in x 14in) single-page printing */}
+      {/* Print isolation style configured for standard Legal paper (8.5in x 14in) */}
       <style>{`
         @page {
           size: legal portrait;
@@ -292,27 +439,20 @@ export function RUETGradeSheetPaper({
           html, body {
             width: 8.5in !important;
             height: 14in !important;
-            max-height: 14in !important;
             margin: 0 !important;
             padding: 0 !important;
             background: #ffffff !important;
             color: #000000 !important;
-            overflow: hidden !important;
             -webkit-print-color-adjust: exact !important;
             print-color-adjust: exact !important;
           }
-          body > * {
-            visibility: hidden !important;
-          }
-          #ruet-gradesheet-paper, #ruet-gradesheet-paper * {
-            visibility: visible !important;
-          }
           #ruet-gradesheet-paper {
-            position: absolute !important;
+            visibility: visible !important;
+            position: fixed !important;
             left: 0 !important;
             top: 0 !important;
             width: 8.5in !important;
-            max-height: 13.4in !important;
+            height: 13.4in !important;
             box-sizing: border-box !important;
             margin: 0 !important;
             padding: 0.35in 0.45in !important;
@@ -328,8 +468,8 @@ export function RUETGradeSheetPaper({
             break-inside: avoid !important;
             overflow: hidden !important;
           }
-          /* Strictly prevent page breaks on all internal elements */
           #ruet-gradesheet-paper * {
+            visibility: visible !important;
             page-break-after: avoid !important;
             page-break-inside: avoid !important;
             break-after: avoid !important;
@@ -357,7 +497,7 @@ export function RUETGradeSheetPaper({
                   Legal Size (8.5&quot; × 14&quot;)
                 </span>
               </div>
-              <p className="text-[11px] text-slate-400">Office of the Controller of Examinations • Legal 1-Page</p>
+              <p className="text-[11px] text-slate-400">Office of the Controller of Examinations • PDF, PNG &amp; Print</p>
             </div>
           </div>
 
@@ -379,22 +519,32 @@ export function RUETGradeSheetPaper({
             </div>
 
             <button
-              onClick={handlePrint}
-              className="px-3 py-1.5 bg-slate-800 hover:bg-slate-700 text-slate-200 rounded-lg text-xs font-semibold flex items-center space-x-1.5 transition-colors cursor-pointer"
-              title="Print 1-Page Legal Document or Save as PDF"
+              onClick={handleDownloadPDF}
+              disabled={downloading}
+              className="px-3.5 py-1.5 bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-500 hover:to-teal-500 text-white rounded-lg text-xs font-bold flex items-center space-x-1.5 transition-colors disabled:opacity-50 shadow-md shadow-emerald-600/30 cursor-pointer"
+              title="Instant One-Click Download Official Legal-Size PDF"
             >
-              <Printer className="w-3.5 h-3.5" />
-              <span className="hidden sm:inline">Print / PDF</span>
+              <Download className="w-3.5 h-3.5" />
+              <span>{downloading ? "Generating..." : "Download PDF"}</span>
             </button>
 
             <button
               onClick={handleDownloadPNG}
               disabled={downloading}
-              className="px-3.5 py-1.5 bg-emerald-600 hover:bg-emerald-500 text-white rounded-lg text-xs font-semibold flex items-center space-x-1.5 transition-colors disabled:opacity-50 cursor-pointer"
+              className="px-3 py-1.5 bg-slate-800 hover:bg-slate-700 text-slate-200 rounded-lg text-xs font-semibold flex items-center space-x-1.5 transition-colors disabled:opacity-50 cursor-pointer"
               title="Download 1-Page Legal 300 DPI PNG"
             >
-              <Download className="w-3.5 h-3.5" />
-              <span>{downloading ? "Exporting..." : "Download Legal PNG"}</span>
+              <FileCheck className="w-3.5 h-3.5" />
+              <span className="hidden sm:inline">PNG</span>
+            </button>
+
+            <button
+              onClick={handlePrint}
+              className="px-3 py-1.5 bg-sky-700 hover:bg-sky-600 text-white rounded-lg text-xs font-semibold flex items-center space-x-1.5 transition-colors cursor-pointer"
+              title="Print 1-Page Legal Document or Save as PDF"
+            >
+              <Printer className="w-3.5 h-3.5" />
+              <span className="hidden sm:inline">Print / PDF</span>
             </button>
 
             <button

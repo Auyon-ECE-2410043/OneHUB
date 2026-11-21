@@ -15,7 +15,8 @@
 import { useRef, useState } from "react";
 import html2canvasPro from "html2canvas-pro";
 import html2canvasStd from "html2canvas";
-import { Download, Printer, X, CheckCircle2, ShieldCheck, FileCheck } from "lucide-react";
+import { jsPDF } from "jspdf";
+import { Download, Printer, X, CheckCircle2, ShieldCheck, FileCheck, FileText } from "lucide-react";
 import { toast } from "sonner";
 
 // Helper to convert semester code to RUET Academic Term name
@@ -93,7 +94,97 @@ export default function RegistrationConfirmationPaper({
   const adviserTitle = registration.approvedBy?.designation || "Academic Adviser";
   const adviserDept = registration.approvedBy?.department || studentDept;
 
-  // High-Res PNG Download with full Dark Mode immunity, Legal size aspect ratio (8.5" x 14")
+  // 1. Direct Official Legal PDF Download (Using html2canvas-pro + jsPDF)
+  const handleDownloadPDF = async () => {
+    if (!paperRef.current) return;
+    setDownloading(true);
+    const toastId = toast.loading("Generating official Legal-size PDF...");
+
+    let clone = null;
+    try {
+      const element = paperRef.current;
+      clone = element.cloneNode(true);
+      clone.style.position = "fixed";
+      clone.style.top = "0";
+      clone.style.left = "0";
+      clone.style.zIndex = "-9999";
+      clone.style.width = "816px";
+      clone.style.minWidth = "816px";
+      clone.style.maxWidth = "816px";
+      clone.style.height = "1344px";
+      clone.style.minHeight = "1344px";
+      clone.style.maxHeight = "1344px";
+      clone.style.transform = "none";
+      clone.style.margin = "0";
+      clone.style.padding = "42px 50px";
+      clone.style.boxSizing = "border-box";
+      clone.style.display = "flex";
+      clone.style.flexDirection = "column";
+      clone.style.justifyContent = "space-between";
+      clone.style.backgroundColor = "#ffffff";
+      clone.style.color = "#000000";
+      clone.style.boxShadow = "none";
+      clone.style.border = "none";
+      clone.style.overflow = "hidden";
+
+      // Ensure crisp black text on white
+      clone.querySelectorAll("h1, h2, h3, p, span, td, th, div").forEach((node) => {
+        if (
+          !node.closest(".stamp-badge") &&
+          !node.closest(".signature-item") &&
+          !node.closest(".seal-badge")
+        ) {
+          node.style.color = "#000000";
+          if (node.tagName === "TABLE" || node.tagName === "TH" || node.tagName === "TD") {
+            node.style.borderColor = "#000000";
+          }
+        }
+      });
+
+      document.body.appendChild(clone);
+
+      const opts = {
+        scale: 2.5,
+        useCORS: true,
+        allowTaint: false,
+        backgroundColor: "#ffffff",
+        logging: false,
+        width: 816,
+        height: 1344,
+      };
+
+      let canvas;
+      try {
+        canvas = await html2canvasPro(clone, opts);
+      } catch (ePro) {
+        canvas = await html2canvasStd(clone, opts);
+      }
+
+      const imgData = canvas.toDataURL("image/jpeg", 0.98);
+      // Legal dimensions in pt: 612 x 1008 (8.5 x 14 inches)
+      const pdf = new jsPDF({
+        orientation: "portrait",
+        unit: "pt",
+        format: "legal",
+      });
+
+      pdf.addImage(imgData, "JPEG", 0, 0, 612, 1008);
+      const safeRoll = studentRoll || "Registration";
+      pdf.save(`RUET_Course_Registration_Approved_${safeRoll}_Sem_${semester}_Legal.pdf`);
+
+      toast.success("Official Legal-size PDF downloaded successfully!", { id: toastId });
+    } catch (err) {
+      console.error("PDF generation error:", err);
+      toast.error("Failed to generate PDF. You can use Download Legal PNG.", { id: toastId });
+    } finally {
+      if (clone && clone.parentNode) {
+        clone.parentNode.removeChild(clone);
+      }
+      setDownloading(false);
+    }
+  };
+
+  // 2. High-Res PNG Download with full Dark Mode immunity, Legal size aspect ratio (8.5" x 14")
   const handleDownloadPNG = async () => {
     if (!paperRef.current) return;
     setDownloading(true);
@@ -102,7 +193,6 @@ export default function RegistrationConfirmationPaper({
     let clone = null;
     try {
       const element = paperRef.current;
-      // Clone element directly to document body to eliminate all modal scroll and positioning offsets
       clone = element.cloneNode(true);
       clone.style.position = "fixed";
       clone.style.top = "0";
@@ -149,8 +239,6 @@ export default function RegistrationConfirmationPaper({
         allowTaint: false,
         backgroundColor: "#ffffff",
         logging: false,
-        scrollX: 0,
-        scrollY: 0,
         width: 816,
         height: 1344,
       };
@@ -159,7 +247,6 @@ export default function RegistrationConfirmationPaper({
       try {
         canvas = await html2canvasPro(clone, opts);
       } catch (errPro) {
-        console.warn("html2canvasPro fallback to standard:", errPro);
         canvas = await html2canvasStd(clone, opts);
       }
 
@@ -173,7 +260,7 @@ export default function RegistrationConfirmationPaper({
       toast.success("Official Legal-size registration confirmation paper downloaded successfully!", { id: toastId });
     } catch (err) {
       console.error("Export error:", err);
-      toast.error("Failed to generate image. You can use Print / Save as PDF.", { id: toastId });
+      toast.error("Failed to generate image. You can use Download Legal PDF.", { id: toastId });
     } finally {
       if (clone && clone.parentNode) {
         clone.parentNode.removeChild(clone);
@@ -182,7 +269,7 @@ export default function RegistrationConfirmationPaper({
     }
   };
 
-  // Browser Print - Isolated iframe printing guarantees strictly 1 Legal page in Chrome/Edge/Firefox
+  // 3. Browser Print / Save as PDF - Immune to blank preview via sized off-screen iframe
   const handlePrint = () => {
     const printContent = paperRef.current;
     if (!printContent) {
@@ -192,16 +279,24 @@ export default function RegistrationConfirmationPaper({
 
     try {
       const iframe = document.createElement("iframe");
+      // Set actual dimensions offscreen so Chromium layout engine computes positive width and height
       iframe.style.position = "fixed";
-      iframe.style.right = "0";
-      iframe.style.bottom = "0";
-      iframe.style.width = "0";
-      iframe.style.height = "0";
-      iframe.style.border = "0";
+      iframe.style.top = "-10000px";
+      iframe.style.left = "-10000px";
+      iframe.style.width = "8.5in";
+      iframe.style.height = "14in";
+      iframe.style.border = "none";
+      iframe.style.zIndex = "-9999";
       document.body.appendChild(iframe);
 
       const doc = iframe.contentWindow.document;
+
+      // Extract existing stylesheets while filtering out any parent modal hide rules
       const styles = Array.from(document.querySelectorAll('link[rel="stylesheet"], style'))
+        .filter((node) => {
+          const text = node.innerHTML || node.innerText || "";
+          return !text.includes("visibility: hidden") && !text.includes("body > *");
+        })
         .map((node) => node.outerHTML)
         .join("\n");
 
@@ -217,8 +312,9 @@ export default function RegistrationConfirmationPaper({
                 size: legal portrait;
                 margin: 0.3in 0.45in;
               }
-              * {
+              *, *:before, *:after {
                 box-sizing: border-box !important;
+                visibility: visible !important;
                 -webkit-print-color-adjust: exact !important;
                 print-color-adjust: exact !important;
               }
@@ -227,29 +323,44 @@ export default function RegistrationConfirmationPaper({
                 padding: 0 !important;
                 background: #ffffff !important;
                 color: #000000 !important;
-                font-family: 'Times New Roman', Times, serif;
+                font-family: 'Times New Roman', Times, serif !important;
                 width: 100% !important;
-                height: 100% !important;
-                overflow: hidden !important;
+                min-height: 100% !important;
+                visibility: visible !important;
               }
-              .isolated-legal-paper {
+              .isolated-legal-paper, #ruet-registration-paper {
                 width: 100% !important;
-                max-height: 13.3in !important;
+                max-width: 8.5in !important;
                 height: 100% !important;
+                max-height: 13.4in !important;
+                margin: 0 auto !important;
+                padding: 0.35in 0.45in !important;
+                box-sizing: border-box !important;
+                background: #ffffff !important;
+                color: #000000 !important;
                 display: flex !important;
                 flex-direction: column !important;
                 justify-content: space-between !important;
+                visibility: visible !important;
                 page-break-inside: avoid !important;
                 page-break-after: avoid !important;
                 break-inside: avoid !important;
                 break-after: avoid !important;
                 overflow: hidden !important;
-                background: #ffffff !important;
+              }
+              table {
+                border-collapse: collapse !important;
+                width: 100% !important;
+                color: #000000 !important;
+              }
+              th, td {
+                border: 1px solid #000000 !important;
+                color: #000000 !important;
               }
             </style>
           </head>
           <body>
-            <div class="isolated-legal-paper">
+            <div id="ruet-registration-paper" class="isolated-legal-paper">
               ${printContent.innerHTML}
             </div>
           </body>
@@ -257,15 +368,43 @@ export default function RegistrationConfirmationPaper({
       `);
       doc.close();
 
-      setTimeout(() => {
-        iframe.contentWindow.focus();
-        iframe.contentWindow.print();
-        setTimeout(() => {
-          if (iframe.parentNode) {
-            iframe.parentNode.removeChild(iframe);
+      const triggerPrint = () => {
+        try {
+          iframe.contentWindow.focus();
+          iframe.contentWindow.print();
+        } catch (e) {
+          console.warn("Direct iframe print error:", e);
+          window.print();
+        } finally {
+          setTimeout(() => {
+            if (iframe.parentNode) {
+              iframe.parentNode.removeChild(iframe);
+            }
+          }, 2000);
+        }
+      };
+
+      // Ensure images in iframe are loaded before printing
+      const imgs = doc.querySelectorAll("img");
+      if (imgs.length === 0) {
+        setTimeout(triggerPrint, 300);
+      } else {
+        let loaded = 0;
+        const onImgDone = () => {
+          loaded++;
+          if (loaded >= imgs.length) {
+            setTimeout(triggerPrint, 250);
           }
-        }, 1500);
-      }, 350);
+        };
+        imgs.forEach((img) => {
+          if (img.complete) onImgDone();
+          else {
+            img.onload = onImgDone;
+            img.onerror = onImgDone;
+          }
+        });
+        setTimeout(triggerPrint, 1200);
+      }
     } catch (e) {
       console.warn("Iframe print fallback to window.print:", e);
       window.print();
@@ -274,7 +413,7 @@ export default function RegistrationConfirmationPaper({
 
   return (
     <div className="fixed inset-0 z-50 overflow-y-auto bg-black/80 backdrop-blur-sm flex items-center justify-center p-2 sm:p-6 print:p-0 print:bg-white animate-fade-in print:static print:z-auto print:overflow-visible">
-      {/* Print isolation style configured for standard Legal paper (8.5in x 14in) single-page printing */}
+      {/* Print isolation style configured for standard Legal paper (8.5in x 14in) */}
       <style>{`
         @page {
           size: legal portrait;
@@ -284,28 +423,21 @@ export default function RegistrationConfirmationPaper({
           html, body {
             width: 8.5in !important;
             height: 14in !important;
-            max-height: 14in !important;
             margin: 0 !important;
             padding: 0 !important;
             background: #ffffff !important;
             color: #000000 !important;
-            overflow: hidden !important;
             -webkit-print-color-adjust: exact !important;
             print-color-adjust: exact !important;
           }
-          body > * {
-            visibility: hidden !important;
-          }
-          #ruet-registration-paper, #ruet-registration-paper * {
-            visibility: visible !important;
-          }
+          /* Ensure modal paper is strictly visible when printing */
           #ruet-registration-paper {
-            position: absolute !important;
+            visibility: visible !important;
+            position: fixed !important;
             left: 0 !important;
             top: 0 !important;
             width: 8.5in !important;
-            max-height: 13.4in !important;
-            box-sizing: border-box !important;
+            height: 13.4in !important;
             margin: 0 !important;
             padding: 0.35in 0.45in !important;
             box-shadow: none !important;
@@ -320,8 +452,8 @@ export default function RegistrationConfirmationPaper({
             break-inside: avoid !important;
             overflow: hidden !important;
           }
-          /* Strictly prevent page breaks on all internal elements */
           #ruet-registration-paper * {
+            visibility: visible !important;
             page-break-after: avoid !important;
             page-break-inside: avoid !important;
             break-after: avoid !important;
@@ -348,25 +480,33 @@ export default function RegistrationConfirmationPaper({
                   Legal Size (8.5&quot; × 14&quot;)
                 </span>
               </div>
-              <p className="text-xs text-slate-400">Official Departmental 1-Page Legal Sheet • Print &amp; PNG</p>
+              <p className="text-xs text-slate-400">Official Departmental 1-Page Legal Sheet • PDF, PNG &amp; Print</p>
             </div>
           </div>
 
           <div className="flex items-center gap-2">
             <button
-              onClick={handlePrint}
-              className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-slate-700 hover:bg-slate-600 text-xs font-semibold text-white transition cursor-pointer"
-              title="Print 1-Page Legal Document or Save as PDF"
+              onClick={handleDownloadPDF}
+              disabled={downloading}
+              className="flex items-center gap-1.5 px-3.5 py-1.5 rounded-lg bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-500 hover:to-teal-500 text-xs font-bold text-white shadow-md shadow-emerald-600/30 transition disabled:opacity-50 cursor-pointer"
+              title="Instant One-Click Download Official Legal-Size PDF"
             >
-              <Printer className="w-4 h-4" /> Print / PDF
+              <Download className="w-4 h-4" /> {downloading ? "Generating..." : "Download PDF"}
             </button>
             <button
               onClick={handleDownloadPNG}
               disabled={downloading}
-              className="flex items-center gap-1.5 px-3.5 py-1.5 rounded-lg bg-emerald-600 hover:bg-emerald-500 text-xs font-bold text-white shadow-md shadow-emerald-600/30 transition disabled:opacity-50 cursor-pointer"
+              className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-slate-700 hover:bg-slate-600 text-xs font-semibold text-white transition disabled:opacity-50 cursor-pointer"
               title="Download 1-Page Legal 300 DPI PNG Image"
             >
-              <Download className="w-4 h-4" /> {downloading ? "Exporting..." : "Download Legal PNG"}
+              <FileCheck className="w-4 h-4" /> PNG
+            </button>
+            <button
+              onClick={handlePrint}
+              className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-sky-700 hover:bg-sky-600 text-xs font-semibold text-white transition cursor-pointer"
+              title="Print or Save as PDF via Browser"
+            >
+              <Printer className="w-4 h-4" /> Print / PDF
             </button>
             <button
               onClick={onClose}
